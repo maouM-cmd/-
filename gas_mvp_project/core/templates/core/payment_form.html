@@ -1,0 +1,17 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>入金登録</h2>
+<p>請求番号: {{ invoice.invoice_no }} / 顧客: {{ invoice.customer.name }} / 残額: {{ invoice.remaining_amount }}</p>
+<form method="post">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-row">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<div class="message error">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+  <button class="btn" type="submit">登録</button>
+  <a class="btn secondary" href="{% url 'core:payment_status_list' %}">戻る</a>
+</form>
+{% endblock %}

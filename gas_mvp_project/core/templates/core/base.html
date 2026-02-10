@@ -11,10 +11,21 @@
       main { padding: 20px; }
       .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; }
       .card { background: white; border-radius: 8px; padding: 16px; border: 1px solid #ddd; }
+      .toolbar { margin-bottom: 10px; }
+      .btn { background:#0d6efd; color:#fff; text-decoration:none; padding:8px 12px; border-radius:6px; border:none; cursor:pointer; }
+      .btn.secondary { background:#6c757d; }
       table { width: 100%; border-collapse: collapse; background: white; }
       th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
       th { background: #eef3ff; }
       .muted { color: #666; }
+      .messages { margin-bottom: 12px; }
+      .message { padding: 10px; border-radius: 6px; margin-bottom: 6px; }
+      .message.success { background: #d1e7dd; }
+      .message.error { background: #f8d7da; }
+      .message.info { background: #cff4fc; }
+      .form-row { margin-bottom: 10px; }
+      .form-row label { display: block; font-weight: bold; margin-bottom: 4px; }
+      .form-row input, .form-row select, .form-row textarea { width: 100%; max-width: 420px; padding: 6px; }
     </style>
   </head>
   <body>
@@ -30,6 +41,13 @@
       </nav>
     </header>
     <main>
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
   </body>

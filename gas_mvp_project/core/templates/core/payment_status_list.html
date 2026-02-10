@@ -3,7 +3,7 @@
 <h2>入金管理一覧</h2>
 <table>
   <thead>
-    <tr><th>請求番号</th><th>顧客</th><th>期限</th><th>請求額</th><th>ステータス</th></tr>
+    <tr><th>請求番号</th><th>顧客</th><th>期限</th><th>請求額</th><th>残額</th><th>ステータス</th><th>操作</th></tr>
   </thead>
   <tbody>
     {% for i in invoices %}
@@ -12,10 +12,18 @@
       <td>{{ i.customer.name }}</td>
       <td>{{ i.due_date }}</td>
       <td>{{ i.total_amount }}</td>
+      <td>{{ i.remaining_amount }}</td>
       <td>{{ i.get_status_display }}</td>
+      <td>
+        {% if i.status != 'paid' and i.status != 'cancelled' %}
+          <a class="btn secondary" href="{% url 'core:payment_create' i.id %}">入金登録</a>
+        {% else %}
+          -
+        {% endif %}
+      </td>
     </tr>
     {% empty %}
-    <tr><td colspan="5">データがありません</td></tr>
+    <tr><td colspan="7">データがありません</td></tr>
     {% endfor %}
   </tbody>
 </table>
