@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>検針一覧</h2>
+<table>
+  <thead>
+    <tr><th>顧客</th><th>検針月</th><th>前回</th><th>今回</th><th>使用量</th><th>検針日</th></tr>
+  </thead>
+  <tbody>
+    {% for r in readings %}
+    <tr>
+      <td>{{ r.customer.name }}</td>
+      <td>{{ r.reading_month|date:"Y-m" }}</td>
+      <td>{{ r.previous_value }}</td>
+      <td>{{ r.current_value }}</td>
+      <td>{{ r.usage_amount }}</td>
+      <td>{{ r.measured_at }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">データがありません</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

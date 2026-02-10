@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>顧客一覧</h2>
+<table>
+  <thead>
+    <tr><th>顧客番号</th><th>氏名</th><th>住所</th><th>支払方法</th><th>有効</th></tr>
+  </thead>
+  <tbody>
+    {% for c in customers %}
+    <tr>
+      <td>{{ c.customer_code }}</td>
+      <td>{{ c.name }}</td>
+      <td>{{ c.address1 }} {{ c.address2 }}</td>
+      <td>{{ c.get_billing_method_display }}</td>
+      <td>{% if c.is_active %}有効{% else %}停止{% endif %}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">データがありません</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
