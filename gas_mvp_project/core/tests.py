@@ -121,6 +121,31 @@ class ViewFlowTests(BaseDataMixin):
             response = self.client.get(reverse(name))
             self.assertEqual(response.status_code, 200)
 
+    def test_invoice_generate_requires_post_and_login(self):
+        reading = MeterReading.objects.create(
+            customer=self.customer,
+            reading_month=date(2025, 2, 1),
+            current_value=121,
+            previous_value=100,
+            usage_amount=0,
+            measured_at=date(2025, 2, 20),
+            input_user=self.user,
+        )
+
+        get_response = self.client.get(reverse("core:invoice_generate", kwargs={"meter_reading_id": reading.id}))
+        self.assertEqual(get_response.status_code, 302)
+
+        self.client.force_login(self.user)
+        method_response = self.client.get(reverse("core:invoice_generate", kwargs={"meter_reading_id": reading.id}))
+        self.assertEqual(method_response.status_code, 405)
+
+        post_response = self.client.post(
+            reverse("core:invoice_generate", kwargs={"meter_reading_id": reading.id}),
+            follow=True,
+        )
+        self.assertEqual(post_response.status_code, 200)
+        self.assertEqual(Invoice.objects.count(), 1)
+
     def test_meter_reading_create_post(self):
         self.client.force_login(self.user)
         response = self.client.post(
@@ -161,6 +186,7 @@ class ViewFlowTests(BaseDataMixin):
             total_amount=Decimal("11550.00"),
             tax_rate=Decimal("10.00"),
         )
+        self.client.force_login(self.user)
         response = self.client.post(
             reverse("core:payment_create", kwargs={"invoice_id": invoice.id}),
             {

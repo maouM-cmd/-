@@ -21,7 +21,10 @@
         {% if r.generated_invoice %}
           発行済（{{ r.generated_invoice.invoice_no }}）
         {% else %}
-          <a class="btn secondary" href="{% url 'core:invoice_generate' r.id %}">請求作成</a>
+          <form method="post" action="{% url 'core:invoice_generate' r.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn secondary" type="submit">請求作成</button>
+          </form>
         {% endif %}
       </td>
     </tr>

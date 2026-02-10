@@ -1,6 +1,8 @@
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -64,7 +66,11 @@ def invoice_list(request):
     return render(request, "core/invoice_list.html", {"invoices": invoices})
 
 
+@login_required(login_url="/admin/login/")
 def invoice_generate(request, meter_reading_id):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
     meter_reading = get_object_or_404(MeterReading, id=meter_reading_id)
     if hasattr(meter_reading, "invoice"):
         messages.info(request, "この検針データの請求書は既に発行済みです。")
@@ -88,6 +94,7 @@ def payment_status_list(request):
     return render(request, "core/payment_status_list.html", {"invoices": invoices})
 
 
+@login_required(login_url="/admin/login/")
 def payment_create(request, invoice_id):
     invoice = get_object_or_404(Invoice, id=invoice_id)
     if request.method == "POST":
