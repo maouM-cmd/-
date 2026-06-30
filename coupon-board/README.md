@@ -30,7 +30,10 @@ http://localhost:3000 でアクセスできます。
 
 ## 要件定義
 
-詳細は [REQUIREMENTS.md](./REQUIREMENTS.md) を参照してください。
+詳細は以下を参照してください。
+
+- [REQUIREMENTS.md](./REQUIREMENTS.md) — 要件定義
+- [BASIC_DESIGN.md](./BASIC_DESIGN.md) — 基本設計書
 
 ## ページ構成
 
