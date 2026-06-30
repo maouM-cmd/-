@@ -9,15 +9,48 @@
 
 ## 方式比較
 
-| 方式 | 難易度 | SQLite | 画像 | 推奨 |
-|------|--------|--------|------|------|
-| **Docker + VPS** | 中 | ✅ | ✅ | **◎** |
-| Docker（ローカル検証） | 低 | ✅ | ✅ | 検証用 |
-| Vercel | 低 | ❌ | ❌ | DB移行が必要 |
+| 方式 | 難易度 | SQLite | 画像 | 当環境で検証 |
+|------|--------|--------|------|-------------|
+| **Render.com** | 低 | ✅ disk | ✅ | Blueprint 用意済み |
+| **Docker + VPS** | 中 | ✅ | ✅ | Dockerfile 用意済み |
+| ローカル本番 | 低 | ✅ | ✅ | **検証済み** |
+| Vercel | 低 | ❌ | ❌ | 非推奨 |
 
 ---
 
-## A. Docker + VPS（推奨）
+## 0. ローカル本番モード（動作確認）
+
+```bash
+cd coupon-board
+npm run build
+npm start
+# 別ターミナルで
+npm run verify:prod
+```
+
+`verify:prod` は全ページ・API のスモークテストを実行します。
+
+---
+
+## A. Render.com（手軽・推奨クラウド）
+
+`render.yaml` を同梱済み。永続ディスクで SQLite・画像を保持できます。
+
+### 手順
+
+1. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**
+2. GitHub リポジトリを接続
+3. **Root Directory** を `coupon-board` に設定
+4. 環境変数を設定:
+   - `ADMIN_PASSWORD`（必須・強力な値）
+   - `NEXT_PUBLIC_CONTACT_EMAIL`
+5. **Deploy**
+
+デプロイ後: `https://<your-app>.onrender.com/api/health` で確認
+
+---
+
+## B. Docker + VPS（推奨・フルコントロール）
 
 ### 前提
 

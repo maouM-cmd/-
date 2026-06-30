@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "start:prod": "bash scripts/start-prod.sh",
+    "verify:prod": "bash scripts/verify-prod.sh"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",

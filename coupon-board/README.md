@@ -30,14 +30,16 @@ http://localhost:3000 でアクセスできます。
 
 ## 本番デプロイ
 
-**推奨: Docker + VPS**（SQLite・画像アップロード対応）
+| 方式 | 手順 |
+|------|------|
+| **Render.com**（手軽） | `render.yaml` → [DEPLOY.md](./DEPLOY.md) §A |
+| **Docker + VPS** | `docker compose up -d --build` → [DEPLOY.md](./DEPLOY.md) §B |
+| ローカル検証 | `npm run verify:prod` |
 
 ```bash
 cp .env.example .env.local   # 本番用に編集
-docker compose up -d --build
+docker compose up -d --build  # VPS の場合
 ```
-
-詳細は [DEPLOY.md](./DEPLOY.md) を参照してください。
 
 ## 要件定義
 
