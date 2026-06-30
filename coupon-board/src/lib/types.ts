@@ -1,19 +1,25 @@
 export type Category =
+  | "payment"
   | "ec"
-  | "food"
-  | "beauty"
-  | "service"
+  | "finance"
   | "subscription"
+  | "point"
+  | "sidejob"
   | "other";
 
-export interface Coupon {
+export type SortOption = "new" | "popular" | "referrer" | "referee";
+
+export interface Deal {
   id: number;
   service_name: string;
-  title: string;
+  referrer_reward: string;
+  referee_reward: string;
+  referrer_reward_value: number | null;
+  referee_reward_value: number | null;
+  referral_link: string | null;
+  referral_code: string | null;
+  conditions: string;
   description: string;
-  coupon_code: string | null;
-  discount: string;
-  url: string;
   category: Category;
   expires_at: string | null;
   author_name: string;
@@ -21,13 +27,16 @@ export interface Coupon {
   created_at: string;
 }
 
-export interface CreateCouponInput {
+export interface CreateDealInput {
   service_name: string;
-  title: string;
-  description: string;
-  coupon_code?: string;
-  discount: string;
-  url: string;
+  referrer_reward: string;
+  referee_reward: string;
+  referrer_reward_value?: number;
+  referee_reward_value?: number;
+  referral_link?: string;
+  referral_code?: string;
+  conditions?: string;
+  description?: string;
   category: Category;
   expires_at?: string;
   author_name: string;

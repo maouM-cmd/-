@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CouponForm } from "@/components/CouponForm";
+import { DealForm } from "@/components/DealForm";
 
 export default function PostPage() {
   return (
@@ -7,20 +7,20 @@ export default function PostPage() {
       <div className="mb-6">
         <Link
           href="/"
-          className="text-sm text-orange-600 hover:text-orange-700"
+          className="text-sm text-violet-600 hover:text-violet-700"
         >
           ← 一覧に戻る
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-gray-900">
-          クーポンを投稿する
+          招待キャンペーンを投稿する
         </h1>
         <p className="mt-1 text-sm text-gray-600">
-          知っている初回特典・クーポン情報をシェアしてください
+          あなたの招待リンク・コードをシェアして、みんなにお得情報を届けましょう
         </p>
       </div>
 
-      <div className="rounded-2xl border border-orange-100 bg-white p-6 shadow-sm">
-        <CouponForm />
+      <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
+        <DealForm />
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import { CouponCard } from "@/components/CouponCard";
+import { DealCard } from "@/components/DealCard";
 import { SearchFilter } from "@/components/SearchFilter";
-import { getAllCoupons, seedIfEmpty } from "@/lib/db";
-import type { Category } from "@/lib/types";
+import { getAllDeals, seedIfEmpty } from "@/lib/db";
+import type { Category, SortOption } from "@/lib/types";
 
 interface HomeProps {
   searchParams: Promise<{
@@ -16,23 +16,23 @@ export default async function Home({ searchParams }: HomeProps) {
   seedIfEmpty();
   const params = await searchParams;
 
-  const coupons = getAllCoupons({
+  const deals = getAllDeals({
     category: params.category as Category | undefined,
     search: params.search,
-    sort: (params.sort as "new" | "popular") ?? "new",
+    sort: (params.sort as SortOption) ?? "new",
   });
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <section className="mb-8 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 p-8 text-white shadow-lg shadow-orange-200">
+      <section className="mb-8 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-500 p-8 text-white shadow-lg shadow-violet-200">
         <h1 className="mb-2 text-2xl font-bold sm:text-3xl">
-          お得な初回クーポンを探そう
+          お得な招待キャンペーンを探そう
         </h1>
-        <p className="text-orange-100">
-          新規登録特典・初回割引・クーポンコードをみんなで共有する掲示板です
+        <p className="text-violet-100">
+          紹介する側・登録する側、双方の特典がわかる招待案件まとめ
         </p>
-        <p className="mt-3 text-sm text-orange-200">
-          現在 {coupons.length} 件のクーポンが掲載されています
+        <p className="mt-3 text-sm text-violet-200">
+          現在 {deals.length} 件の案件が掲載されています
         </p>
       </section>
 
@@ -41,20 +41,20 @@ export default async function Home({ searchParams }: HomeProps) {
       </Suspense>
 
       <section className="mt-8">
-        {coupons.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-orange-200 bg-white py-16 text-center">
+        {deals.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-violet-200 bg-white py-16 text-center">
             <p className="text-4xl">🔍</p>
             <p className="mt-3 font-medium text-gray-700">
-              該当するクーポンが見つかりませんでした
+              該当する案件が見つかりませんでした
             </p>
             <p className="mt-1 text-sm text-gray-500">
-              検索条件を変えるか、新しいクーポンを投稿してみましょう
+              検索条件を変えるか、あなたの招待リンクを投稿してみましょう
             </p>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {coupons.map((coupon) => (
-              <CouponCard key={coupon.id} coupon={coupon} />
+            {deals.map((deal) => (
+              <DealCard key={deal.id} deal={deal} />
             ))}
           </div>
         )}

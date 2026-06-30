@@ -3,10 +3,10 @@
 import { useState } from "react";
 
 export function HelpfulButton({
-  couponId,
+  dealId,
   initialCount,
 }: {
-  couponId: number;
+  dealId: number;
   initialCount: number;
 }) {
   const [count, setCount] = useState(initialCount);
@@ -18,7 +18,7 @@ export function HelpfulButton({
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/coupons/${couponId}`, { method: "PATCH" });
+      const res = await fetch(`/api/deals/${dealId}`, { method: "PATCH" });
       if (res.ok) {
         const data = await res.json();
         setCount(data.helpful_count);
@@ -35,8 +35,8 @@ export function HelpfulButton({
       disabled={voted || loading}
       className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition ${
         voted
-          ? "bg-orange-100 text-orange-700"
-          : "border border-orange-200 bg-white text-gray-700 hover:border-orange-300 hover:bg-orange-50"
+          ? "bg-violet-100 text-violet-700"
+          : "border border-violet-200 bg-white text-gray-700 hover:border-violet-300 hover:bg-violet-50"
       }`}
     >
       👍 役に立った {count}

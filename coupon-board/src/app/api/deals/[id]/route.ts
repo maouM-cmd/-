@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCouponById, incrementHelpful, seedIfEmpty } from "@/lib/db";
+import { getDealById, incrementHelpful, seedIfEmpty } from "@/lib/db";
 
 export const runtime = "nodejs";
 
@@ -8,28 +8,28 @@ type RouteContext = { params: Promise<{ id: string }> };
 export async function GET(_request: NextRequest, context: RouteContext) {
   seedIfEmpty();
   const { id } = await context.params;
-  const coupon = getCouponById(Number(id));
+  const deal = getDealById(Number(id));
 
-  if (!coupon) {
+  if (!deal) {
     return NextResponse.json(
-      { error: "クーポンが見つかりません" },
+      { error: "案件が見つかりません" },
       { status: 404 }
     );
   }
 
-  return NextResponse.json(coupon);
+  return NextResponse.json(deal);
 }
 
 export async function PATCH(_request: NextRequest, context: RouteContext) {
   const { id } = await context.params;
-  const coupon = incrementHelpful(Number(id));
+  const deal = incrementHelpful(Number(id));
 
-  if (!coupon) {
+  if (!deal) {
     return NextResponse.json(
-      { error: "クーポンが見つかりません" },
+      { error: "案件が見つかりません" },
       { status: 404 }
     );
   }
 
-  return NextResponse.json(coupon);
+  return NextResponse.json(deal);
 }

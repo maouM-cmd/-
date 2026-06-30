@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
-import type { Category, Coupon, CreateCouponInput } from "./types";
+import type { Category, CreateDealInput, Deal, SortOption } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "coupons.db");
@@ -22,14 +22,17 @@ function getDb(): Database.Database {
 
 function initSchema(database: Database.Database) {
   database.exec(`
-    CREATE TABLE IF NOT EXISTS coupons (
+    CREATE TABLE IF NOT EXISTS deals (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       service_name TEXT NOT NULL,
-      title TEXT NOT NULL,
+      referrer_reward TEXT NOT NULL,
+      referee_reward TEXT NOT NULL,
+      referrer_reward_value INTEGER,
+      referee_reward_value INTEGER,
+      referral_link TEXT,
+      referral_code TEXT,
+      conditions TEXT NOT NULL DEFAULT '',
       description TEXT NOT NULL DEFAULT '',
-      coupon_code TEXT,
-      discount TEXT NOT NULL,
-      url TEXT NOT NULL,
       category TEXT NOT NULL DEFAULT 'other',
       expires_at TEXT,
       author_name TEXT NOT NULL DEFAULT '匿名',
@@ -37,18 +40,20 @@ function initSchema(database: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
 
-    CREATE INDEX IF NOT EXISTS idx_coupons_category ON coupons(category);
-    CREATE INDEX IF NOT EXISTS idx_coupons_created_at ON coupons(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_deals_category ON deals(category);
+    CREATE INDEX IF NOT EXISTS idx_deals_created_at ON deals(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_deals_referrer_value ON deals(referrer_reward_value DESC);
+    CREATE INDEX IF NOT EXISTS idx_deals_referee_value ON deals(referee_reward_value DESC);
   `);
 }
 
-export function getAllCoupons(options?: {
+export function getAllDeals(options?: {
   category?: Category;
   search?: string;
-  sort?: "new" | "popular";
-}): Coupon[] {
+  sort?: SortOption;
+}): Deal[] {
   const database = getDb();
-  let sql = "SELECT * FROM coupons WHERE 1=1";
+  let sql = "SELECT * FROM deals WHERE 1=1";
   const params: (string | number)[] = [];
 
   if (options?.category) {
@@ -57,127 +62,152 @@ export function getAllCoupons(options?: {
   }
 
   if (options?.search) {
-    sql += " AND (service_name LIKE ? OR title LIKE ? OR description LIKE ? OR coupon_code LIKE ?)";
+    sql +=
+      " AND (service_name LIKE ? OR referrer_reward LIKE ? OR referee_reward LIKE ? OR referral_code LIKE ? OR conditions LIKE ? OR description LIKE ?)";
     const term = `%${options.search}%`;
-    params.push(term, term, term, term);
+    params.push(term, term, term, term, term, term);
   }
 
-  if (options?.sort === "popular") {
-    sql += " ORDER BY helpful_count DESC, created_at DESC";
-  } else {
-    sql += " ORDER BY created_at DESC";
+  switch (options?.sort) {
+    case "popular":
+      sql += " ORDER BY helpful_count DESC, created_at DESC";
+      break;
+    case "referrer":
+      sql +=
+        " ORDER BY referrer_reward_value DESC NULLS LAST, created_at DESC";
+      break;
+    case "referee":
+      sql += " ORDER BY referee_reward_value DESC NULLS LAST, created_at DESC";
+      break;
+    default:
+      sql += " ORDER BY created_at DESC";
   }
 
-  return database.prepare(sql).all(...params) as Coupon[];
+  return database.prepare(sql).all(...params) as Deal[];
 }
 
-export function getCouponById(id: number): Coupon | undefined {
+export function getDealById(id: number): Deal | undefined {
   const database = getDb();
-  return database.prepare("SELECT * FROM coupons WHERE id = ?").get(id) as
-    | Coupon
+  return database.prepare("SELECT * FROM deals WHERE id = ?").get(id) as
+    | Deal
     | undefined;
 }
 
-export function createCoupon(input: CreateCouponInput): Coupon {
+export function createDeal(input: CreateDealInput): Deal {
   const database = getDb();
   const stmt = database.prepare(`
-    INSERT INTO coupons (service_name, title, description, coupon_code, discount, url, category, expires_at, author_name)
-    VALUES (@service_name, @title, @description, @coupon_code, @discount, @url, @category, @expires_at, @author_name)
+    INSERT INTO deals (
+      service_name, referrer_reward, referee_reward,
+      referrer_reward_value, referee_reward_value,
+      referral_link, referral_code, conditions, description,
+      category, expires_at, author_name
+    )
+    VALUES (
+      @service_name, @referrer_reward, @referee_reward,
+      @referrer_reward_value, @referee_reward_value,
+      @referral_link, @referral_code, @conditions, @description,
+      @category, @expires_at, @author_name
+    )
   `);
 
   const result = stmt.run({
     service_name: input.service_name.trim(),
-    title: input.title.trim(),
-    description: input.description.trim(),
-    coupon_code: input.coupon_code?.trim() || null,
-    discount: input.discount.trim(),
-    url: input.url.trim(),
+    referrer_reward: input.referrer_reward.trim(),
+    referee_reward: input.referee_reward.trim(),
+    referrer_reward_value: input.referrer_reward_value ?? null,
+    referee_reward_value: input.referee_reward_value ?? null,
+    referral_link: input.referral_link?.trim() || null,
+    referral_code: input.referral_code?.trim() || null,
+    conditions: input.conditions?.trim() ?? "",
+    description: input.description?.trim() ?? "",
     category: input.category,
     expires_at: input.expires_at || null,
     author_name: input.author_name.trim() || "匿名",
   });
 
-  return getCouponById(Number(result.lastInsertRowid))!;
+  return getDealById(Number(result.lastInsertRowid))!;
 }
 
-export function incrementHelpful(id: number): Coupon | undefined {
+export function incrementHelpful(id: number): Deal | undefined {
   const database = getDb();
   database
-    .prepare("UPDATE coupons SET helpful_count = helpful_count + 1 WHERE id = ?")
+    .prepare("UPDATE deals SET helpful_count = helpful_count + 1 WHERE id = ?")
     .run(id);
-  return getCouponById(id);
+  return getDealById(id);
 }
 
-export function getCouponCount(): number {
+export function getDealCount(): number {
   const database = getDb();
   const row = database
-    .prepare("SELECT COUNT(*) as count FROM coupons")
+    .prepare("SELECT COUNT(*) as count FROM deals")
     .get() as { count: number };
   return row.count;
 }
 
 export function seedIfEmpty() {
-  if (getCouponCount() > 0) return;
+  if (getDealCount() > 0) return;
 
-  const samples: CreateCouponInput[] = [
+  const samples: CreateDealInput[] = [
+    {
+      service_name: "PayPay",
+      referrer_reward: "500円",
+      referee_reward: "500円",
+      referrer_reward_value: 500,
+      referee_reward_value: 500,
+      referral_link: "https://paypay.ne.jp/",
+      conditions: "新規登録＋本人確認が必要。紹介者・被紹介者ともに条件達成で付与。",
+      description: "決済アプリの定番紹介キャンペーン。友達招待で双方にポイント付与。",
+      category: "payment",
+      author_name: "ペイペイ太郎",
+    },
+    {
+      service_name: "メルカリ",
+      referrer_reward: "500円分",
+      referee_reward: "500円分",
+      referrer_reward_value: 500,
+      referee_reward_value: 500,
+      referral_code: "アプリ内の招待コード",
+      conditions: "初めての出品または購入完了が条件。",
+      description: "フリマアプリの友達招待。コードをシェアするだけ。",
+      category: "ec",
+      author_name: "メルカリ大好き",
+    },
+    {
+      service_name: "SBI証券",
+      referrer_reward: "2,000円",
+      referee_reward: "1,000円",
+      referrer_reward_value: 2000,
+      referee_reward_value: 1000,
+      referral_link: "https://www.sbisec.co.jp/",
+      conditions: "口座開設＋一定条件の達成が必要。キャンペーン時期により変動。",
+      category: "finance",
+      author_name: "投資初心者",
+    },
+    {
+      service_name: "楽天カード",
+      referrer_reward: "3,000ポイント",
+      referee_reward: "5,000ポイント",
+      referrer_reward_value: 3000,
+      referee_reward_value: 5000,
+      referral_link: "https://www.rakuten-card.co.jp/",
+      conditions: "新規入会＋利用条件あり。時期により金額変動。",
+      category: "finance",
+      author_name: "ポイ活マスター",
+    },
     {
       service_name: "Uber Eats",
-      title: "初回注文500円オフ",
-      description:
-        "アプリ初回注文で500円割引。配達料別途。友達紹介経由だとさらにお得な場合あり。",
-      coupon_code: "初回特典は自動適用",
-      discount: "500円OFF",
-      url: "https://www.ubereats.com/jp",
-      category: "food",
-      author_name: "グルメ好き",
-    },
-    {
-      service_name: "楽天市場",
-      title: "新規会員登録クーポン",
-      description:
-        "楽天会員新規登録で利用できるクーポンが配布されることがあります。キャンペーンページを確認してください。",
-      coupon_code: "キャンペーンにより異なる",
-      discount: "最大1,000円OFF",
-      url: "https://www.rakuten.co.jp",
+      referrer_reward: "1,000円クーポン",
+      referee_reward: "1,000円クーポン",
+      referrer_reward_value: 1000,
+      referee_reward_value: 1000,
+      referral_link: "https://www.ubereats.com/jp",
+      conditions: "招待経由の初回注文で双方にクーポン付与。",
       category: "ec",
-      author_name: "お買い物マスター",
-    },
-    {
-      service_name: "dポイントクラブ",
-      title: "初回登録ボーナス",
-      description: "dアカウント新規作成＋dポイントクラブ入会でポイントプレゼント。",
-      coupon_code: undefined,
-      discount: "300ポイント",
-      url: "https://dpoint.docomo.ne.jp",
-      category: "service",
-      author_name: "ポイ活太郎",
-    },
-    {
-      service_name: "Spotify",
-      title: "Premium初回無料体験",
-      description:
-        "Spotify Premiumに初めて登録する方は、通常1〜3ヶ月の無料体験が利用できます（キャンペーン時期により変動）。",
-      coupon_code: undefined,
-      discount: "最大3ヶ月無料",
-      url: "https://www.spotify.com/jp/premium",
-      category: "subscription",
-      expires_at: "2026-12-31",
-      author_name: "音楽好き",
-    },
-    {
-      service_name: "@cosme",
-      title: "新規会員限定サンプル",
-      description:
-        "新規会員登録で人気コスメのサンプルやクーポンがもらえるキャンペーンを実施中のことがあります。",
-      coupon_code: "会員登録後マイページで確認",
-      discount: "サンプル＋500円OFF",
-      url: "https://www.cosme.net",
-      category: "beauty",
-      author_name: "コスメレビュアー",
+      author_name: "グルメ好き",
     },
   ];
 
   for (const sample of samples) {
-    createCoupon(sample);
+    createDeal(sample);
   }
 }

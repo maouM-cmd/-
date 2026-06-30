@@ -35,15 +35,17 @@ export function SearchFilter() {
               updateParams({ search: (e.target as HTMLInputElement).value });
             }
           }}
-          className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+          className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100"
         />
         <select
           value={currentSort}
           onChange={(e) => updateParams({ sort: e.target.value })}
-          className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-orange-400"
+          className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-violet-400"
         >
           <option value="new">新着順</option>
           <option value="popular">人気順</option>
+          <option value="referrer">紹介者特典が大きい順</option>
+          <option value="referee">被紹介者特典が大きい順</option>
         </select>
       </div>
 
@@ -80,8 +82,8 @@ function CategoryChip({
       onClick={onClick}
       className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
         active
-          ? "bg-orange-500 text-white shadow-sm"
-          : "bg-white text-gray-600 border border-gray-200 hover:border-orange-200 hover:bg-orange-50"
+          ? "bg-violet-600 text-white shadow-sm"
+          : "border border-gray-200 bg-white text-gray-600 hover:border-violet-200 hover:bg-violet-50"
       }`}
     >
       {label}
