@@ -1,0 +1,26 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "coupon-board/**"
+      - "render.yaml"
+      - ".github/workflows/render-deploy.yml"
+
+jobs:
+  deploy:
+    if: ${{ secrets.RENDER_API_KEY != '' && secrets.RENDER_SERVICE_ID != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Render CLI
+        run: |
+          curl -L https://github.com/render-oss/cli/releases/download/v2.21.0/cli_2.21.0_linux_amd64.zip -o render.zip
+          unzip render.zip
+          sudo mv cli_v2.21.0 /usr/local/bin/render
+
+      - name: Trigger deploy
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          CI: true
+        run: render deploys create ${{ secrets.RENDER_SERVICE_ID }} --output json --confirm

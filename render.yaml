@@ -1,0 +1,27 @@
+# Render Blueprint（リポジトリルート）
+# Dashboard → New → Blueprint → このリポジトリを選択
+#
+# 必須: 環境変数 ADMIN_PASSWORD を Render ダッシュボードで設定
+
+services:
+  - type: web
+    name: shotime
+    runtime: docker
+    plan: starter
+    rootDir: coupon-board
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_OPERATOR_NAME
+        value: 招待みんなでショータイム運営
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
+    disk:
+      name: shotime-data
+      mountPath: /app/data
+      sizeGB: 1
