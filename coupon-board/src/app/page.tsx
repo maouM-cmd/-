@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { AdSlot } from "@/components/AdSlot";
 import { DealCard } from "@/components/DealCard";
 import { SearchFilter } from "@/components/SearchFilter";
 import { getAllDeals, seedIfEmpty } from "@/lib/db";
@@ -35,6 +36,8 @@ export default async function Home({ searchParams }: HomeProps) {
           現在 {deals.length} 件の案件が掲載されています
         </p>
       </section>
+
+      <AdSlot position="inline" className="mb-8" />
 
       <Suspense fallback={<div className="h-24 animate-pulse rounded-xl bg-gray-100" />}>
         <SearchFilter />

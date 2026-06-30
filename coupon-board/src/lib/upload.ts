@@ -42,8 +42,3 @@ export function getUploadPath(filename: string): string | null {
   if (!fs.existsSync(filepath)) return null;
   return filepath;
 }
-
-export function getScreenshotUrl(filename: string | null): string | null {
-  if (!filename) return null;
-  return `/api/uploads/${encodeURIComponent(filename)}`;
-}

@@ -9,6 +9,19 @@ export async function GET(request: NextRequest) {
   seedIfEmpty();
 
   const { searchParams } = request.nextUrl;
+  const idsParam = searchParams.get("ids");
+
+  if (idsParam) {
+    const ids = idsParam
+      .split(",")
+      .map((s) => Number(s.trim()))
+      .filter((n) => !Number.isNaN(n) && n > 0);
+    const deals = getAllDeals({ ids });
+    const order = new Map(ids.map((id, i) => [id, i]));
+    deals.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+    return NextResponse.json(deals);
+  }
+
   const category = searchParams.get("category") as Category | null;
   const search = searchParams.get("search") ?? undefined;
   const sort = (searchParams.get("sort") as SortOption) ?? "new";
@@ -44,22 +57,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.service_name?.trim()) {
-      return NextResponse.json(
-        { error: "サービス名は必須です" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "サービス名は必須です" }, { status: 400 });
     }
     if (!body.referrer_reward?.trim()) {
-      return NextResponse.json(
-        { error: "紹介者特典は必須です" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "紹介者特典は必須です" }, { status: 400 });
     }
     if (!body.referee_reward?.trim()) {
-      return NextResponse.json(
-        { error: "被紹介者特典は必須です" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "被紹介者特典は必須です" }, { status: 400 });
     }
     if (!body.referral_link?.trim() && !body.referral_code?.trim()) {
       return NextResponse.json(
@@ -101,9 +105,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(deal, { status: 201 });
   } catch {
-    return NextResponse.json(
-      { error: "投稿に失敗しました" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "投稿に失敗しました" }, { status: 500 });
   }
 }

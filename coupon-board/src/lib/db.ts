@@ -2,10 +2,23 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 import { REPORT_HIDE_THRESHOLD } from "./constants-reports";
-import type { Category, CreateDealInput, Deal, Report, ReportReason, SortOption } from "./types";
+import type {
+  AdminDeal,
+  Category,
+  Comment,
+  CreateDealInput,
+  Deal,
+  Report,
+  ReportReason,
+  SortOption,
+  UsageType,
+} from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "coupons.db");
+
+const EXPIRY_FILTER =
+  "(expires_at IS NULL OR date(expires_at) >= date('now', 'localtime'))";
 
 let db: Database.Database | null = null;
 
@@ -29,14 +42,18 @@ function columnExists(database: Database.Database, table: string, column: string
 }
 
 function migrateSchema(database: Database.Database) {
-  if (!columnExists(database, "deals", "screenshot_path")) {
-    database.exec("ALTER TABLE deals ADD COLUMN screenshot_path TEXT");
-  }
-  if (!columnExists(database, "deals", "report_count")) {
-    database.exec("ALTER TABLE deals ADD COLUMN report_count INTEGER NOT NULL DEFAULT 0");
-  }
-  if (!columnExists(database, "deals", "is_hidden")) {
-    database.exec("ALTER TABLE deals ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0");
+  const dealColumns: [string, string][] = [
+    ["screenshot_path", "ALTER TABLE deals ADD COLUMN screenshot_path TEXT"],
+    ["report_count", "ALTER TABLE deals ADD COLUMN report_count INTEGER NOT NULL DEFAULT 0"],
+    ["is_hidden", "ALTER TABLE deals ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0"],
+    ["worked_count", "ALTER TABLE deals ADD COLUMN worked_count INTEGER NOT NULL DEFAULT 0"],
+    ["failed_count", "ALTER TABLE deals ADD COLUMN failed_count INTEGER NOT NULL DEFAULT 0"],
+  ];
+
+  for (const [col, sql] of dealColumns) {
+    if (!columnExists(database, "deals", col)) {
+      database.exec(sql);
+    }
   }
 }
 
@@ -58,6 +75,8 @@ function initSchema(database: Database.Database) {
       author_name TEXT NOT NULL DEFAULT '匿名',
       screenshot_path TEXT,
       helpful_count INTEGER NOT NULL DEFAULT 0,
+      worked_count INTEGER NOT NULL DEFAULT 0,
+      failed_count INTEGER NOT NULL DEFAULT 0,
       report_count INTEGER NOT NULL DEFAULT 0,
       is_hidden INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
@@ -72,24 +91,49 @@ function initSchema(database: Database.Database) {
       FOREIGN KEY (deal_id) REFERENCES deals(id)
     );
 
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      deal_id INTEGER NOT NULL,
+      author_name TEXT NOT NULL DEFAULT '匿名',
+      body TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (deal_id) REFERENCES deals(id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_deals_category ON deals(category);
     CREATE INDEX IF NOT EXISTS idx_deals_created_at ON deals(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_deals_referrer_value ON deals(referrer_reward_value DESC);
     CREATE INDEX IF NOT EXISTS idx_deals_referee_value ON deals(referee_reward_value DESC);
     CREATE INDEX IF NOT EXISTS idx_reports_deal_id ON reports(deal_id);
+    CREATE INDEX IF NOT EXISTS idx_comments_deal_id ON comments(deal_id);
   `);
 
   migrateSchema(database);
+}
+
+function buildPublicDealFilter(includeExpired = false): string {
+  let sql = "is_hidden = 0";
+  if (!includeExpired) {
+    sql += ` AND ${EXPIRY_FILTER}`;
+  }
+  return sql;
 }
 
 export function getAllDeals(options?: {
   category?: Category;
   search?: string;
   sort?: SortOption;
+  ids?: number[];
 }): Deal[] {
   const database = getDb();
-  let sql = "SELECT * FROM deals WHERE is_hidden = 0";
+  let sql = `SELECT * FROM deals WHERE ${buildPublicDealFilter()}`;
   const params: (string | number)[] = [];
+
+  if (options?.ids?.length) {
+    const placeholders = options.ids.map(() => "?").join(",");
+    sql += ` AND id IN (${placeholders})`;
+    params.push(...options.ids);
+  }
 
   if (options?.category) {
     sql += " AND category = ?";
@@ -108,8 +152,7 @@ export function getAllDeals(options?: {
       sql += " ORDER BY helpful_count DESC, created_at DESC";
       break;
     case "referrer":
-      sql +=
-        " ORDER BY referrer_reward_value DESC NULLS LAST, created_at DESC";
+      sql += " ORDER BY referrer_reward_value DESC NULLS LAST, created_at DESC";
       break;
     case "referee":
       sql += " ORDER BY referee_reward_value DESC NULLS LAST, created_at DESC";
@@ -121,12 +164,24 @@ export function getAllDeals(options?: {
   return database.prepare(sql).all(...params) as Deal[];
 }
 
-export function getDealById(id: number, includeHidden = false): Deal | undefined {
+export function getDealById(
+  id: number,
+  options?: { includeHidden?: boolean; includeExpired?: boolean }
+): Deal | undefined {
   const database = getDb();
-  const sql = includeHidden
-    ? "SELECT * FROM deals WHERE id = ?"
-    : "SELECT * FROM deals WHERE id = ? AND is_hidden = 0";
+  const includeHidden = options?.includeHidden ?? false;
+  const includeExpired = options?.includeExpired ?? false;
+
+  let sql = "SELECT * FROM deals WHERE id = ?";
+  if (!includeHidden) sql += " AND is_hidden = 0";
+  if (!includeExpired) sql += ` AND ${EXPIRY_FILTER}`;
+
   return database.prepare(sql).get(id) as Deal | undefined;
+}
+
+export function getDealsByIds(ids: number[]): Deal[] {
+  if (ids.length === 0) return [];
+  return getAllDeals({ ids });
 }
 
 export function createDeal(input: CreateDealInput): Deal {
@@ -162,7 +217,10 @@ export function createDeal(input: CreateDealInput): Deal {
     screenshot_path: input.screenshot_path ?? null,
   });
 
-  return getDealById(Number(result.lastInsertRowid), true)!;
+  return getDealById(Number(result.lastInsertRowid), {
+    includeHidden: true,
+    includeExpired: true,
+  })!;
 }
 
 export function incrementHelpful(id: number): Deal | undefined {
@@ -171,6 +229,51 @@ export function incrementHelpful(id: number): Deal | undefined {
     .prepare("UPDATE deals SET helpful_count = helpful_count + 1 WHERE id = ?")
     .run(id);
   return getDealById(id);
+}
+
+export function incrementUsage(id: number, type: UsageType): Deal | undefined {
+  const database = getDb();
+  const column = type === "worked" ? "worked_count" : "failed_count";
+  database
+    .prepare(`UPDATE deals SET ${column} = ${column} + 1 WHERE id = ?`)
+    .run(id);
+  return getDealById(id);
+}
+
+export function getCommentsByDealId(dealId: number): Comment[] {
+  const database = getDb();
+  return database
+    .prepare(
+      "SELECT * FROM comments WHERE deal_id = ? ORDER BY created_at ASC"
+    )
+    .all(dealId) as Comment[];
+}
+
+export function createComment(
+  dealId: number,
+  body: string,
+  authorName?: string
+): Comment | null {
+  const database = getDb();
+  const deal = database
+    .prepare(`SELECT id FROM deals WHERE id = ? AND is_hidden = 0 AND ${EXPIRY_FILTER}`)
+    .get(dealId);
+
+  if (!deal) return null;
+
+  const result = database
+    .prepare(
+      "INSERT INTO comments (deal_id, author_name, body) VALUES (@deal_id, @author_name, @body)"
+    )
+    .run({
+      deal_id: dealId,
+      author_name: authorName?.trim() || "匿名",
+      body: body.trim(),
+    });
+
+  return database
+    .prepare("SELECT * FROM comments WHERE id = ?")
+    .get(result.lastInsertRowid) as Comment;
 }
 
 export function createReport(
@@ -206,9 +309,7 @@ export function createReport(
 
   let hidden = false;
   if (updated.report_count >= REPORT_HIDE_THRESHOLD) {
-    database
-      .prepare("UPDATE deals SET is_hidden = 1 WHERE id = ?")
-      .run(dealId);
+    database.prepare("UPDATE deals SET is_hidden = 1 WHERE id = ?").run(dealId);
     hidden = true;
   }
 
@@ -219,16 +320,61 @@ export function createReport(
   return { report, hidden };
 }
 
+export function getAllDealsForAdmin(): AdminDeal[] {
+  const database = getDb();
+  return database
+    .prepare(`
+      SELECT d.*,
+        (SELECT COUNT(*) FROM comments c WHERE c.deal_id = d.id) as comment_count
+      FROM deals d
+      ORDER BY d.is_hidden DESC, d.report_count DESC, d.created_at DESC
+    `)
+    .all() as AdminDeal[];
+}
+
+export function getAllReports(): (Report & { service_name: string })[] {
+  const database = getDb();
+  return database
+    .prepare(`
+      SELECT r.*, d.service_name
+      FROM reports r
+      JOIN deals d ON d.id = r.deal_id
+      ORDER BY r.created_at DESC
+      LIMIT 100
+    `)
+    .all() as (Report & { service_name: string })[];
+}
+
+export function setDealHidden(id: number, hidden: boolean): boolean {
+  const database = getDb();
+  const result = database
+    .prepare("UPDATE deals SET is_hidden = ? WHERE id = ?")
+    .run(hidden ? 1 : 0, id);
+  return result.changes > 0;
+}
+
+export function deleteDeal(id: number): boolean {
+  const database = getDb();
+  database.prepare("DELETE FROM comments WHERE deal_id = ?").run(id);
+  database.prepare("DELETE FROM reports WHERE deal_id = ?").run(id);
+  const result = database.prepare("DELETE FROM deals WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
 export function getDealCount(): number {
   const database = getDb();
   const row = database
-    .prepare("SELECT COUNT(*) as count FROM deals WHERE is_hidden = 0")
+    .prepare(`SELECT COUNT(*) as count FROM deals WHERE ${buildPublicDealFilter()}`)
     .get() as { count: number };
   return row.count;
 }
 
 export function seedIfEmpty() {
-  if (getDealCount() > 0) return;
+  const database = getDb();
+  const total = database
+    .prepare("SELECT COUNT(*) as count FROM deals")
+    .get() as { count: number };
+  if (total.count > 0) return;
 
   const samples: CreateDealInput[] = [
     {
@@ -238,8 +384,8 @@ export function seedIfEmpty() {
       referrer_reward_value: 500,
       referee_reward_value: 500,
       referral_link: "https://paypay.ne.jp/",
-      conditions: "新規登録＋本人確認が必要。紹介者・被紹介者ともに条件達成で付与。",
-      description: "決済アプリの定番紹介キャンペーン。友達招待で双方にポイント付与。",
+      conditions: "新規登録＋本人確認が必要。",
+      description: "決済アプリの定番紹介キャンペーン。",
       category: "payment",
       author_name: "ペイペイ太郎",
     },
@@ -251,7 +397,6 @@ export function seedIfEmpty() {
       referee_reward_value: 500,
       referral_code: "アプリ内の招待コード",
       conditions: "初めての出品または購入完了が条件。",
-      description: "フリマアプリの友達招待。コードをシェアするだけ。",
       category: "ec",
       author_name: "メルカリ大好き",
     },
@@ -262,7 +407,7 @@ export function seedIfEmpty() {
       referrer_reward_value: 2000,
       referee_reward_value: 1000,
       referral_link: "https://www.sbisec.co.jp/",
-      conditions: "口座開設＋一定条件の達成が必要。キャンペーン時期により変動。",
+      conditions: "口座開設＋一定条件の達成が必要。",
       category: "finance",
       author_name: "投資初心者",
     },
@@ -273,7 +418,7 @@ export function seedIfEmpty() {
       referrer_reward_value: 3000,
       referee_reward_value: 5000,
       referral_link: "https://www.rakuten-card.co.jp/",
-      conditions: "新規入会＋利用条件あり。時期により金額変動。",
+      conditions: "新規入会＋利用条件あり。",
       category: "finance",
       author_name: "ポイ活マスター",
     },

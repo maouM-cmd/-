@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Deal } from "@/lib/types";
 import { getCategoryEmoji, getCategoryLabel } from "@/lib/constants";
-import { getScreenshotUrl } from "@/lib/upload";
+import { getScreenshotUrl } from "@/lib/screenshot";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ja-JP", {

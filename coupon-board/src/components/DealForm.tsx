@@ -185,7 +185,11 @@ export function DealForm() {
         />
       </Field>
 
-      <Field label="スクリーンショット" hint="キャンペーン画面のスクショ（JPEG/PNG/WebP、5MB以下）">
+      <Field
+        label="スクリーンショット"
+        hint="キャンペーン画面のスクショ（推奨・JPEG/PNG/WebP、5MB以下）"
+        recommended
+      >
         <input
           ref={fileInputRef}
           type="file"
@@ -281,19 +285,26 @@ export function DealForm() {
 function Field({
   label,
   required,
+  recommended,
   hint,
   children,
 }: {
   label: string;
   required?: boolean;
+  recommended?: boolean;
   hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+      <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-gray-700">
         {label}
-        {required && <span className="ml-1 text-violet-500">*</span>}
+        {required && <span className="text-violet-500">*</span>}
+        {recommended && (
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+            推奨
+          </span>
+        )}
       </label>
       {hint && <p className="mb-1.5 text-xs text-gray-400">{hint}</p>}
       {children}

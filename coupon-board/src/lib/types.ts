@@ -16,6 +16,8 @@ export type ReportReason =
   | "spam"
   | "other";
 
+export type UsageType = "worked" | "failed";
+
 export interface Deal {
   id: number;
   service_name: string;
@@ -32,6 +34,8 @@ export interface Deal {
   author_name: string;
   screenshot_path: string | null;
   helpful_count: number;
+  worked_count: number;
+  failed_count: number;
   report_count: number;
   is_hidden: number;
   created_at: string;
@@ -59,4 +63,16 @@ export interface Report {
   reason: ReportReason;
   detail: string;
   created_at: string;
+}
+
+export interface Comment {
+  id: number;
+  deal_id: number;
+  author_name: string;
+  body: string;
+  created_at: string;
+}
+
+export interface AdminDeal extends Deal {
+  comment_count: number;
 }

@@ -1,12 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/components/AdSlot";
+import { CommentSection } from "@/components/CommentSection";
 import { CopyCodeButton } from "@/components/CopyCodeButton";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { HelpfulButton } from "@/components/HelpfulButton";
 import { ReportButton } from "@/components/ReportButton";
+import { UsageReportButtons } from "@/components/UsageReportButtons";
 import { getCategoryEmoji, getCategoryLabel } from "@/lib/constants";
 import { getDealById, seedIfEmpty } from "@/lib/db";
-import { getScreenshotUrl } from "@/lib/upload";
+import { getScreenshotUrl } from "@/lib/screenshot";
 
 interface DealPageProps {
   params: Promise<{ id: string }>;
@@ -31,7 +35,6 @@ export default async function DealPage({ params }: DealPageProps) {
     notFound();
   }
 
-  const expired = deal.expires_at && new Date(deal.expires_at) < new Date();
   const screenshotUrl = getScreenshotUrl(deal.screenshot_path);
 
   return (
@@ -43,22 +46,19 @@ export default async function DealPage({ params }: DealPageProps) {
         ← 一覧に戻る
       </Link>
 
+      <AdSlot position="top" className="mt-4" />
+
       <article className="mt-4 rounded-2xl border border-violet-100 bg-white p-6 shadow-sm sm:p-8">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <span className="text-2xl">{getCategoryEmoji(deal.category)}</span>
           <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-medium text-violet-700">
             {getCategoryLabel(deal.category)}
           </span>
-          {expired && (
-            <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-600">
-              期限切れの可能性あり
-            </span>
-          )}
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900">{deal.service_name}</h1>
 
-        {screenshotUrl && (
+        {screenshotUrl ? (
           <div className="mt-5 overflow-hidden rounded-xl border border-violet-100">
             <Image
               src={screenshotUrl}
@@ -69,6 +69,10 @@ export default async function DealPage({ params }: DealPageProps) {
               unoptimized
             />
           </div>
+        ) : (
+          <p className="mt-3 text-xs text-amber-600">
+            📷 スクリーンショットは未添付です
+          </p>
         )}
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -113,6 +117,14 @@ export default async function DealPage({ params }: DealPageProps) {
           </div>
         )}
 
+        <div className="mt-6">
+          <UsageReportButtons
+            dealId={deal.id}
+            initialWorked={deal.worked_count}
+            initialFailed={deal.failed_count}
+          />
+        </div>
+
         <div className="mt-6 flex flex-wrap gap-4 text-sm text-gray-500">
           {deal.expires_at && (
             <span>
@@ -135,13 +147,18 @@ export default async function DealPage({ params }: DealPageProps) {
             </a>
           )}
           {deal.referral_code && <CopyCodeButton code={deal.referral_code} />}
+          <FavoriteButton dealId={deal.id} />
           <HelpfulButton dealId={deal.id} initialCount={deal.helpful_count} />
         </div>
+
+        <CommentSection dealId={deal.id} />
 
         <div className="mt-6 border-t border-gray-100 pt-4 text-center">
           <ReportButton dealId={deal.id} />
         </div>
       </article>
+
+      <AdSlot position="bottom" className="mt-6" />
     </div>
   );
 }
