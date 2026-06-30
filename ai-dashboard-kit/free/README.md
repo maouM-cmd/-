@@ -1,43 +1,50 @@
 # AI Industry Dashboard Kit — Free Tier
 
-Build an AI industry dashboard in one Cursor session.
+**Build an AI company dashboard in one Cursor session.**
 
-## What's included (free)
+GitHub-first developer kit: structured seed data + TypeScript schemas for Cursor/Claude agents.
 
-- **5 companies** seed data (OpenAI, Anthropic, Google DeepMind, Meta AI, Mistral)
-- Related models, funding rounds, and news
-- TypeScript schema (`schemas/types.ts`)
-- Live demo: [Company Compare Tool](/tools/compare) on our site
+## What's included
 
-## What's in the paid kit ($39)
+- **5 companies** — OpenAI, Anthropic, Google DeepMind, Meta AI, Mistral
+- Related models, funding rounds, news
+- `schemas/types.ts` — shared type contract
+- Live demo: [Company Compare](https://your-site.com/tools/compare) *(update URL when deployed)*
 
-- **10 companies** + full dataset
-- Requirements doc + component spec
-- `generate-claude-context.mjs` — auto-build Claude context file
-- `CLAUDE.md` — Cursor agent workflow guide
-
-[Get the full kit →](https://gumroad.com/l/ai-dashboard-kit) | [Product page](/kit)
-
-## Quick start with Cursor
-
-1. Copy free data into your Next.js project:
+## Quick start (5 minutes)
 
 ```bash
+# 1. Copy data into your Next.js app
 cp -r ai-dashboard-kit/free/data your-app/src/data/
 cp ai-dashboard-kit/schemas/types.ts your-app/src/lib/ai-types.ts
+
+# 2. Open your app in Cursor
 ```
 
-2. Prompt Cursor:
+**Cursor prompt:**
 
 ```
-Read schemas/types.ts and data/*.json.
-Build a dark-mode AI company dashboard with:
-- KPI cards on /
-- Company grid on /companies
-- Model comparison table on /models
-Use Next.js App Router + Tailwind + Recharts.
+Read src/lib/ai-types.ts and src/data/*.json.
+
+Build a dark-mode AI industry dashboard:
+- / — 4 KPI cards (company count, total valuation, model count, avg context)
+- /companies — grid with category filters
+- /models — comparison table (price, context, open weights)
+
+Stack: Next.js App Router, TypeScript, Tailwind, Recharts.
 ```
+
+## Full kit
+
+The complete kit (10 companies, requirements doc, component spec, context generator) lives in `ai-dashboard-kit/` at repo root.
+
+Monetization plan: GitHub Sponsors when there is traction — not marketplace-first.
+
+## Repo
+
+- [Kit hub & demo](https://github.com/maouM-cmd/-)
+- Direction doc: `docs/DIRECTION.md`
 
 ## License
 
-Free tier data: MIT. Upgrade to paid for full kit + commercial use of design docs.
+MIT for `free/data/` and `schemas/types.ts`.

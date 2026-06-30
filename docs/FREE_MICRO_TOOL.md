@@ -27,8 +27,10 @@ A free, SEO-friendly tool that demonstrates kit data quality and funnels users t
 ## Funnel
 
 ```
-Google search → /tools/compare → /kit → Gumroad $39
+Google search → /tools/compare → /kit → GitHub clone
 ```
+
+Revenue (later): GitHub Sponsors, not Gumroad-first.
 
 ## Maintenance
 

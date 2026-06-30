@@ -36,9 +36,9 @@ export interface AiModel {
   apiAvailable: boolean;
 }
 
-export const GUMROAD_URL =
-  process.env.NEXT_PUBLIC_GUMROAD_URL ?? "https://gumroad.com/l/ai-dashboard-kit";
+export const GITHUB_REPO_URL =
+  process.env.NEXT_PUBLIC_GITHUB_REPO_URL ?? "https://github.com/maouM-cmd/-";
 
 export const GITHUB_FREE_URL =
   process.env.NEXT_PUBLIC_GITHUB_FREE_URL ??
-  "https://github.com/maoum-cmd/-/tree/main/ai-dashboard-kit/free";
+  "https://github.com/maouM-cmd/-/tree/main/ai-dashboard-kit/free";

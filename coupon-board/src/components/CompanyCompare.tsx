@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { AiCompany, AiModel } from "@/lib/ai-kit";
-import { GUMROAD_URL } from "@/lib/ai-kit";
+import { GITHUB_FREE_URL } from "@/lib/ai-kit";
 
 interface CompanyCompareProps {
   companies: AiCompany[];
@@ -149,23 +149,23 @@ export function CompanyCompare({ companies, models }: CompanyCompareProps) {
 
       <div className="mt-8 rounded-2xl border border-dashed border-violet-200 bg-violet-50/50 p-6 text-center">
         <p className="text-sm text-gray-600">
-          This tool uses 5 companies from the free kit. The full kit includes 10
-          companies + Cursor agent docs.
+          Powered by the free tier of the AI Dashboard Kit (5 companies). Clone
+          the repo and build your own dashboard with Cursor.
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-3">
           <a
             href="/kit"
             className="rounded-full border border-violet-300 px-5 py-2.5 text-sm font-medium text-violet-700 hover:bg-white"
           >
-            View full kit
+            Kit hub
           </a>
           <a
-            href={GUMROAD_URL}
+            href={GITHUB_FREE_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2.5 text-sm font-semibold text-white shadow-md"
           >
-            Get kit — $39
+            View on GitHub
           </a>
         </div>
       </div>
