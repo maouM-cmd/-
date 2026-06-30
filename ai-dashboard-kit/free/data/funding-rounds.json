@@ -1,0 +1,39 @@
+[
+  {
+    "id": "openai-2024-10",
+    "companyId": "openai",
+    "date": "2024-10-02",
+    "stage": "growth",
+    "amountUsdM": 6600,
+    "valuationUsdB": 157,
+    "leadInvestors": [
+      "Thrive Capital"
+    ],
+    "notes": "Largest private tech round. Microsoft participation."
+  },
+  {
+    "id": "anthropic-2024-11",
+    "companyId": "anthropic",
+    "date": "2024-11-22",
+    "stage": "growth",
+    "amountUsdM": 4000,
+    "valuationUsdB": 61.5,
+    "leadInvestors": [
+      "Amazon",
+      "Lightspeed"
+    ],
+    "notes": "Amazon additional investment. Total raised >$7B."
+  },
+  {
+    "id": "mistral-2024-06",
+    "companyId": "mistral",
+    "date": "2024-06-11",
+    "stage": "series_b",
+    "amountUsdM": 640,
+    "valuationUsdB": 6,
+    "leadInvestors": [
+      "General Catalyst"
+    ],
+    "notes": "European AI champion round."
+  }
+]

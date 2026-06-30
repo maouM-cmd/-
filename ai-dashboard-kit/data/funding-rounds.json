@@ -1,0 +1,72 @@
+[
+  {
+    "id": "openai-2024-10",
+    "companyId": "openai",
+    "date": "2024-10-02",
+    "stage": "growth",
+    "amountUsdM": 6600,
+    "valuationUsdB": 157,
+    "leadInvestors": ["Thrive Capital"],
+    "notes": "Largest private tech round. Microsoft participation."
+  },
+  {
+    "id": "anthropic-2024-11",
+    "companyId": "anthropic",
+    "date": "2024-11-22",
+    "stage": "growth",
+    "amountUsdM": 4000,
+    "valuationUsdB": 61.5,
+    "leadInvestors": ["Amazon", "Lightspeed"],
+    "notes": "Amazon additional investment. Total raised >$7B."
+  },
+  {
+    "id": "xai-2024-12",
+    "companyId": "xai",
+    "date": "2024-12-23",
+    "stage": "series_b",
+    "amountUsdM": 6000,
+    "valuationUsdB": 24,
+    "leadInvestors": ["Valor Equity", "Andreessen Horowitz"],
+    "notes": "Funding for Colossus GPU cluster in Memphis."
+  },
+  {
+    "id": "mistral-2024-06",
+    "companyId": "mistral",
+    "date": "2024-06-11",
+    "stage": "series_b",
+    "amountUsdM": 640,
+    "valuationUsdB": 6,
+    "leadInvestors": ["General Catalyst"],
+    "notes": "European AI champion round."
+  },
+  {
+    "id": "cohere-2024-07",
+    "companyId": "cohere",
+    "date": "2024-07-21",
+    "stage": "series_d",
+    "amountUsdM": 500,
+    "valuationUsdB": 5.5,
+    "leadInvestors": ["PSP Investments", "NVIDIA"],
+    "notes": "Enterprise expansion and model training."
+  },
+  {
+    "id": "perplexity-2024-12",
+    "companyId": "perplexity",
+    "date": "2024-12-18",
+    "stage": "series_c",
+    "amountUsdM": 500,
+    "valuationUsdB": 9,
+    "leadInvestors": ["Institutional Venture Partners"],
+    "notes": "AI search growth round."
+  },
+  {
+    "id": "stability-2024-03",
+    "companyId": "stability-ai",
+    "date": "2024-03-21",
+    "stage": "growth",
+    "amountUsdM": 80,
+    "valuationUsdB": 1,
+    "leadInvestors": ["Group of investors"],
+    "notes": "Restructuring round after leadership changes."
+  }
+]
