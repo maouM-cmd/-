@@ -30,16 +30,14 @@ http://localhost:3000 でアクセスできます。
 
 ## 本番デプロイ
 
-| 方式 | 手順 |
-|------|------|
-| **Render.com**（手軽） | `render.yaml` → [DEPLOY.md](./DEPLOY.md) §A |
-| **Docker + VPS** | `docker compose up -d --build` → [DEPLOY.md](./DEPLOY.md) §B |
-| ローカル検証 | `npm run verify:prod` |
+**費用:** [COST.md](./COST.md) — 趣味なら **0円（ローカル）** がおすすめ
 
-```bash
-cp .env.example .env.local   # 本番用に編集
-docker compose up -d --build  # VPS の場合
-```
+| 方式 | 月額 | 手順 |
+|------|------|------|
+| **ローカル** | 0円 | `npm run dev` |
+| **VPS + Docker** | 約600円〜 | [DEPLOY.md](./DEPLOY.md) |
+| Render 有料 | 約1200円〜 | `render.yaml` |
+| Render 無料お試し | 0円（データ消える） | `render.free.yaml` |
 
 ## 要件定義
 

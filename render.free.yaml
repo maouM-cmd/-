@@ -1,16 +1,18 @@
-# Render Blueprint（有料・本番向け）
+# Render 無料お試し用（本番非推奨）
 #
-# ⚠️ 月額 約 $7〜10（Starter + ディスク）かかります
-# 無料でやりたい場合 → coupon-board/COST.md を参照
+# ⚠️ 注意:
+# - 15分アクセスなしでスリープ（起動に30〜60秒）
+# - 永続ディスクなし → 投稿・DB・画像は再起動で消える
+# - 趣味の動作確認・デモのみ向け
 #
-# Dashboard → New → Blueprint → このリポジトリを選択
-# 必須: 環境変数 ADMIN_PASSWORD を設定
+# 本番運用は render.yaml（有料）か VPS を使ってください。
+# 費用: coupon-board/COST.md 参照
 
 services:
   - type: web
-    name: shotime
+    name: shotime-demo
     runtime: docker
-    plan: starter
+    plan: free
     rootDir: coupon-board
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -24,7 +26,3 @@ services:
         value: 招待みんなでショータイム運営
       - key: NEXT_PUBLIC_CONTACT_EMAIL
         sync: false
-    disk:
-      name: shotime-data
-      mountPath: /app/data
-      sizeGB: 1
