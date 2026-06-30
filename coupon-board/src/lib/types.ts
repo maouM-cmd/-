@@ -9,6 +9,13 @@ export type Category =
 
 export type SortOption = "new" | "popular" | "referrer" | "referee";
 
+export type ReportReason =
+  | "expired"
+  | "false_info"
+  | "scam"
+  | "spam"
+  | "other";
+
 export interface Deal {
   id: number;
   service_name: string;
@@ -23,7 +30,10 @@ export interface Deal {
   category: Category;
   expires_at: string | null;
   author_name: string;
+  screenshot_path: string | null;
   helpful_count: number;
+  report_count: number;
+  is_hidden: number;
   created_at: string;
 }
 
@@ -40,4 +50,13 @@ export interface CreateDealInput {
   category: Category;
   expires_at?: string;
   author_name: string;
+  screenshot_path?: string;
+}
+
+export interface Report {
+  id: number;
+  deal_id: number;
+  reason: ReportReason;
+  detail: string;
+  created_at: string;
 }

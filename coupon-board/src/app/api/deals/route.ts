@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createDeal, getAllDeals, seedIfEmpty } from "@/lib/db";
+import { saveScreenshot } from "@/lib/upload";
 import type { Category, SortOption } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -23,7 +24,24 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const contentType = request.headers.get("content-type") ?? "";
+    let body: Record<string, string>;
+    let screenshotFile: File | null = null;
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      body = Object.fromEntries(
+        [...formData.entries()]
+          .filter(([, v]) => typeof v === "string")
+          .map(([k, v]) => [k, v as string])
+      );
+      const file = formData.get("screenshot");
+      if (file instanceof File && file.size > 0) {
+        screenshotFile = file;
+      }
+    } else {
+      body = await request.json();
+    }
 
     if (!body.service_name?.trim()) {
       return NextResponse.json(
@@ -50,6 +68,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let screenshot_path: string | undefined;
+    if (screenshotFile) {
+      try {
+        screenshot_path = await saveScreenshot(screenshotFile);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "画像のアップロードに失敗しました";
+        return NextResponse.json({ error: message }, { status: 400 });
+      }
+    }
+
     const deal = createDeal({
       service_name: body.service_name,
       referrer_reward: body.referrer_reward,
@@ -64,9 +93,10 @@ export async function POST(request: NextRequest) {
       referral_code: body.referral_code,
       conditions: body.conditions ?? "",
       description: body.description ?? "",
-      category: body.category ?? "other",
+      category: (body.category as Category) ?? "other",
       expires_at: body.expires_at,
       author_name: body.author_name ?? "匿名",
+      screenshot_path,
     });
 
     return NextResponse.json(deal, { status: 201 });

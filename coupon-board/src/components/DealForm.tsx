@@ -1,14 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CATEGORIES } from "@/lib/constants";
 import type { Category } from "@/lib/types";
 
 export function DealForm() {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [preview, setPreview] = useState<string | null>(null);
+  const [screenshot, setScreenshot] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     service_name: "",
@@ -29,6 +33,34 @@ export function DealForm() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setScreenshot(null);
+      setPreview(null);
+      return;
+    }
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("JPEG、PNG、WebP形式のみアップロードできます");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("ファイルサイズは5MB以下にしてください");
+      return;
+    }
+
+    setError("");
+    setScreenshot(file);
+    setPreview(URL.createObjectURL(file));
+  }
+
+  function clearScreenshot() {
+    setScreenshot(null);
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -41,10 +73,17 @@ export function DealForm() {
     }
 
     try {
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(form)) {
+        formData.append(key, value);
+      }
+      if (screenshot) {
+        formData.append("screenshot", screenshot);
+      }
+
       const res = await fetch("/api/deals", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: formData,
       });
 
       const data = await res.json();
@@ -146,6 +185,35 @@ export function DealForm() {
         />
       </Field>
 
+      <Field label="スクリーンショット" hint="キャンペーン画面のスクショ（JPEG/PNG/WebP、5MB以下）">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileChange}
+          className="w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-violet-100 file:px-4 file:py-2 file:text-sm file:font-medium file:text-violet-700 hover:file:bg-violet-200"
+        />
+        {preview && (
+          <div className="relative mt-3 overflow-hidden rounded-xl border border-violet-100">
+            <Image
+              src={preview}
+              alt="プレビュー"
+              width={600}
+              height={400}
+              className="h-auto max-h-64 w-full object-contain bg-gray-50"
+              unoptimized
+            />
+            <button
+              type="button"
+              onClick={clearScreenshot}
+              className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-1 text-xs text-white hover:bg-black/70"
+            >
+              削除
+            </button>
+          </div>
+        )}
+      </Field>
+
       <Field label="カテゴリ" required>
         <select
           value={form.category}
@@ -213,10 +281,12 @@ export function DealForm() {
 function Field({
   label,
   required,
+  hint,
   children,
 }: {
   label: string;
   required?: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -225,6 +295,7 @@ function Field({
         {label}
         {required && <span className="ml-1 text-violet-500">*</span>}
       </label>
+      {hint && <p className="mb-1.5 text-xs text-gray-400">{hint}</p>}
       {children}
     </div>
   );

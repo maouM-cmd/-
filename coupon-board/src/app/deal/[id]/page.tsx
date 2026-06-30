@@ -1,9 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyCodeButton } from "@/components/CopyCodeButton";
 import { HelpfulButton } from "@/components/HelpfulButton";
+import { ReportButton } from "@/components/ReportButton";
 import { getCategoryEmoji, getCategoryLabel } from "@/lib/constants";
 import { getDealById, seedIfEmpty } from "@/lib/db";
+import { getScreenshotUrl } from "@/lib/upload";
 
 interface DealPageProps {
   params: Promise<{ id: string }>;
@@ -29,6 +32,7 @@ export default async function DealPage({ params }: DealPageProps) {
   }
 
   const expired = deal.expires_at && new Date(deal.expires_at) < new Date();
+  const screenshotUrl = getScreenshotUrl(deal.screenshot_path);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
@@ -53,6 +57,19 @@ export default async function DealPage({ params }: DealPageProps) {
         </div>
 
         <h1 className="text-2xl font-bold text-gray-900">{deal.service_name}</h1>
+
+        {screenshotUrl && (
+          <div className="mt-5 overflow-hidden rounded-xl border border-violet-100">
+            <Image
+              src={screenshotUrl}
+              alt="キャンペーンスクリーンショット"
+              width={800}
+              height={600}
+              className="h-auto w-full object-contain bg-gray-50"
+              unoptimized
+            />
+          </div>
+        )}
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 p-4">
@@ -119,6 +136,10 @@ export default async function DealPage({ params }: DealPageProps) {
           )}
           {deal.referral_code && <CopyCodeButton code={deal.referral_code} />}
           <HelpfulButton dealId={deal.id} initialCount={deal.helpful_count} />
+        </div>
+
+        <div className="mt-6 border-t border-gray-100 pt-4 text-center">
+          <ReportButton dealId={deal.id} />
         </div>
       </article>
     </div>

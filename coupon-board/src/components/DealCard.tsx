@@ -1,6 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Deal } from "@/lib/types";
 import { getCategoryEmoji, getCategoryLabel } from "@/lib/constants";
+import { getScreenshotUrl } from "@/lib/upload";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ja-JP", {
@@ -17,12 +19,25 @@ function isExpired(expiresAt: string | null) {
 
 export function DealCard({ deal }: { deal: Deal }) {
   const expired = isExpired(deal.expires_at);
+  const screenshotUrl = getScreenshotUrl(deal.screenshot_path);
 
   return (
     <Link
       href={`/deal/${deal.id}`}
-      className="group block rounded-2xl border border-violet-100 bg-white p-5 shadow-sm transition hover:border-violet-200 hover:shadow-md"
+      className="group block overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition hover:border-violet-200 hover:shadow-md"
     >
+      {screenshotUrl && (
+        <div className="relative h-36 w-full bg-gray-50">
+          <Image
+            src={screenshotUrl}
+            alt={`${deal.service_name}のスクリーンショット`}
+            fill
+            className="object-cover object-top"
+            unoptimized
+          />
+        </div>
+      )}
+      <div className="p-5">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-xl">{getCategoryEmoji(deal.category)}</span>
@@ -59,6 +74,7 @@ export function DealCard({ deal }: { deal: Deal }) {
           <span>👍 {deal.helpful_count}</span>
           <span>{formatDate(deal.created_at)}</span>
         </div>
+      </div>
       </div>
     </Link>
   );

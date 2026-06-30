@@ -1,7 +1,8 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
-import type { Category, CreateDealInput, Deal, SortOption } from "./types";
+import { REPORT_HIDE_THRESHOLD } from "./constants-reports";
+import type { Category, CreateDealInput, Deal, Report, ReportReason, SortOption } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "coupons.db");
@@ -20,6 +21,25 @@ function getDb(): Database.Database {
   return db;
 }
 
+function columnExists(database: Database.Database, table: string, column: string) {
+  const columns = database
+    .prepare(`PRAGMA table_info(${table})`)
+    .all() as { name: string }[];
+  return columns.some((c) => c.name === column);
+}
+
+function migrateSchema(database: Database.Database) {
+  if (!columnExists(database, "deals", "screenshot_path")) {
+    database.exec("ALTER TABLE deals ADD COLUMN screenshot_path TEXT");
+  }
+  if (!columnExists(database, "deals", "report_count")) {
+    database.exec("ALTER TABLE deals ADD COLUMN report_count INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!columnExists(database, "deals", "is_hidden")) {
+    database.exec("ALTER TABLE deals ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0");
+  }
+}
+
 function initSchema(database: Database.Database) {
   database.exec(`
     CREATE TABLE IF NOT EXISTS deals (
@@ -36,15 +56,30 @@ function initSchema(database: Database.Database) {
       category TEXT NOT NULL DEFAULT 'other',
       expires_at TEXT,
       author_name TEXT NOT NULL DEFAULT '匿名',
+      screenshot_path TEXT,
       helpful_count INTEGER NOT NULL DEFAULT 0,
+      report_count INTEGER NOT NULL DEFAULT 0,
+      is_hidden INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      deal_id INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      detail TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (deal_id) REFERENCES deals(id)
     );
 
     CREATE INDEX IF NOT EXISTS idx_deals_category ON deals(category);
     CREATE INDEX IF NOT EXISTS idx_deals_created_at ON deals(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_deals_referrer_value ON deals(referrer_reward_value DESC);
     CREATE INDEX IF NOT EXISTS idx_deals_referee_value ON deals(referee_reward_value DESC);
+    CREATE INDEX IF NOT EXISTS idx_reports_deal_id ON reports(deal_id);
   `);
+
+  migrateSchema(database);
 }
 
 export function getAllDeals(options?: {
@@ -53,7 +88,7 @@ export function getAllDeals(options?: {
   sort?: SortOption;
 }): Deal[] {
   const database = getDb();
-  let sql = "SELECT * FROM deals WHERE 1=1";
+  let sql = "SELECT * FROM deals WHERE is_hidden = 0";
   const params: (string | number)[] = [];
 
   if (options?.category) {
@@ -86,11 +121,12 @@ export function getAllDeals(options?: {
   return database.prepare(sql).all(...params) as Deal[];
 }
 
-export function getDealById(id: number): Deal | undefined {
+export function getDealById(id: number, includeHidden = false): Deal | undefined {
   const database = getDb();
-  return database.prepare("SELECT * FROM deals WHERE id = ?").get(id) as
-    | Deal
-    | undefined;
+  const sql = includeHidden
+    ? "SELECT * FROM deals WHERE id = ?"
+    : "SELECT * FROM deals WHERE id = ? AND is_hidden = 0";
+  return database.prepare(sql).get(id) as Deal | undefined;
 }
 
 export function createDeal(input: CreateDealInput): Deal {
@@ -100,13 +136,13 @@ export function createDeal(input: CreateDealInput): Deal {
       service_name, referrer_reward, referee_reward,
       referrer_reward_value, referee_reward_value,
       referral_link, referral_code, conditions, description,
-      category, expires_at, author_name
+      category, expires_at, author_name, screenshot_path
     )
     VALUES (
       @service_name, @referrer_reward, @referee_reward,
       @referrer_reward_value, @referee_reward_value,
       @referral_link, @referral_code, @conditions, @description,
-      @category, @expires_at, @author_name
+      @category, @expires_at, @author_name, @screenshot_path
     )
   `);
 
@@ -123,9 +159,10 @@ export function createDeal(input: CreateDealInput): Deal {
     category: input.category,
     expires_at: input.expires_at || null,
     author_name: input.author_name.trim() || "匿名",
+    screenshot_path: input.screenshot_path ?? null,
   });
 
-  return getDealById(Number(result.lastInsertRowid))!;
+  return getDealById(Number(result.lastInsertRowid), true)!;
 }
 
 export function incrementHelpful(id: number): Deal | undefined {
@@ -136,10 +173,56 @@ export function incrementHelpful(id: number): Deal | undefined {
   return getDealById(id);
 }
 
+export function createReport(
+  dealId: number,
+  reason: ReportReason,
+  detail?: string
+): { report: Report; hidden: boolean } | null {
+  const database = getDb();
+  const deal = database
+    .prepare("SELECT id FROM deals WHERE id = ?")
+    .get(dealId) as { id: number } | undefined;
+
+  if (!deal) return null;
+
+  const insert = database.prepare(`
+    INSERT INTO reports (deal_id, reason, detail)
+    VALUES (@deal_id, @reason, @detail)
+  `);
+
+  const result = insert.run({
+    deal_id: dealId,
+    reason,
+    detail: detail?.trim() ?? "",
+  });
+
+  database
+    .prepare("UPDATE deals SET report_count = report_count + 1 WHERE id = ?")
+    .run(dealId);
+
+  const updated = database
+    .prepare("SELECT report_count FROM deals WHERE id = ?")
+    .get(dealId) as { report_count: number };
+
+  let hidden = false;
+  if (updated.report_count >= REPORT_HIDE_THRESHOLD) {
+    database
+      .prepare("UPDATE deals SET is_hidden = 1 WHERE id = ?")
+      .run(dealId);
+    hidden = true;
+  }
+
+  const report = database
+    .prepare("SELECT * FROM reports WHERE id = ?")
+    .get(result.lastInsertRowid) as Report;
+
+  return { report, hidden };
+}
+
 export function getDealCount(): number {
   const database = getDb();
   const row = database
-    .prepare("SELECT COUNT(*) as count FROM deals")
+    .prepare("SELECT COUNT(*) as count FROM deals WHERE is_hidden = 0")
     .get() as { count: number };
   return row.count;
 }
