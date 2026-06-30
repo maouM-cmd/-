@@ -128,6 +128,8 @@ src/app/api/
 
 ## 本番デプロイ時の注意
 
+**→ [DEPLOY.md](./DEPLOY.md) に手順を記載（Docker + VPS 推奨）**
+
 Vercel 等のサーバーレスでは `data/` が永続化されない。本番運用時は以下いずれかが必要:
 
 1. VPS + 永続ディスク

@@ -28,6 +28,17 @@ npm run dev
 
 http://localhost:3000 でアクセスできます。
 
+## 本番デプロイ
+
+**推奨: Docker + VPS**（SQLite・画像アップロード対応）
+
+```bash
+cp .env.example .env.local   # 本番用に編集
+docker compose up -d --build
+```
+
+詳細は [DEPLOY.md](./DEPLOY.md) を参照してください。
+
 ## 要件定義
 
 詳細は以下を参照してください。
