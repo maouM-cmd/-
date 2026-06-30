@@ -148,7 +148,7 @@ docker compose up -d --build
 
 ---
 
-## B. ローカルで本番同等環境を試す
+## B. ローカルで Docker 検証
 
 ```bash
 cd coupon-board
