@@ -20,6 +20,13 @@ export default function PostPage() {
       </div>
 
       <div className="rounded-2xl border border-violet-100 bg-white p-6 shadow-sm">
+        <p className="mb-4 text-xs text-gray-500">
+          投稿により
+          <Link href="/terms" className="mx-1 text-violet-600 hover:underline">
+            利用規約
+          </Link>
+          に同意したものとみなされます。
+        </p>
         <DealForm />
       </div>
     </div>

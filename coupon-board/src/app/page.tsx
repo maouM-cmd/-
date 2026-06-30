@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { AdSlot } from "@/components/AdSlot";
 import { DealCard } from "@/components/DealCard";
@@ -31,6 +32,10 @@ export default async function Home({ searchParams }: HomeProps) {
         </h1>
         <p className="text-violet-100">
           紹介する側・登録する側、双方の特典がわかる招待案件まとめ
+        </p>
+        <p className="mt-1 text-xs text-violet-200">
+          投稿・閲覧により<Link href="/terms" className="underline hover:text-white">利用規約</Link>
+          に同意したものとみなします
         </p>
         <p className="mt-3 text-sm text-violet-200">
           現在 {deals.length} 件の案件が掲載されています

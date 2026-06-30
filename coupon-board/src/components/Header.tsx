@@ -40,10 +40,18 @@ export function Footer() {
     <footer className="mt-auto border-t border-violet-100 bg-white py-8">
       <div className="mx-auto max-w-5xl px-4 text-center text-sm text-gray-500">
         <p>{SITE_NAME} — 紹介キャンペーンをみんなで共有する掲示板</p>
-        <p className="mt-1 text-xs text-gray-400">
+        <nav className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
+          <Link href="/terms" className="text-violet-600 hover:underline">
+            利用規約
+          </Link>
+          <Link href="/privacy" className="text-violet-600 hover:underline">
+            プライバシーポリシー
+          </Link>
+        </nav>
+        <p className="mt-3 text-xs text-gray-400">
           ※ 掲載情報は投稿者によるものです。利用前に各サービスの公式条件をご確認ください。
         </p>
-        <p className="mt-2 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-gray-400">
           当サイトは広告を掲載しています。
         </p>
       </div>
