@@ -1,0 +1,30 @@
+# Render.com Blueprint
+# https://render.com/docs/blueprint-spec
+#
+# デプロイ手順:
+# 1. https://dashboard.render.com → New → Blueprint
+# 2. このリポジトリを接続（Root Directory: coupon-board）
+# 3. 環境変数 ADMIN_PASSWORD をダッシュボードで設定
+# 4. Deploy
+
+services:
+  - type: web
+    name: shotime
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_OPERATOR_NAME
+        value: 招待みんなでショータイム運営
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
+    disk:
+      name: shotime-data
+      mountPath: /app/data
+      sizeGB: 1

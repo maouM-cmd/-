@@ -1,0 +1,16 @@
+services:
+  app:
+    build: .
+    image: shotime-app:latest
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+    volumes:
+      - shotime-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  shotime-data:
