@@ -1,6 +1,6 @@
 # 招待みんなでショータイム 要件定義 v1.2
 
-> 技術的な設計詳細は [BASIC_DESIGN.md](./BASIC_DESIGN.md)（基本設計書）を参照してください。
+> 技術的な設計詳細は [BASIC_DESIGN.md](./BASIC_DESIGN.md)（基本設計書）、[DETAILED_DESIGN.md](./DETAILED_DESIGN.md)（詳細設計書）を参照してください。
 
 ## 概要
 

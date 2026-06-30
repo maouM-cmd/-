@@ -6,6 +6,7 @@
 |-------------|------|
 | [REQUIREMENTS.md](./REQUIREMENTS.md) | 要件定義（What：何を作るか） |
 | **BASIC_DESIGN.md（本書）** | 基本設計（How：どう作るか） |
+| [DETAILED_DESIGN.md](./DETAILED_DESIGN.md) | 詳細設計（How：具体仕様） |
 
 ---
 

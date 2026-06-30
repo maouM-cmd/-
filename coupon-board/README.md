@@ -34,6 +34,7 @@ http://localhost:3000 でアクセスできます。
 
 - [REQUIREMENTS.md](./REQUIREMENTS.md) — 要件定義
 - [BASIC_DESIGN.md](./BASIC_DESIGN.md) — 基本設計書
+- [DETAILED_DESIGN.md](./DETAILED_DESIGN.md) — 詳細設計書
 
 ## ページ構成
 
