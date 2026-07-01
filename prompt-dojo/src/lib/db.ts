@@ -210,6 +210,18 @@ function migrateSchema(database: Database.Database) {
       count INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (user_id, usage_date)
     );
+
+    CREATE TABLE IF NOT EXISTS device_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      platform TEXT NOT NULL CHECK (platform IN ('android', 'ios')),
+      token TEXT NOT NULL UNIQUE,
+      locale TEXT DEFAULT 'ja',
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_device_tokens_user ON device_tokens(user_id);
   `);
 
   seedCategories(database);
@@ -675,13 +687,16 @@ export async function createSubmission(
   const challenge = getChallengeById(challengeId);
   if (!challenge) throw new Error("課題が見つかりません");
 
-  const evaluation = evaluatePrompt(promptText);
+  const user = getUserById(userId);
+  const locale = user?.preferred_locale === "en" ? "en" : "ja";
+
+  const evaluation = evaluatePrompt(promptText, locale);
   let llmScore: number | null = null;
   let llmFeedback: string | null = null;
 
   const limit = checkAndIncrementLlmLimit(userId);
   if (limit.allowed) {
-    const llmResult = await evaluatePromptWithLLM(challenge.description, promptText);
+    const llmResult = await evaluatePromptWithLLM(challenge.description, promptText, locale);
     if (llmResult) {
       llmScore = llmResult.score;
       llmFeedback = JSON.stringify(llmResult);
@@ -956,6 +971,41 @@ export function getPushSubscriptionsByUser(userId: number) {
   return getDb()
     .prepare("SELECT * FROM push_subscriptions WHERE user_id = ?")
     .all(userId) as { endpoint: string; p256dh: string; auth: string }[];
+}
+
+export function deletePushSubscriptionByEndpoint(endpoint: string): void {
+  getDb().prepare("DELETE FROM push_subscriptions WHERE endpoint = ?").run(endpoint);
+}
+
+export function saveDeviceToken(
+  userId: number,
+  platform: "android" | "ios",
+  token: string,
+  locale = "ja",
+): void {
+  getDb()
+    .prepare(
+      `INSERT INTO device_tokens (user_id, platform, token, locale)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(token) DO UPDATE SET user_id = excluded.user_id, platform = excluded.platform, locale = excluded.locale`,
+    )
+    .run(userId, platform, token, locale);
+}
+
+export function deleteDeviceToken(userId: number, token: string): void {
+  getDb()
+    .prepare("DELETE FROM device_tokens WHERE user_id = ? AND token = ?")
+    .run(userId, token);
+}
+
+export function getDeviceTokensByUser(userId: number) {
+  return getDb()
+    .prepare("SELECT * FROM device_tokens WHERE user_id = ?")
+    .all(userId) as { platform: string; token: string; locale: string }[];
+}
+
+export function deleteDeviceTokenByValue(token: string): void {
+  getDb().prepare("DELETE FROM device_tokens WHERE token = ?").run(token);
 }
 
 export function getChallengeAuthorId(challengeId: number): number | null {

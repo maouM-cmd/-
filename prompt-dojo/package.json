@@ -10,8 +10,12 @@
     "start:prod": "bash scripts/start-prod.sh"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/push-notifications": "^8.1.1",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.11.1",
+    "firebase-admin": "^14.1.0",
     "next": "16.2.9",
     "next-auth": "^5.0.0-beta.30",
     "next-intl": "^4.13.1",

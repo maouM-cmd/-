@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { RANK_BG, RANK_COLORS } from "@/lib/constants";
 import { mapApiError } from "@/lib/map-api-error";
-import { enqueue } from "@/lib/offline-queue";
+import { enqueue, registerBackgroundSync } from "@/lib/offline-queue";
 import { useOfflineSync } from "@/components/OfflineSyncProvider";
 import type { EvaluationResult } from "@/lib/types";
 
@@ -48,6 +48,7 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
 
     if (!navigator.onLine) {
       await enqueue({ type: "submission", challengeId, promptText: text });
+      await registerBackgroundSync();
       await refresh();
       setQueued(true);
       return;

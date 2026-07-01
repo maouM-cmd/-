@@ -1,5 +1,8 @@
 const CACHE_NAME = "prompt-dojo-v1";
-const PRECACHE = ["/offline.html", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
+const SYNC_TAG = "prompt-dojo-sync";
+const OFFLINE_DB = "prompt-dojo-offline";
+const OFFLINE_STORE = "queue";
+const PRECACHE = ["/offline.html", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -32,11 +35,16 @@ self.addEventListener("fetch", (event) => {
   if (
     url.pathname.startsWith("/_next/") ||
     url.pathname.startsWith("/icons/") ||
-    url.pathname === "/manifest.json" ||
     url.pathname.endsWith(".css")
   ) {
     event.respondWith(cacheFirst(request));
     return;
+  }
+});
+
+self.addEventListener("sync", (event) => {
+  if (event.tag === SYNC_TAG) {
+    event.waitUntil(flushOfflineQueue());
   }
 });
 
@@ -72,9 +80,67 @@ async function networkFirst(request) {
   }
 }
 
+function openOfflineDb() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(OFFLINE_DB, 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+  });
+}
+
+async function getQueuedItems() {
+  const db = await openOfflineDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_STORE, "readonly");
+    const req = tx.objectStore(OFFLINE_STORE).getAll();
+    req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function removeQueuedItem(id) {
+  const db = await openOfflineDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(OFFLINE_STORE, "readwrite");
+    tx.objectStore(OFFLINE_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function flushOfflineQueue() {
+  const items = await getQueuedItems();
+  for (const item of items) {
+    try {
+      let res;
+      if (item.type === "submission") {
+        res = await fetch(`/api/challenges/${item.challengeId}/submissions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt_text: item.promptText }),
+        });
+      } else if (item.type === "comment") {
+        res = await fetch(`/api/submissions/${item.submissionId}/comments`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            body: item.body,
+            parent_id: item.parentId ?? null,
+          }),
+        });
+      }
+      if (res && res.ok) {
+        await removeQueuedItem(item.id);
+      }
+    } catch {
+      // keep in queue for next sync
+    }
+  }
+}
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
-  let payload = { title: "プロンプ道場", body: "", url: "/" };
+  let payload = { title: "Prompt Dojo", body: "", url: "/" };
   try {
     payload = { ...payload, ...event.data.json() };
   } catch {

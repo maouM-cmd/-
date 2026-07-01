@@ -319,6 +319,14 @@
     "failed": "Failed to set up notifications",
     "registerFailed": "Registration failed"
   },
+  "pushNotifications": {
+    "commentTitle": "New comment",
+    "commentBody": "{name} commented on your submission",
+    "ratingTitle": "New rating",
+    "ratingBody": "{name} rated ★{stars}",
+    "challengeApprovedTitle": "Challenge approved",
+    "challengeApprovedBody": "\"{title}\" is now published"
+  },
   "ad": {
     "sponsor": "Sponsored",
     "placeholder": "Ad space ({position})"

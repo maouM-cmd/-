@@ -6,7 +6,7 @@ import {
   getCommentsBySubmission,
   getSubmissionOwnerId,
 } from "@/lib/db";
-import { sendPushToUser } from "@/lib/push";
+import { sendLocalizedPush } from "@/lib/push-messages";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -50,11 +50,12 @@ export async function POST(
 
   const ownerId = getSubmissionOwnerId(submissionId);
   if (ownerId && ownerId !== user.id) {
-    void sendPushToUser(ownerId, {
-      title: "新しいコメント",
-      body: `${user.display_name}さんがコメントしました`,
-      url: `/submissions/${submissionId}`,
-    });
+    void sendLocalizedPush(
+      ownerId,
+      "comment",
+      { name: user.display_name ?? "" },
+      `/submissions/${submissionId}`,
+    );
   }
 
   return NextResponse.json(comment, { status: 201 });

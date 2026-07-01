@@ -319,6 +319,14 @@
     "failed": "通知の設定に失敗しました",
     "registerFailed": "登録に失敗しました"
   },
+  "pushNotifications": {
+    "commentTitle": "新しいコメント",
+    "commentBody": "{name}さんがコメントしました",
+    "ratingTitle": "新しい評価",
+    "ratingBody": "{name}さんが★{stars}で評価しました",
+    "challengeApprovedTitle": "課題が承認されました",
+    "challengeApprovedBody": "「{title}」が公開されました"
+  },
   "ad": {
     "sponsor": "スポンサー",
     "placeholder": "広告スペース（{position}）"

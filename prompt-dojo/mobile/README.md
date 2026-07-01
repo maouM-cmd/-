@@ -48,6 +48,27 @@ npx cap open ios
 
 To handle `prompt-dojo://` URLs, configure intent filters (Android) and URL schemes (iOS) in the native projects after `cap add`, then map paths to `APP_BASE_URL` in your app delegate / activity.
 
+Host Universal Links / App Links from the web app:
+
+- `https://<APP_BASE_URL>/.well-known/apple-app-site-association` — replace `TEAM_ID` with your Apple Team ID
+- `https://<APP_BASE_URL>/.well-known/assetlinks.json` — replace SHA-256 fingerprint after signing the Android app
+
+iOS: enable Associated Domains (`applinks:your-domain`) in Xcode.  
+Android: add intent-filter for `https://your-domain/ja/*` and `/en/*`.
+
+## Firebase (native push)
+
+1. Create a Firebase project and add Android + iOS apps (`com.promptdojo.app`).
+2. Download `google-services.json` → `mobile/android/app/` after `cap add android`.
+3. Download `GoogleService-Info.plist` → `mobile/ios/App/App/` after `cap add ios`.
+4. Upload your APNs Authentication Key (`.p8`) in Firebase Console → Cloud Messaging.
+5. Create a service account with Firebase Admin role; set server env vars:
+   - `FIREBASE_PROJECT_ID`
+   - `FIREBASE_CLIENT_EMAIL`
+   - `FIREBASE_PRIVATE_KEY` (private key with `\n` for newlines)
+
+The Next.js server sends FCM to `device_tokens` when these vars are set. Web Push (VAPID) continues to work for browsers.
+
 ## App icons
 
 Source icons live in the web app at `public/icons/` (192×192 and 512×512 PNG). After `cap add`, generate native launcher icons with [@capacitor/assets](https://github.com/ionic-team/capacitor-assets):
@@ -63,5 +84,5 @@ Or copy `public/icons/icon-512.png` into Android `res/` and iOS `Assets.xcassets
 ## Notes
 
 - CI does not build signed store binaries; use this README for local release builds.
-- Push notifications require additional native plugins (out of Phase 6 scope).
+- Push notifications use `@capacitor/push-notifications` + server-side FCM when Firebase env vars are set.
 - After changing `APP_BASE_URL` or Capacitor plugins, run `npx cap sync` again.

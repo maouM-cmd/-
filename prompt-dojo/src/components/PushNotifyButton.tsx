@@ -1,23 +1,29 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { mapApiError } from "@/lib/map-api-error";
 
 export function PushNotifyButton() {
   const t = useTranslations();
   const tp = useTranslations("push");
-  const [supported] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      "PushManager" in window,
-  );
+  const [isNative, setIsNative] = useState(false);
+  const [webSupported, setWebSupported] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  async function subscribe() {
+  useEffect(() => {
+    void import("@capacitor/core").then(({ Capacitor }) => {
+      if (Capacitor.isNativePlatform()) {
+        setIsNative(true);
+        return;
+      }
+      setWebSupported("serviceWorker" in navigator && "PushManager" in window);
+    });
+  }, []);
+
+  async function subscribeWeb() {
     setLoading(true);
     setMessage("");
 
@@ -67,7 +73,27 @@ export function PushNotifyButton() {
     setLoading(false);
   }
 
-  if (!supported) return null;
+  async function subscribeNative() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const { PushNotifications } = await import("@capacitor/push-notifications");
+      const perm = await PushNotifications.requestPermissions();
+      if (perm.receive !== "granted") {
+        setMessage(tp("denied"));
+        setLoading(false);
+        return;
+      }
+      await PushNotifications.register();
+      setSubscribed(true);
+      setMessage(tp("enabledMessage"));
+    } catch {
+      setMessage(tp("failed"));
+    }
+    setLoading(false);
+  }
+
+  if (!isNative && !webSupported) return null;
 
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
@@ -76,7 +102,7 @@ export function PushNotifyButton() {
       {!subscribed ? (
         <button
           type="button"
-          onClick={subscribe}
+          onClick={isNative ? subscribeNative : subscribeWeb}
           disabled={loading}
           className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white disabled:opacity-50"
         >

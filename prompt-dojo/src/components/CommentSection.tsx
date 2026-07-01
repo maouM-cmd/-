@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { MAX_COMMENT_DEPTH } from "@/lib/constants";
 import { mapApiError } from "@/lib/map-api-error";
-import { enqueue } from "@/lib/offline-queue";
+import { enqueue, registerBackgroundSync } from "@/lib/offline-queue";
 import { useOfflineSync } from "@/components/OfflineSyncProvider";
 import type { Comment } from "@/lib/types";
 
@@ -59,6 +59,7 @@ function CommentItem({
         body: replyBody,
         parentId: comment.id,
       });
+      await registerBackgroundSync();
       await refresh();
       setLoading(false);
       onReply();
@@ -174,6 +175,7 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
 
     if (!navigator.onLine) {
       await enqueue({ type: "comment", submissionId, body });
+      await registerBackgroundSync();
       await refresh();
       setQueued(true);
       setBody("");

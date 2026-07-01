@@ -52,6 +52,14 @@ services:
         sync: false
       - key: APP_BASE_URL
         sync: false
+      - key: NEXT_PUBLIC_APP_BASE_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

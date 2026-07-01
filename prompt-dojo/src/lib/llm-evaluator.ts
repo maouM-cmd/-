@@ -3,6 +3,27 @@ import type { LLMEvaluationResult } from "./types";
 
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
+type Locale = "ja" | "en";
+
+const PROMPTS = {
+  ja: {
+    system: `あなたはプロンプトエンジニアリングの専門家です。
+課題に対するユーザーのプロンプトを評価し、必ず以下のJSON形式のみで回答してください:
+{"score":0-100の整数,"feedback":"総合フィードバック（日本語100字程度）","improvements":["改善点1","改善点2","改善点3"]}
+評価基準: 課題への適合度、指示の明確さ、具体性、出力形式の指定、制約の明示`,
+    userLabel: "【課題】",
+    promptLabel: "【ユーザーのプロンプト】",
+  },
+  en: {
+    system: `You are a prompt engineering expert.
+Evaluate the user's prompt for the challenge. Respond ONLY with this JSON:
+{"score":integer 0-100,"feedback":"Overall feedback (~100 chars in English)","improvements":["tip1","tip2","tip3"]}
+Criteria: task fit, clarity, specificity, output format, constraints.`,
+    userLabel: "[Challenge]",
+    promptLabel: "[User prompt]",
+  },
+};
+
 export function isLlmEnabled(): boolean {
   return Boolean(process.env.OPENAI_API_KEY);
 }
@@ -10,16 +31,13 @@ export function isLlmEnabled(): boolean {
 export async function evaluatePromptWithLLM(
   challengeDescription: string,
   promptText: string,
+  locale: Locale = "ja",
 ): Promise<LLMEvaluationResult | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
 
-  const systemPrompt = `あなたはプロンプトエンジニアリングの専門家です。
-課題に対するユーザーのプロンプトを評価し、必ず以下のJSON形式のみで回答してください:
-{"score":0-100の整数,"feedback":"総合フィードバック（日本語100字程度）","improvements":["改善点1","改善点2","改善点3"]}
-評価基準: 課題への適合度、指示の明確さ、具体性、出力形式の指定、制約の明示`;
-
-  const userPrompt = `【課題】\n${challengeDescription}\n\n【ユーザーのプロンプト】\n${promptText}`;
+  const p = PROMPTS[locale];
+  const userPrompt = `${p.userLabel}\n${challengeDescription}\n\n${p.promptLabel}\n${promptText}`;
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -30,7 +48,7 @@ export async function evaluatePromptWithLLM(
     body: JSON.stringify({
       model: OPENAI_MODEL,
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: p.system },
         { role: "user", content: userPrompt },
       ],
       temperature: 0.3,

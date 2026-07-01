@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { getSubmissionOwnerId, rateSubmission } from "@/lib/db";
-import { sendPushToUser } from "@/lib/push";
+import { sendLocalizedPush } from "@/lib/push-messages";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -34,11 +34,12 @@ export async function POST(
 
   const ownerId = getSubmissionOwnerId(submissionId);
   if (ownerId && ownerId !== user.id) {
-    void sendPushToUser(ownerId, {
-      title: "新しい評価",
-      body: `${user.display_name}さんが★${stars}で評価しました`,
-      url: `/submissions/${submissionId}`,
-    });
+    void sendLocalizedPush(
+      ownerId,
+      "rating",
+      { name: user.display_name ?? "", stars },
+      `/submissions/${submissionId}`,
+    );
   }
 
   return NextResponse.json({ submission: result.submission });

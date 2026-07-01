@@ -1,3 +1,4 @@
+export const BACKGROUND_SYNC_TAG = "prompt-dojo-sync";
 const DB_NAME = "prompt-dojo-offline";
 const STORE_NAME = "queue";
 const DB_VERSION = 1;
@@ -117,4 +118,20 @@ export async function flush(): Promise<{ synced: number; failed: number }> {
 export async function getPendingCount(): Promise<number> {
   const items = await getAll();
   return items.length;
+}
+
+export async function registerBackgroundSync(): Promise<void> {
+  if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    if ("sync" in registration) {
+      const reg = registration as ServiceWorkerRegistration & {
+        sync: { register: (tag: string) => Promise<void> };
+      };
+      await reg.sync.register(BACKGROUND_SYNC_TAG);
+    }
+  } catch {
+    // Background Sync unsupported or registration failed
+  }
 }

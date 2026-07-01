@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { mapApiError } from "@/lib/map-api-error";
 import type { GeneratedChallenge } from "@/lib/types";
@@ -10,6 +10,7 @@ export function ChallengeGenButton({
 }: {
   onGenerated: (challenge: GeneratedChallenge) => void;
 }) {
+  const locale = useLocale();
   const t = useTranslations();
   const tg = useTranslations("gen");
   const [theme, setTheme] = useState("");
@@ -27,7 +28,7 @@ export function ChallengeGenButton({
     const res = await fetch("/api/challenges/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme, difficulty }),
+      body: JSON.stringify({ theme, difficulty, locale }),
     });
     const data = await res.json();
     setLoading(false);

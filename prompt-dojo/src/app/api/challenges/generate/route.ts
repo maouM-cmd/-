@@ -29,7 +29,9 @@ export async function POST(request: Request) {
     return apiError(ApiErrorCode.INVALID_THEME, 400);
   }
 
-  const challenge = await generateChallengeWithLLM(theme, difficulty);
+  const locale = (body.locale as string) === "en" ? "en" : user.preferred_locale === "en" ? "en" : "ja";
+
+  const challenge = await generateChallengeWithLLM(theme, difficulty, locale);
   if (!challenge) {
     return apiError(ApiErrorCode.CHALLENGE_GEN_FAILED, 500);
   }

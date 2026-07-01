@@ -19,7 +19,7 @@ import {
   setSubmissionHidden,
   updateChallenge,
 } from "@/lib/db";
-import { sendPushToUser } from "@/lib/push";
+import { sendLocalizedPush } from "@/lib/push-messages";
 
 export const runtime = "nodejs";
 
@@ -106,11 +106,12 @@ export async function POST(request: Request) {
       return apiError(ApiErrorCode.APPROVE_FAILED, 400);
     }
     if (authorId) {
-      void sendPushToUser(authorId, {
-        title: "課題が承認されました",
-        body: `「${challenge.title}」が公開されました`,
-        url: `/challenges/${challenge.id}`,
-      });
+      void sendLocalizedPush(
+        authorId,
+        "challengeApproved",
+        { title: challenge.title },
+        `/challenges/${challenge.id}`,
+      );
     }
     return NextResponse.json({ challenge });
   }
