@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import type { Category, Challenge, Tag } from "@/lib/types";
 import { ChallengeCard } from "./ChallengeCard";
@@ -22,6 +23,7 @@ export function ChallengeFilter({
   emptyLabel: string;
   offlineHint: string;
 }) {
+  const locale = useLocale();
   const [challenges, setChallenges] = useState(initialChallenges);
   const [categories] = useState(initialCategories);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -47,6 +49,7 @@ export function ChallengeFilter({
     const params = new URLSearchParams();
     if (cat) params.set("category", cat);
     if (tagName) params.set("tag", tagName);
+    params.set("locale", locale);
 
     try {
       const res = await fetch(`/api/challenges?${params.toString()}`);
@@ -62,7 +65,7 @@ export function ChallengeFilter({
     }
 
     setLoading(false);
-  }, []);
+  }, [locale]);
 
   function selectCategory(slug: string | null) {
     setCategory(slug);

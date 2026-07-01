@@ -22,7 +22,7 @@ export default async function LeaderboardPage({
   const query = await searchParams;
   const type = (query.type as LeaderboardType) ?? "total";
   const validType = TAB_KEYS.includes(type) ? type : "total";
-  const entries = getLeaderboard(validType, 50);
+  const entries = getLeaderboard(validType, 50, locale);
 
   const tabLabels: Record<LeaderboardType, string> = {
     total: t("total"),

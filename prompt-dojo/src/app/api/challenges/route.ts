@@ -11,9 +11,12 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category") ?? undefined;
   const tag = searchParams.get("tag") ?? undefined;
+  const localeParam = searchParams.get("locale");
+  const locale = localeParam === "en" ? "en" : localeParam === "ja" ? "ja" : undefined;
   const challenges = getAllChallenges({
     categorySlug: category,
     tagName: tag,
+    locale,
   });
   return NextResponse.json({ challenges });
 }

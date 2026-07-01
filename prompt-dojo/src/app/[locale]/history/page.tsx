@@ -18,7 +18,7 @@ export default async function HistoryPage({
   const tc = await getTranslations("common");
 
   const user = await getCurrentUser();
-  const submissions = user ? getUserSubmissions(user.id) : [];
+  const submissions = user ? getUserSubmissions(user.id, locale) : [];
 
   const avgAuto =
     submissions.length > 0

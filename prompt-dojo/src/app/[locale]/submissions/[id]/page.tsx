@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("submission");
-  const submission = getSubmissionById(Number(id));
+  const submission = getSubmissionById(Number(id), undefined, false, locale);
   if (!submission) return { title: t("notFound") };
 
   const evaluation = JSON.parse(submission.auto_feedback_json) as EvaluationResult;
@@ -48,7 +48,7 @@ export default async function SubmissionPage({ params }: Props) {
   const t = await getTranslations("submission");
 
   const user = await getCurrentUser();
-  const submission = getSubmissionById(Number(id), user?.id);
+  const submission = getSubmissionById(Number(id), user?.id, false, locale);
   if (!submission) notFound();
 
   const evaluation = JSON.parse(

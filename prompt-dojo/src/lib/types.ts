@@ -43,6 +43,9 @@ export interface Challenge {
   title: string;
   description: string;
   sample_output: string;
+  title_en?: string | null;
+  description_en?: string | null;
+  sample_output_en?: string | null;
   status: ChallengeStatus;
   author_id: number | null;
   category_id: number | null;
@@ -130,6 +133,7 @@ export interface CreateChallengeInput {
 export interface ChallengeFilters {
   categorySlug?: string;
   tagName?: string;
+  locale?: string;
 }
 
 export interface LeaderboardEntry {

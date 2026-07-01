@@ -20,7 +20,7 @@ export default async function ChallengePage({
   const tChallenge = await getTranslations("challenge");
 
   const challengeId = Number(id);
-  const challenge = getChallengeById(challengeId);
+  const challenge = getChallengeById(challengeId, false, locale);
   if (!challenge || challenge.status !== "active") notFound();
 
   const user = await getCurrentUser();

@@ -316,8 +316,10 @@
     "unavailable": "Push notifications are currently unavailable",
     "denied": "Notification permission was denied",
     "enabledMessage": "Notifications enabled",
+    "disabledMessage": "Notifications disabled",
     "failed": "Failed to set up notifications",
-    "registerFailed": "Registration failed"
+    "registerFailed": "Registration failed",
+    "unsubscribe": "Turn off notifications"
   },
   "pushNotifications": {
     "commentTitle": "New comment",

@@ -2,21 +2,23 @@
 
 import { useLocale } from "next-intl";
 import { useEffect } from "react";
+import { setStoredNativePushToken } from "@/lib/push-client";
 
-/** Registers FCM/APNs token on Capacitor native platforms (no UI). */
+/** Registers FCM/APNs token listeners on Capacitor native platforms (no UI). */
 export function NativePushRegistrar() {
   const locale = useLocale();
 
   useEffect(() => {
     let cancelled = false;
 
-    async function register() {
+    async function setupListeners() {
       const { Capacitor } = await import("@capacitor/core");
       if (!Capacitor.isNativePlatform() || cancelled) return;
 
       const { PushNotifications } = await import("@capacitor/push-notifications");
 
       await PushNotifications.addListener("registration", async (token) => {
+        setStoredNativePushToken(token.value);
         const platform = Capacitor.getPlatform() === "ios" ? "ios" : "android";
         await fetch("/api/push/register-device", {
           method: "POST",
@@ -35,14 +37,9 @@ export function NativePushRegistrar() {
           window.location.href = url.startsWith("/") ? url : `/${url}`;
         }
       });
-
-      const perm = await PushNotifications.requestPermissions();
-      if (perm.receive === "granted") {
-        await PushNotifications.register();
-      }
     }
 
-    void register();
+    void setupListeners();
     return () => {
       cancelled = true;
     };

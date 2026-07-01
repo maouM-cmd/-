@@ -7,6 +7,7 @@ import { computeTotalScore, scoreToRank } from "./constants";
 import { evaluatePrompt } from "./prompt-evaluator";
 import { evaluatePromptWithLLM } from "./llm-evaluator";
 import { checkAndIncrementLlmLimit } from "./rate-limit";
+import { localizeChallenge, localizeChallengeTitle } from "./challenge-locale";
 import type {
   AdminSubmission,
   AuthTokenType,
@@ -193,6 +194,9 @@ function migrateSchema(database: Database.Database) {
     ["comments", "parent_id", "ALTER TABLE comments ADD COLUMN parent_id INTEGER"],
     ["challenges", "category_id", "ALTER TABLE challenges ADD COLUMN category_id INTEGER"],
     ["users", "preferred_locale", "ALTER TABLE users ADD COLUMN preferred_locale TEXT NOT NULL DEFAULT 'ja'"],
+    ["challenges", "title_en", "ALTER TABLE challenges ADD COLUMN title_en TEXT"],
+    ["challenges", "description_en", "ALTER TABLE challenges ADD COLUMN description_en TEXT"],
+    ["challenges", "sample_output_en", "ALTER TABLE challenges ADD COLUMN sample_output_en TEXT"],
   ];
   for (const [table, col, sql] of migrations) {
     if (!columnExists(database, table, col)) {
@@ -226,6 +230,50 @@ function migrateSchema(database: Database.Database) {
 
   seedCategories(database);
   assignDefaultCategories(database);
+  backfillSeedTranslations(database);
+}
+
+const SEED_TRANSLATIONS: {
+  title: string;
+  title_en: string;
+  description_en: string;
+  sample_output_en: string;
+}[] = [
+  {
+    title: "SNS投稿文を3パターン作成",
+    title_en: "Create 3 SNS Post Variations",
+    description_en:
+      "Write a prompt to create cafe introduction SNS posts for women in their 20s. From a marketer's perspective, include instructions on emoji usage and character limits.",
+    sample_output_en:
+      "Example: 3 post variations (each under 100 chars, emoji-heavy, with hashtags)",
+  },
+  {
+    title: "会議議事録を要約",
+    title_en: "Summarize Meeting Minutes",
+    description_en:
+      "Write a prompt to summarize long meeting minutes into bullet-point highlights. Clearly specify the output format and required sections.",
+    sample_output_en:
+      "Example: Bullet summary with 3 sections — decisions, TODOs, and discussion points",
+  },
+  {
+    title: "英語メールの翻訳・トーン調整",
+    title_en: "Translate and Tone-Adjust English Emails",
+    description_en:
+      "Write a prompt to translate a casual English email into polite business Japanese. Include constraints such as honorific level and prohibited expressions.",
+    sample_output_en:
+      "Example: Business-polite Japanese email (no casual expressions, under 200 chars)",
+  },
+];
+
+function backfillSeedTranslations(database: Database.Database) {
+  const update = database.prepare(`
+    UPDATE challenges
+    SET title_en = ?, description_en = ?, sample_output_en = ?
+    WHERE title = ? AND (title_en IS NULL OR title_en = '')
+  `);
+  for (const seed of SEED_TRANSLATIONS) {
+    update.run(seed.title_en, seed.description_en, seed.sample_output_en, seed.title);
+  }
 }
 
 function seedCategories(database: Database.Database) {
@@ -355,27 +403,38 @@ export function seedIfEmpty() {
 
   const generalId = getDefaultCategoryId();
   const insert = database.prepare(
-    `INSERT INTO challenges (title, description, sample_output, status, author_id, category_id)
-     VALUES (?, ?, ?, 'active', NULL, ?)`,
+    `INSERT INTO challenges (title, description, sample_output, title_en, description_en, sample_output_en, status, author_id, category_id)
+     VALUES (?, ?, ?, ?, ?, ?, 'active', NULL, ?)`,
   );
-  insert.run(
-    "SNS投稿文を3パターン作成",
-    "20代女性向けのカフェ紹介SNS投稿を作成するプロンプトを書いてください。マーケターの視点で、絵文字の使用や文字数制限も含めて指示しましょう。",
-    "例: 3パターンの投稿文（各100字以内、絵文字多め、ハッシュタグ付き）",
-    generalId,
-  );
-  insert.run(
-    "会議議事録を要約",
-    "長い会議の議事録テキストを、要点だけ箇条書きで要約させるプロンプトを書いてください。出力形式と含めるべき項目を明確にしましょう。",
-    "例: 決定事項・TODO・論点の3セクションで箇条書き要約",
-    generalId,
-  );
-  insert.run(
-    "英語メールの翻訳・トーン調整",
-    "カジュアルな英語メールを、ビジネス向けの丁寧な日本語に翻訳・調整するプロンプトを書いてください。制約条件（敬語レベル、禁止表現など）も含めましょう。",
-    "例: ビジネス敬語の日本語メール（カジュアル表現禁止、200字以内）",
-    generalId,
-  );
+  for (const seed of SEED_TRANSLATIONS) {
+    const jaDescriptions: Record<string, { description: string; sample_output: string }> = {
+      "SNS投稿文を3パターン作成": {
+        description:
+          "20代女性向けのカフェ紹介SNS投稿を作成するプロンプトを書いてください。マーケターの視点で、絵文字の使用や文字数制限も含めて指示しましょう。",
+        sample_output: "例: 3パターンの投稿文（各100字以内、絵文字多め、ハッシュタグ付き）",
+      },
+      "会議議事録を要約": {
+        description:
+          "長い会議の議事録テキストを、要点だけ箇条書きで要約させるプロンプトを書いてください。出力形式と含めるべき項目を明確にしましょう。",
+        sample_output: "例: 決定事項・TODO・論点の3セクションで箇条書き要約",
+      },
+      "英語メールの翻訳・トーン調整": {
+        description:
+          "カジュアルな英語メールを、ビジネス向けの丁寧な日本語に翻訳・調整するプロンプトを書いてください。制約条件（敬語レベル、禁止表現など）も含めましょう。",
+        sample_output: "例: ビジネス敬語の日本語メール（カジュアル表現禁止、200字以内）",
+      },
+    };
+    const ja = jaDescriptions[seed.title];
+    insert.run(
+      seed.title,
+      ja.description,
+      ja.sample_output,
+      seed.title_en,
+      seed.description_en,
+      seed.sample_output_en,
+      generalId,
+    );
+  }
 }
 
 export function updateUserLocale(userId: number, locale: string): void {
@@ -543,7 +602,9 @@ export function getAllChallenges(filters: ChallengeFilters = {}): Challenge[] {
   sql += ` GROUP BY c.id ORDER BY c.created_at DESC`;
 
   const rows = getDb().prepare(sql).all(...params) as Challenge[];
-  return rows.map(enrichChallenge);
+  return rows
+    .map(enrichChallenge)
+    .map((c) => (filters.locale ? localizeChallenge(c, filters.locale) : c));
 }
 
 export function getPendingChallenges(): Challenge[] {
@@ -559,7 +620,11 @@ export function getPendingChallenges(): Challenge[] {
   return rows.map(enrichChallenge);
 }
 
-export function getChallengeById(id: number, includePending = false): Challenge | null {
+export function getChallengeById(
+  id: number,
+  includePending = false,
+  locale?: string,
+): Challenge | null {
   const statusFilter = includePending
     ? "c.status IN ('active', 'pending', 'archived')"
     : "c.status = 'active'";
@@ -574,7 +639,9 @@ export function getChallengeById(id: number, includePending = false): Challenge 
          GROUP BY c.id`,
       )
       .get(id) as Challenge | undefined) ?? null;
-  return challenge ? enrichChallenge(challenge) : null;
+  if (!challenge) return null;
+  const enriched = enrichChallenge(challenge);
+  return locale ? localizeChallenge(enriched, locale) : enriched;
 }
 
 export function getChallengeByIdAdmin(id: number): Challenge | null {
@@ -725,19 +792,28 @@ export function getSubmissionById(
   id: number,
   userId?: number | null,
   includeHidden = false,
+  locale?: string,
 ): Submission | null {
   const hiddenFilter = includeHidden ? "" : "AND s.is_hidden = 0";
   const row = getDb()
     .prepare(
-      `SELECT s.*, u.display_name as author_name, c.title as challenge_title
+      `SELECT s.*, u.display_name as author_name, c.title as challenge_title, c.title_en as challenge_title_en
        FROM submissions s
        JOIN users u ON u.id = s.user_id
        JOIN challenges c ON c.id = s.challenge_id
        WHERE s.id = ? ${hiddenFilter}`,
     )
-    .get(id) as Submission | undefined;
+    .get(id) as (Submission & { challenge_title_en?: string | null }) | undefined;
   if (!row) return null;
-  return enrichSubmission(row, userId);
+  const submission = enrichSubmission(row, userId);
+  if (locale && submission.challenge_title) {
+    submission.challenge_title = localizeChallengeTitle(
+      submission.challenge_title,
+      row.challenge_title_en,
+      locale,
+    );
+  }
+  return submission;
 }
 
 export function getSubmissionsByChallenge(
@@ -756,17 +832,27 @@ export function getSubmissionsByChallenge(
   return rows.map((r) => enrichSubmission(r, userId));
 }
 
-export function getUserSubmissions(userId: number): Submission[] {
+export function getUserSubmissions(userId: number, locale?: string): Submission[] {
   const rows = getDb()
     .prepare(
-      `SELECT s.*, c.title as challenge_title
+      `SELECT s.*, c.title as challenge_title, c.title_en as challenge_title_en
        FROM submissions s
        JOIN challenges c ON c.id = s.challenge_id
        WHERE s.user_id = ?
        ORDER BY s.created_at DESC`,
     )
-    .all(userId) as Submission[];
-  return rows.map((r) => enrichSubmission(r, userId));
+    .all(userId) as (Submission & { challenge_title_en?: string | null })[];
+  return rows.map((r) => {
+    const submission = enrichSubmission(r, userId);
+    if (locale && submission.challenge_title) {
+      submission.challenge_title = localizeChallengeTitle(
+        submission.challenge_title,
+        r.challenge_title_en,
+        locale,
+      );
+    }
+    return submission;
+  });
 }
 
 export function getAllSubmissionsAdmin(): AdminSubmission[] {
@@ -807,12 +893,12 @@ export function rateSubmission(
   const submission = database
     .prepare("SELECT * FROM submissions WHERE id = ? AND is_hidden = 0")
     .get(submissionId) as Submission | undefined;
-  if (!submission) return { ok: false, error: "投稿が見つかりません" };
+  if (!submission) return { ok: false, error: "SUBMISSION_NOT_FOUND" };
   if (submission.user_id === userId) {
-    return { ok: false, error: "自分の投稿は評価できません" };
+    return { ok: false, error: "CANNOT_RATE_OWN" };
   }
   if (stars < 1 || stars > 5) {
-    return { ok: false, error: "評価は1〜5の星で行ってください" };
+    return { ok: false, error: "INVALID_RATING" };
   }
 
   const existing = database
@@ -1076,10 +1162,12 @@ export function getAllReports(): Report[] {
 export function getLeaderboard(
   type: LeaderboardType = "total",
   limit = 50,
+  locale?: string,
 ): LeaderboardEntry[] {
   const rows = getDb()
     .prepare(
       `SELECT s.id as submission_id, s.challenge_id, c.title as challenge_title,
+              c.title_en as challenge_title_en,
               u.display_name as author_name, s.auto_score, s.llm_score,
               s.community_score, s.rating_count, s.created_at
        FROM submissions s
@@ -1087,11 +1175,18 @@ export function getLeaderboard(
        JOIN users u ON u.id = s.user_id
        WHERE c.status = 'active' AND s.is_hidden = 0`,
     )
-    .all() as Omit<LeaderboardEntry, "total_score" | "rank">[];
+    .all() as (Omit<LeaderboardEntry, "total_score" | "rank"> & {
+    challenge_title_en?: string | null;
+  })[];
 
   const entries: LeaderboardEntry[] = rows.map((row) => {
     const total_score = computeTotalScore(row.auto_score, row.community_score);
-    return { ...row, total_score, rank: scoreToRank(total_score) };
+    const challenge_title = localizeChallengeTitle(
+      row.challenge_title,
+      row.challenge_title_en,
+      locale,
+    );
+    return { ...row, challenge_title, total_score, rank: scoreToRank(total_score) };
   });
 
   entries.sort((a, b) => {

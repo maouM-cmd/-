@@ -3,6 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { mapApiError } from "@/lib/map-api-error";
+import {
+  clearStoredNativePushToken,
+  getStoredNativePushToken,
+} from "@/lib/push-client";
 
 export function PushNotifyButton() {
   const t = useTranslations();
@@ -17,11 +21,30 @@ export function PushNotifyButton() {
     void import("@capacitor/core").then(({ Capacitor }) => {
       if (Capacitor.isNativePlatform()) {
         setIsNative(true);
+        setSubscribed(!!getStoredNativePushToken());
         return;
       }
       setWebSupported("serviceWorker" in navigator && "PushManager" in window);
     });
   }, []);
+
+  useEffect(() => {
+    if (isNative || !webSupported) return;
+
+    async function checkWebSubscription() {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) {
+          setSubscribed(true);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    void checkWebSubscription();
+  }, [isNative, webSupported]);
 
   async function subscribeWeb() {
     setLoading(true);
@@ -93,6 +116,50 @@ export function PushNotifyButton() {
     setLoading(false);
   }
 
+  async function unsubscribeWeb() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        const endpoint = sub.endpoint;
+        await sub.unsubscribe();
+        await fetch("/api/push/subscribe", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint }),
+        });
+      }
+      setSubscribed(false);
+      setMessage(tp("disabledMessage"));
+    } catch {
+      setMessage(tp("failed"));
+    }
+    setLoading(false);
+  }
+
+  async function unsubscribeNative() {
+    setLoading(true);
+    setMessage("");
+    try {
+      const token = getStoredNativePushToken();
+      if (token) {
+        await fetch("/api/push/register-device", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+        clearStoredNativePushToken();
+      }
+      setSubscribed(false);
+      setMessage(tp("disabledMessage"));
+    } catch {
+      setMessage(tp("failed"));
+    }
+    setLoading(false);
+  }
+
   if (!isNative && !webSupported) return null;
 
   return (
@@ -109,7 +176,17 @@ export function PushNotifyButton() {
           {loading ? tp("subscribing") : tp("subscribe")}
         </button>
       ) : (
-        <p className="mt-3 text-sm text-emerald-600">{tp("enabled")}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <p className="text-sm text-emerald-600">{tp("enabled")}</p>
+          <button
+            type="button"
+            onClick={isNative ? unsubscribeNative : unsubscribeWeb}
+            disabled={loading}
+            className="rounded-lg border border-indigo-300 px-3 py-1.5 text-sm text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"
+          >
+            {loading ? tp("subscribing") : tp("unsubscribe")}
+          </button>
+        </div>
       )}
       {message && <p className="mt-2 text-xs text-gray-600">{message}</p>}
     </div>

@@ -11,16 +11,16 @@
     "cap:add:ios": "cap add ios"
   },
   "dependencies": {
-    "@capacitor/android": "^7.2.0",
-    "@capacitor/app": "^7.0.1",
-    "@capacitor/core": "^7.2.0",
-    "@capacitor/ios": "^7.2.0",
-    "@capacitor/push-notifications": "^7.0.1",
-    "@capacitor/splash-screen": "^7.0.1",
-    "@capacitor/status-bar": "^7.0.1"
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/ios": "^8.4.1",
+    "@capacitor/push-notifications": "^8.1.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.2.0",
+    "@capacitor/cli": "^8.4.1",
     "typescript": "^5"
   }
 }

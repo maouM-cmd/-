@@ -316,8 +316,10 @@
     "unavailable": "プッシュ通知は現在利用できません",
     "denied": "通知が許可されませんでした",
     "enabledMessage": "通知を有効にしました",
+    "disabledMessage": "通知を無効にしました",
     "failed": "通知の設定に失敗しました",
-    "registerFailed": "登録に失敗しました"
+    "registerFailed": "登録に失敗しました",
+    "unsubscribe": "通知をオフにする"
   },
   "pushNotifications": {
     "commentTitle": "新しいコメント",

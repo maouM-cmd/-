@@ -21,9 +21,9 @@ export default async function Home({
   const tf = await getTranslations("footer");
 
   seedIfEmpty();
-  const challenges = getAllChallenges();
+  const challenges = getAllChallenges({ locale });
   const categories = getAllCategories();
-  const topEntries = getLeaderboard("total", 10);
+  const topEntries = getLeaderboard("total", 10, locale);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">

@@ -19,7 +19,8 @@ import {
   setSubmissionHidden,
   updateChallenge,
 } from "@/lib/db";
-import { sendLocalizedPush } from "@/lib/push-messages";
+import { sendLocalizedPush, getUserLocale } from "@/lib/push-messages";
+import { localizeChallenge } from "@/lib/challenge-locale";
 
 export const runtime = "nodejs";
 
@@ -106,10 +107,12 @@ export async function POST(request: Request) {
       return apiError(ApiErrorCode.APPROVE_FAILED, 400);
     }
     if (authorId) {
+      const locale = getUserLocale(authorId);
+      const localized = localizeChallenge(challenge, locale);
       void sendLocalizedPush(
         authorId,
         "challengeApproved",
-        { title: challenge.title },
+        { title: localized.title },
         `/challenges/${challenge.id}`,
       );
     }
