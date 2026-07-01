@@ -1,0 +1,72 @@
+{
+  "common": {
+    "siteName": "プロンプ道場",
+    "tagline": "プロンプトを書いて、評価されよう",
+    "backHome": "← トップ",
+    "loading": "読み込み中...",
+    "submit": "送信",
+    "all": "すべて",
+    "offlineHint": "オフラインです。キャッシュされた課題一覧を表示しています。書き込み操作は利用できません。"
+  },
+  "header": {
+    "postChallenge": "課題を投稿",
+    "leaderboard": "ランキング",
+    "history": "履歴"
+  },
+  "footer": {
+    "tagline": "プロンプトを書いて、みんなで評価しよう",
+    "terms": "利用規約",
+    "privacy": "プライバシーポリシー",
+    "note": "自動採点は構造チェックによる参考スコアです。LLM評価は投稿時に実行されます。"
+  },
+  "home": {
+    "heroTitle": "プロンプトを書いて、評価されよう",
+    "heroSubtitle": "課題に挑戦 → 自動チェックで即時フィードバック → みんなの星評価でランキング",
+    "termsAgree": "利用により",
+    "termsAgreeSuffix": "に同意したものとみなします",
+    "challenges": "課題一覧",
+    "challengeCount": "{count} 件",
+    "noChallenges": "課題がまだありません",
+    "rankingTop": "ランキング TOP10",
+    "viewAll": "すべて見る →",
+    "recentPosts": "最近の投稿"
+  },
+  "auth": {
+    "login": "ログイン",
+    "register": "会員登録",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "nickname": "ニックネーム",
+    "forgotPassword": "パスワードを忘れた方",
+    "noAccount": "アカウントをお持ちでない方は",
+    "hasAccount": "すでにアカウントがある方は",
+    "loggingIn": "ログイン中...",
+    "registering": "登録中...",
+    "passwordMin": "パスワード（8文字以上）",
+    "verifyBannerTitle": "メールアドレスの確認が必要です",
+    "verifyBannerBody": "{email} 宛に確認メールを送信しました。投稿・コメントには確認が必要です。",
+    "resendVerify": "確認メールを再送",
+    "sending": "送信中..."
+  },
+  "challenge": {
+    "tryIt": "挑戦する →",
+    "submissions": "{count} 件の投稿",
+    "category": "カテゴリ",
+    "tags": "タグ（カンマ区切り）",
+    "tagsPlaceholder": "例: seo, marketing",
+    "postTitle": "課題を投稿",
+    "postDesc": "お題を投稿すると、管理者の承認後に公開されます。",
+    "title": "タイトル",
+    "description": "課題の説明",
+    "sampleOutput": "期待する出力例（任意）",
+    "submitChallenge": "課題を投稿する",
+    "posting": "投稿中..."
+  },
+  "offline": {
+    "writeDisabled": "オフラインのためこの操作はできません"
+  },
+  "locale": {
+    "ja": "日本語",
+    "en": "English"
+  }
+}

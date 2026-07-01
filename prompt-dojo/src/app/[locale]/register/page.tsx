@@ -1,47 +1,65 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/routing";
 import { useState } from "react";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const locale = useLocale();
+  const t = useTranslations("auth");
+  const tc = useTranslations("common");
+  const [form, setForm] = useState({ email: "", password: "", display_name: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const res = await fetch("/api/login", {
+    const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, locale }),
     });
     const data = await res.json();
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "ログインに失敗しました");
+      setError(data.error ?? "Error");
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setSuccess(data.message ?? "");
+    setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, 2000);
   }
 
   return (
     <div className="mx-auto max-w-md px-4 py-8">
       <Link href="/" className="text-sm text-indigo-600 hover:underline">
-        ← トップ
+        {tc("backHome")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">ログイン</h1>
+      <h1 className="mt-4 text-2xl font-bold">{t("register")}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border bg-white p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium">メールアドレス</label>
+          <label className="mb-1 block text-sm font-medium">{t("nickname")}</label>
+          <input
+            type="text"
+            value={form.display_name}
+            onChange={(e) => setForm({ ...form, display_name: e.target.value })}
+            required
+            maxLength={20}
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">{t("email")}</label>
           <input
             type="email"
             value={form.email}
@@ -51,38 +69,32 @@ export default function LoginPage() {
           />
         </div>
         <div>
-          <div className="mb-1 flex items-center justify-between">
-            <label className="text-sm font-medium">パスワード</label>
-            <Link
-              href="/forgot-password"
-              className="text-xs text-indigo-600 hover:underline"
-            >
-              パスワードを忘れた方
-            </Link>
-          </div>
+          <label className="mb-1 block text-sm font-medium">{t("passwordMin")}</label>
           <input
             type="password"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             required
+            minLength={8}
             className="w-full rounded-lg border px-3 py-2 text-sm"
           />
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {success && <p className="text-sm text-emerald-600">{success}</p>}
 
         <button
           type="submit"
           disabled={loading}
           className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? "ログイン中..." : "ログイン"}
+          {loading ? t("registering") : t("register")}
         </button>
 
         <p className="text-center text-sm text-gray-500">
-          アカウントをお持ちでない方は
-          <Link href="/register" className="text-indigo-600 hover:underline">
-            会員登録
+          {t("hasAccount")}
+          <Link href="/login" className="text-indigo-600 hover:underline">
+            {t("login")}
           </Link>
         </p>
       </form>

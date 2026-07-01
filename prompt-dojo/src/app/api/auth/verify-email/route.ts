@@ -40,7 +40,7 @@ export async function POST() {
   }
 
   const token = createAuthToken(user.id, "email_verify", 24);
-  await sendVerificationEmail(user.email, token);
+  await sendVerificationEmail(user.email, token, user.preferred_locale ?? "ja");
 
   return NextResponse.json({
     ok: true,

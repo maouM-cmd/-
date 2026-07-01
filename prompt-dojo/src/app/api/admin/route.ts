@@ -59,21 +59,37 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "create") {
+    const tags = Array.isArray(body.tags)
+      ? (body.tags as string[])
+      : typeof body.tags === "string"
+        ? body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)
+        : undefined;
     const challenge = createChallenge({
       title: body.title,
       description: body.description,
       sample_output: body.sample_output,
       status: body.status,
+      category_id: body.category_id ? Number(body.category_id) : undefined,
+      tags,
     });
     return NextResponse.json({ challenge }, { status: 201 });
   }
 
   if (body.action === "update") {
+    const tags = Array.isArray(body.tags)
+      ? (body.tags as string[])
+      : typeof body.tags === "string"
+        ? body.tags.split(",").map((t: string) => t.trim()).filter(Boolean)
+        : body.tags === null
+          ? []
+          : undefined;
     const challenge = updateChallenge(Number(body.id), {
       title: body.title,
       description: body.description,
       sample_output: body.sample_output,
       status: body.status,
+      category_id: body.category_id !== undefined ? Number(body.category_id) : undefined,
+      tags,
     });
     if (!challenge) {
       return NextResponse.json({ error: "課題が見つかりません" }, { status: 404 });

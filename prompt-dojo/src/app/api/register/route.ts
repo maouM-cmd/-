@@ -29,10 +29,11 @@ export async function POST(request: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const user = createUserWithEmail(email, passwordHash, displayName);
+  const locale = (body.locale as string) === "en" ? "en" : "ja";
+  const user = createUserWithEmail(email, passwordHash, displayName, locale);
 
   const token = createAuthToken(user.id, "email_verify", 24);
-  await sendVerificationEmail(email, token);
+  await sendVerificationEmail(email, token, locale);
 
   const session = getSessionCookie(user.session_token);
   const response = NextResponse.json(

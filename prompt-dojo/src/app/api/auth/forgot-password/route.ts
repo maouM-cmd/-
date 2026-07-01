@@ -26,7 +26,7 @@ export async function POST(request: Request) {
   const user = getUserByEmail(email);
   if (user?.password_hash) {
     const token = createAuthToken(user.id, "password_reset", 1);
-    await sendPasswordResetEmail(email, token);
+    await sendPasswordResetEmail(email, token, user.preferred_locale ?? "ja");
   }
 
   return NextResponse.json({

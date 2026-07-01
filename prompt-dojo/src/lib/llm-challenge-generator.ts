@@ -16,7 +16,7 @@ export async function generateChallengeWithLLM(
   const systemPrompt = `あなたはプロンプトエンジニアリングの教材作成者です。
 テーマと難易度に基づき、プロンプト練習用の課題を1つ作成してください。
 必ず以下のJSON形式のみで回答:
-{"title":"課題タイトル（50字以内）","description":"挑戦者への説明（200字程度）","sample_output":"期待する出力例（100字程度）"}`;
+{"title":"課題タイトル（50字以内）","description":"挑戦者への説明（200字程度）","sample_output":"期待する出力例（100字程度）","suggested_category_slug":"business|creative|coding|general のいずれか"}`;
 
   const userPrompt = `テーマ: ${theme}\n難易度: ${difficulty}`;
 

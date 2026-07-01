@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 export function EmailVerificationBanner({
@@ -9,6 +10,7 @@ export function EmailVerificationBanner({
   email: string | null;
   verified: boolean;
 }) {
+  const t = useTranslations("auth");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -23,19 +25,17 @@ export function EmailVerificationBanner({
     setLoading(false);
 
     if (res.ok) {
-      setMessage(data.message ?? "確認メールを送信しました");
+      setMessage(data.message ?? t("resendVerify"));
     } else {
-      setMessage(data.error ?? "送信に失敗しました");
+      setMessage(data.error ?? "Error");
     }
   }
 
   return (
     <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-      <p className="text-sm font-medium text-amber-900">
-        メールアドレスの確認が必要です
-      </p>
+      <p className="text-sm font-medium text-amber-900">{t("verifyBannerTitle")}</p>
       <p className="mt-1 text-xs text-amber-800">
-        {email} 宛に確認メールを送信しました。投稿・コメントには確認が必要です。
+        {t("verifyBannerBody", { email })}
       </p>
       <button
         type="button"
@@ -43,7 +43,7 @@ export function EmailVerificationBanner({
         disabled={loading}
         className="mt-3 rounded-lg bg-amber-600 px-3 py-1.5 text-xs text-white disabled:opacity-50"
       >
-        {loading ? "送信中..." : "確認メールを再送"}
+        {loading ? t("sending") : t("resendVerify")}
       </button>
       {message && <p className="mt-2 text-xs text-amber-900">{message}</p>}
     </div>

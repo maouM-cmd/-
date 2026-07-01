@@ -1,0 +1,72 @@
+{
+  "common": {
+    "siteName": "Prompt Dojo",
+    "tagline": "Write prompts, get evaluated",
+    "backHome": "← Home",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "all": "All",
+    "offlineHint": "You are offline. Showing cached challenges. Write actions are unavailable."
+  },
+  "header": {
+    "postChallenge": "Post challenge",
+    "leaderboard": "Leaderboard",
+    "history": "History"
+  },
+  "footer": {
+    "tagline": "Write prompts and get feedback from the community",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "note": "Auto scores are structural checks for reference. LLM evaluation runs on submit."
+  },
+  "home": {
+    "heroTitle": "Write prompts, get evaluated",
+    "heroSubtitle": "Take challenges → instant auto-check → community star ratings & rankings",
+    "termsAgree": "By using this service you agree to the",
+    "termsAgreeSuffix": "",
+    "challenges": "Challenges",
+    "challengeCount": "{count} items",
+    "noChallenges": "No challenges yet",
+    "rankingTop": "Top 10 Rankings",
+    "viewAll": "View all →",
+    "recentPosts": "Recent submissions"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "nickname": "Nickname",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "loggingIn": "Logging in...",
+    "registering": "Signing up...",
+    "passwordMin": "Password (8+ characters)",
+    "verifyBannerTitle": "Email verification required",
+    "verifyBannerBody": "We sent a verification email to {email}. Verification is required to post or comment.",
+    "resendVerify": "Resend verification email",
+    "sending": "Sending..."
+  },
+  "challenge": {
+    "tryIt": "Try it →",
+    "submissions": "{count} submissions",
+    "category": "Category",
+    "tags": "Tags (comma-separated)",
+    "tagsPlaceholder": "e.g. seo, marketing",
+    "postTitle": "Post a challenge",
+    "postDesc": "Your challenge will be published after admin approval.",
+    "title": "Title",
+    "description": "Description",
+    "sampleOutput": "Expected output (optional)",
+    "submitChallenge": "Submit challenge",
+    "posting": "Submitting..."
+  },
+  "offline": {
+    "writeDisabled": "This action is unavailable offline"
+  },
+  "locale": {
+    "ja": "日本語",
+    "en": "English"
+  }
+}

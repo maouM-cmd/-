@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { AdminSubmission, Challenge, GeneratedChallenge, Report } from "@/lib/types";
+import type { AdminSubmission, Category, Challenge, GeneratedChallenge, Report } from "@/lib/types";
 import { REPORT_REASONS } from "@/lib/constants-reports";
 import { ChallengeGenButton } from "@/components/ChallengeGenButton";
 
@@ -26,16 +26,24 @@ export function AdminDashboard({
   const [tab, setTab] = useState<Tab>("challenges");
   const [data, setData] = useState<AdminData | null>(initialData);
   const [error, setError] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState({
     title: "",
     description: "",
     sample_output: "",
+    category_id: "",
+    tags: "",
   });
 
   async function loadData() {
     const res = await fetch("/api/admin");
     if (res.ok) {
       setData(await res.json());
+    }
+    const catRes = await fetch("/api/categories");
+    if (catRes.ok) {
+      const catData = await catRes.json();
+      setCategories(catData.categories ?? []);
     }
   }
 
@@ -78,7 +86,7 @@ export function AdminDashboard({
   async function createChallenge(e: React.FormEvent) {
     e.preventDefault();
     const ok = await adminAction({ action: "create", ...form });
-    if (ok) setForm({ title: "", description: "", sample_output: "" });
+    if (ok) setForm({ title: "", description: "", sample_output: "", category_id: "", tags: "" });
   }
 
   if (!authed || !data) {
@@ -142,11 +150,12 @@ export function AdminDashboard({
             <h2 className="font-medium">新規課題（即時公開）</h2>
             <ChallengeGenButton
               onGenerated={(c: GeneratedChallenge) =>
-                setForm({
+                setForm((prev) => ({
+                  ...prev,
                   title: c.title,
                   description: c.description,
                   sample_output: c.sample_output,
-                })
+                }))
               }
             />
             <input
@@ -170,6 +179,24 @@ export function AdminDashboard({
               placeholder="期待する出力例（任意）"
               className="w-full rounded-lg border px-3 py-2 text-sm"
             />
+            <select
+              value={form.category_id}
+              onChange={(e) => setForm({ ...form, category_id: e.target.value })}
+              className="w-full rounded-lg border px-3 py-2 text-sm"
+            >
+              <option value="">カテゴリ（デフォルト: 一般）</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name_ja}
+                </option>
+              ))}
+            </select>
+            <input
+              value={form.tags}
+              onChange={(e) => setForm({ ...form, tags: e.target.value })}
+              placeholder="タグ（カンマ区切り）"
+              className="w-full rounded-lg border px-3 py-2 text-sm"
+            />
             <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white">
               追加
             </button>
@@ -180,6 +207,21 @@ export function AdminDashboard({
               <div key={c.id} className="rounded-xl border p-4">
                 <p className="font-medium">{c.title}</p>
                 <p className="mt-1 text-sm text-gray-500">{c.description}</p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {c.category && (
+                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
+                      {c.category.name_ja}
+                    </span>
+                  )}
+                  {c.tags?.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs text-cyan-700"
+                    >
+                      #{tag.name}
+                    </span>
+                  ))}
+                </div>
                 <div className="mt-2 flex gap-2">
                   <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs">
                     {c.status}

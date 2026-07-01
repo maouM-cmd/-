@@ -34,6 +34,10 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!navigator.onLine) {
+      setError("オフラインのため投稿できません");
+      return;
+    }
     setSubmitting(true);
     setError("");
     const res = await fetch(`/api/challenges/${challengeId}/submissions`, {

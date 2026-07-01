@@ -10,7 +10,9 @@ import { checkAndIncrementLlmLimit } from "./rate-limit";
 import type {
   AdminSubmission,
   AuthTokenType,
+  Category,
   Challenge,
+  ChallengeFilters,
   Comment,
   CreateChallengeInput,
   LeaderboardEntry,
@@ -18,6 +20,7 @@ import type {
   Report,
   ReportReason,
   Submission,
+  Tag,
   User,
 } from "./types";
 import { MAX_COMMENT_DEPTH } from "./constants";
@@ -144,6 +147,26 @@ function initSchema(database: Database.Database) {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS categories (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      slug TEXT NOT NULL UNIQUE,
+      name_ja TEXT NOT NULL,
+      name_en TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS tags (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE
+    );
+
+    CREATE TABLE IF NOT EXISTS challenge_tags (
+      challenge_id INTEGER NOT NULL,
+      tag_id INTEGER NOT NULL,
+      PRIMARY KEY (challenge_id, tag_id),
+      FOREIGN KEY (challenge_id) REFERENCES challenges(id) ON DELETE CASCADE,
+      FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+    );
+
     CREATE INDEX IF NOT EXISTS idx_submissions_challenge ON submissions(challenge_id);
     CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
     CREATE INDEX IF NOT EXISTS idx_ratings_submission ON ratings(submission_id);
@@ -168,6 +191,8 @@ function migrateSchema(database: Database.Database) {
     ["users", "password_hash", "ALTER TABLE users ADD COLUMN password_hash TEXT"],
     ["users", "email_verified", "ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0"],
     ["comments", "parent_id", "ALTER TABLE comments ADD COLUMN parent_id INTEGER"],
+    ["challenges", "category_id", "ALTER TABLE challenges ADD COLUMN category_id INTEGER"],
+    ["users", "preferred_locale", "ALTER TABLE users ADD COLUMN preferred_locale TEXT NOT NULL DEFAULT 'ja'"],
   ];
   for (const [table, col, sql] of migrations) {
     if (!columnExists(database, table, col)) {
@@ -186,6 +211,110 @@ function migrateSchema(database: Database.Database) {
       PRIMARY KEY (user_id, usage_date)
     );
   `);
+
+  seedCategories(database);
+  assignDefaultCategories(database);
+}
+
+function seedCategories(database: Database.Database) {
+  const count = (
+    database.prepare("SELECT COUNT(*) as c FROM categories").get() as { c: number }
+  ).c;
+  if (count > 0) return;
+
+  const insert = database.prepare(
+    "INSERT INTO categories (slug, name_ja, name_en) VALUES (?, ?, ?)",
+  );
+  insert.run("business", "ビジネス", "Business");
+  insert.run("creative", "クリエイティブ", "Creative");
+  insert.run("coding", "プログラミング", "Programming");
+  insert.run("general", "一般", "General");
+}
+
+function assignDefaultCategories(database: Database.Database) {
+  const general = database
+    .prepare("SELECT id FROM categories WHERE slug = 'general'")
+    .get() as { id: number } | undefined;
+  if (!general) return;
+  database
+    .prepare("UPDATE challenges SET category_id = ? WHERE category_id IS NULL")
+    .run(general.id);
+}
+
+function getDefaultCategoryId(): number {
+  const row = getDb()
+    .prepare("SELECT id FROM categories WHERE slug = 'general'")
+    .get() as { id: number } | undefined;
+  return row?.id ?? 1;
+}
+
+function enrichChallenge(row: Challenge): Challenge {
+  const database = getDb();
+  const category = row.category_id
+    ? (database
+        .prepare("SELECT * FROM categories WHERE id = ?")
+        .get(row.category_id) as Category | undefined)
+    : undefined;
+  const tags = getTagsForChallenge(row.id);
+  return { ...row, category: category ?? undefined, tags };
+}
+
+export function getAllCategories(): Category[] {
+  return getDb()
+    .prepare("SELECT * FROM categories ORDER BY id ASC")
+    .all() as Category[];
+}
+
+export function getCategoryBySlug(slug: string): Category | null {
+  return (
+    (getDb()
+      .prepare("SELECT * FROM categories WHERE slug = ?")
+      .get(slug) as Category | undefined) ?? null
+  );
+}
+
+export function getAllTags(): Tag[] {
+  return getDb()
+    .prepare("SELECT * FROM tags ORDER BY name ASC")
+    .all() as Tag[];
+}
+
+export function getTagsForChallenge(challengeId: number): Tag[] {
+  return getDb()
+    .prepare(
+      `SELECT t.* FROM tags t
+       JOIN challenge_tags ct ON ct.tag_id = t.id
+       WHERE ct.challenge_id = ?
+       ORDER BY t.name ASC`,
+    )
+    .all(challengeId) as Tag[];
+}
+
+function getOrCreateTag(name: string): number {
+  const normalized = name.trim().toLowerCase();
+  if (!normalized) throw new Error("Invalid tag");
+  const database = getDb();
+  const existing = database
+    .prepare("SELECT id FROM tags WHERE name = ?")
+    .get(normalized) as { id: number } | undefined;
+  if (existing) return existing.id;
+  const result = database
+    .prepare("INSERT INTO tags (name) VALUES (?)")
+    .run(normalized);
+  return Number(result.lastInsertRowid);
+}
+
+export function setChallengeTags(challengeId: number, tagNames: string[]): void {
+  const database = getDb();
+  database.prepare("DELETE FROM challenge_tags WHERE challenge_id = ?").run(challengeId);
+  const unique = [...new Set(tagNames.map((t) => t.trim().toLowerCase()).filter(Boolean))];
+  const insert = database.prepare(
+    "INSERT INTO challenge_tags (challenge_id, tag_id) VALUES (?, ?)",
+  );
+  for (const name of unique.slice(0, 10)) {
+    const tagId = getOrCreateTag(name);
+    insert.run(challengeId, tagId);
+  }
 }
 
 function enrichSubmission(row: Submission, userId?: number | null): Submission {
@@ -203,30 +332,44 @@ function enrichSubmission(row: Submission, userId?: number | null): Submission {
 
 export function seedIfEmpty() {
   const database = getDb();
+  seedCategories(database);
   const count = (
     database.prepare("SELECT COUNT(*) as c FROM challenges").get() as { c: number }
   ).c;
-  if (count > 0) return;
+  if (count > 0) {
+    assignDefaultCategories(database);
+    return;
+  }
 
+  const generalId = getDefaultCategoryId();
   const insert = database.prepare(
-    `INSERT INTO challenges (title, description, sample_output, status, author_id)
-     VALUES (?, ?, ?, 'active', NULL)`,
+    `INSERT INTO challenges (title, description, sample_output, status, author_id, category_id)
+     VALUES (?, ?, ?, 'active', NULL, ?)`,
   );
   insert.run(
     "SNS投稿文を3パターン作成",
     "20代女性向けのカフェ紹介SNS投稿を作成するプロンプトを書いてください。マーケターの視点で、絵文字の使用や文字数制限も含めて指示しましょう。",
     "例: 3パターンの投稿文（各100字以内、絵文字多め、ハッシュタグ付き）",
+    generalId,
   );
   insert.run(
     "会議議事録を要約",
     "長い会議の議事録テキストを、要点だけ箇条書きで要約させるプロンプトを書いてください。出力形式と含めるべき項目を明確にしましょう。",
     "例: 決定事項・TODO・論点の3セクションで箇条書き要約",
+    generalId,
   );
   insert.run(
     "英語メールの翻訳・トーン調整",
     "カジュアルな英語メールを、ビジネス向けの丁寧な日本語に翻訳・調整するプロンプトを書いてください。制約条件（敬語レベル、禁止表現など）も含めましょう。",
     "例: ビジネス敬語の日本語メール（カジュアル表現禁止、200字以内）",
+    generalId,
   );
+}
+
+export function updateUserLocale(userId: number, locale: string): void {
+  getDb()
+    .prepare("UPDATE users SET preferred_locale = ? WHERE id = ?")
+    .run(locale, userId);
 }
 
 export function getUserById(id: number): User | null {
@@ -282,15 +425,16 @@ export function createUserWithEmail(
   email: string,
   passwordHash: string,
   displayName: string,
+  preferredLocale = "ja",
 ): User {
   const token = randomBytes(32).toString("hex");
   const database = getDb();
   const result = database
     .prepare(
-      `INSERT INTO users (display_name, session_token, email, password_hash, email_verified)
-       VALUES (?, ?, ?, ?, 0)`,
+      `INSERT INTO users (display_name, session_token, email, password_hash, email_verified, preferred_locale)
+       VALUES (?, ?, ?, ?, 0, ?)`,
     )
-    .run(displayName.trim(), token, email.toLowerCase(), passwordHash);
+    .run(displayName.trim(), token, email.toLowerCase(), passwordHash, preferredLocale);
   return getUserById(Number(result.lastInsertRowid))!;
 }
 
@@ -363,21 +507,35 @@ export function findOrCreateOAuthUser(
   return getUserById(Number(result.lastInsertRowid))!;
 }
 
-export function getAllChallenges(): Challenge[] {
-  return getDb()
-    .prepare(
-      `SELECT c.*, COUNT(s.id) as submission_count
-       FROM challenges c
-       LEFT JOIN submissions s ON s.challenge_id = c.id AND s.is_hidden = 0
-       WHERE c.status = 'active'
-       GROUP BY c.id
-       ORDER BY c.created_at DESC`,
-    )
-    .all() as Challenge[];
+export function getAllChallenges(filters: ChallengeFilters = {}): Challenge[] {
+  let sql = `
+    SELECT c.*, COUNT(s.id) as submission_count
+    FROM challenges c
+    LEFT JOIN submissions s ON s.challenge_id = c.id AND s.is_hidden = 0
+    WHERE c.status = 'active'`;
+  const params: (string | number)[] = [];
+
+  if (filters.categorySlug) {
+    sql += ` AND c.category_id = (SELECT id FROM categories WHERE slug = ?)`;
+    params.push(filters.categorySlug);
+  }
+  if (filters.tagName) {
+    sql += ` AND EXISTS (
+      SELECT 1 FROM challenge_tags ct
+      JOIN tags t ON t.id = ct.tag_id
+      WHERE ct.challenge_id = c.id AND t.name = ?
+    )`;
+    params.push(filters.tagName.trim().toLowerCase());
+  }
+
+  sql += ` GROUP BY c.id ORDER BY c.created_at DESC`;
+
+  const rows = getDb().prepare(sql).all(...params) as Challenge[];
+  return rows.map(enrichChallenge);
 }
 
 export function getPendingChallenges(): Challenge[] {
-  return getDb()
+  const rows = getDb()
     .prepare(
       `SELECT c.*, u.display_name as author_name
        FROM challenges c
@@ -386,13 +544,14 @@ export function getPendingChallenges(): Challenge[] {
        ORDER BY c.created_at DESC`,
     )
     .all() as Challenge[];
+  return rows.map(enrichChallenge);
 }
 
 export function getChallengeById(id: number, includePending = false): Challenge | null {
   const statusFilter = includePending
     ? "c.status IN ('active', 'pending', 'archived')"
     : "c.status = 'active'";
-  return (
+  const challenge =
     (getDb()
       .prepare(
         `SELECT c.*, COUNT(s.id) as submission_count, u.display_name as author_name
@@ -402,12 +561,12 @@ export function getChallengeById(id: number, includePending = false): Challenge 
          WHERE c.id = ? AND ${statusFilter}
          GROUP BY c.id`,
       )
-      .get(id) as Challenge | undefined) ?? null
-  );
+      .get(id) as Challenge | undefined) ?? null;
+  return challenge ? enrichChallenge(challenge) : null;
 }
 
 export function getChallengeByIdAdmin(id: number): Challenge | null {
-  return (
+  const challenge =
     (getDb()
       .prepare(
         `SELECT c.*, u.display_name as author_name
@@ -415,12 +574,12 @@ export function getChallengeByIdAdmin(id: number): Challenge | null {
          LEFT JOIN users u ON u.id = c.author_id
          WHERE c.id = ?`,
       )
-      .get(id) as Challenge | undefined) ?? null
-  );
+      .get(id) as Challenge | undefined) ?? null;
+  return challenge ? enrichChallenge(challenge) : null;
 }
 
 export function getAllChallengesAdmin(): Challenge[] {
-  return getDb()
+  const rows = getDb()
     .prepare(
       `SELECT c.*, u.display_name as author_name
        FROM challenges c
@@ -428,14 +587,16 @@ export function getAllChallengesAdmin(): Challenge[] {
        ORDER BY c.created_at DESC`,
     )
     .all() as Challenge[];
+  return rows.map(enrichChallenge);
 }
 
 export function createChallenge(input: CreateChallengeInput): Challenge {
   const database = getDb();
+  const categoryId = input.category_id ?? getDefaultCategoryId();
   const result = database
     .prepare(
-      `INSERT INTO challenges (title, description, sample_output, status, author_id)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO challenges (title, description, sample_output, status, author_id, category_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.title,
@@ -443,8 +604,13 @@ export function createChallenge(input: CreateChallengeInput): Challenge {
       input.sample_output ?? "",
       input.status ?? "active",
       input.author_id ?? null,
+      categoryId,
     );
-  return getChallengeByIdAdmin(Number(result.lastInsertRowid))!;
+  const challengeId = Number(result.lastInsertRowid);
+  if (input.tags?.length) {
+    setChallengeTags(challengeId, input.tags);
+  }
+  return getChallengeByIdAdmin(challengeId)!;
 }
 
 export function updateChallenge(
@@ -455,7 +621,7 @@ export function updateChallenge(
   if (!existing) return null;
   getDb()
     .prepare(
-      `UPDATE challenges SET title = ?, description = ?, sample_output = ?, status = ?, author_id = ? WHERE id = ?`,
+      `UPDATE challenges SET title = ?, description = ?, sample_output = ?, status = ?, author_id = ?, category_id = ? WHERE id = ?`,
     )
     .run(
       input.title ?? existing.title,
@@ -463,8 +629,12 @@ export function updateChallenge(
       input.sample_output ?? existing.sample_output,
       input.status ?? existing.status,
       input.author_id !== undefined ? input.author_id : existing.author_id,
+      input.category_id !== undefined ? input.category_id : existing.category_id,
       id,
     );
+  if (input.tags) {
+    setChallengeTags(id, input.tags);
+  }
   return getChallengeByIdAdmin(id);
 }
 
@@ -492,6 +662,7 @@ export function deleteChallenge(id: number): boolean {
     )
     .run(id);
   database.prepare("DELETE FROM submissions WHERE challenge_id = ?").run(id);
+  database.prepare("DELETE FROM challenge_tags WHERE challenge_id = ?").run(id);
   const result = database.prepare("DELETE FROM challenges WHERE id = ?").run(id);
   return result.changes > 0;
 }

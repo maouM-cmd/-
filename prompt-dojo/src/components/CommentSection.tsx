@@ -139,6 +139,10 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim()) return;
+    if (!navigator.onLine) {
+      setError("オフラインのため投稿できません");
+      return;
+    }
 
     setLoading(true);
     setError("");

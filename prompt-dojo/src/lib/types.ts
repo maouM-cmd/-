@@ -26,6 +26,18 @@ export interface LLMEvaluationResult {
   improvements: string[];
 }
 
+export interface Category {
+  id: number;
+  slug: string;
+  name_ja: string;
+  name_en: string;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+}
+
 export interface Challenge {
   id: number;
   title: string;
@@ -33,9 +45,12 @@ export interface Challenge {
   sample_output: string;
   status: ChallengeStatus;
   author_id: number | null;
+  category_id: number | null;
   created_at: string;
   submission_count?: number;
   author_name?: string;
+  category?: Category;
+  tags?: Tag[];
 }
 
 export interface User {
@@ -47,6 +62,7 @@ export interface User {
   email: string | null;
   password_hash: string | null;
   email_verified: number;
+  preferred_locale: string;
   created_at: string;
 }
 
@@ -107,6 +123,13 @@ export interface CreateChallengeInput {
   sample_output?: string;
   status?: ChallengeStatus;
   author_id?: number | null;
+  category_id?: number | null;
+  tags?: string[];
+}
+
+export interface ChallengeFilters {
+  categorySlug?: string;
+  tagName?: string;
 }
 
 export interface LeaderboardEntry {
@@ -131,6 +154,7 @@ export interface GeneratedChallenge {
   title: string;
   description: string;
   sample_output: string;
+  suggested_category_slug?: string;
 }
 
 export type AuthTokenType = "email_verify" | "password_reset";

@@ -1,14 +1,35 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { RANK_BG } from "@/lib/constants";
 import { scoreToRank } from "@/lib/constants";
 import type { Challenge } from "@/lib/types";
 
-export function ChallengeCard({ challenge }: { challenge: Challenge }) {
+export function ChallengeCard({
+  challenge,
+  categoryLabel,
+}: {
+  challenge: Challenge;
+  categoryLabel?: string;
+}) {
   return (
     <Link
       href={`/challenges/${challenge.id}`}
       className="block rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
     >
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        {categoryLabel && (
+          <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
+            {categoryLabel}
+          </span>
+        )}
+        {challenge.tags?.map((t) => (
+          <span
+            key={t.id}
+            className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs text-cyan-700"
+          >
+            #{t.name}
+          </span>
+        ))}
+      </div>
       <h2 className="text-lg font-bold text-gray-900">{challenge.title}</h2>
       <p className="mt-2 line-clamp-2 text-sm text-gray-600">
         {challenge.description}
