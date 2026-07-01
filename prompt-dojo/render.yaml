@@ -50,6 +50,18 @@ services:
         value: プロンプ道場運営
       - key: NEXT_PUBLIC_CONTACT_EMAIL
         sync: false
+      - key: APP_BASE_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
       - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
         sync: false
       - key: NEXT_PUBLIC_ADSENSE_SLOT

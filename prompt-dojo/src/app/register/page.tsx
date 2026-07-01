@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ email: "", password: "", display_name: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,8 +29,11 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    setSuccess(data.message ?? "確認メールを送信しました");
+    setTimeout(() => {
+      router.push("/");
+      router.refresh();
+    }, 2000);
   }
 
   return (
@@ -74,6 +78,7 @@ export default function RegisterPage() {
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {success && <p className="text-sm text-emerald-600">{success}</p>}
 
         <button
           type="submit"

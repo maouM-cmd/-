@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { createUserWithEmail, getUserByEmail } from "@/lib/db";
+import { createAuthToken, createUserWithEmail, getUserByEmail } from "@/lib/db";
+import { sendVerificationEmail } from "@/lib/mail";
 import { getSessionCookie } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -30,8 +31,17 @@ export async function POST(request: Request) {
   const passwordHash = await bcrypt.hash(password, 10);
   const user = createUserWithEmail(email, passwordHash, displayName);
 
+  const token = createAuthToken(user.id, "email_verify", 24);
+  await sendVerificationEmail(email, token);
+
   const session = getSessionCookie(user.session_token);
-  const response = NextResponse.json({ user: { id: user.id, display_name: user.display_name, email: user.email } }, { status: 201 });
+  const response = NextResponse.json(
+    {
+      user: { id: user.id, display_name: user.display_name, email: user.email },
+      message: "確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
+    },
+    { status: 201 },
+  );
   response.cookies.set(session.name, session.value, session.options);
   return response;
 }

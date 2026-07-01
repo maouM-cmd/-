@@ -4,6 +4,7 @@ import {
   getCommentsBySubmission,
   getSubmissionOwnerId,
 } from "@/lib/db";
+import { emailVerificationRequiredMessage, isEmailVerified } from "@/lib/auth-checks";
 import { sendPushToUser } from "@/lib/push";
 import { getCurrentUser } from "@/lib/session";
 
@@ -27,6 +28,13 @@ export async function POST(
     return NextResponse.json(
       { error: "ログインが必要です" },
       { status: 401 },
+    );
+  }
+
+  if (!isEmailVerified(user)) {
+    return NextResponse.json(
+      { error: emailVerificationRequiredMessage() },
+      { status: 403 },
     );
   }
 

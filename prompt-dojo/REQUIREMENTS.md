@@ -1,20 +1,22 @@
-# プロンプ道場 要件定義 v3.0
+# プロンプ道場 要件定義 v4.0
 
 ## 概要
 
 プロンプトを書いて、自動構造チェック・LLM評価・コミュニティの星評価でスキルアップする公開Webサービス。
 
-## 確定事項（Phase 1〜3）
+## 確定事項（Phase 1〜4）
 
 | 項目 | 内容 |
 |------|------|
 | サイト名 | **プロンプ道場** |
-| 評価方式 | ルールベース + LLM + 星評価 + コメント（スレッド返信可） |
-| 認証 | ニックネーム / Google・GitHub・Apple OAuth / メール+パスワード |
+| 評価方式 | ルールベース + LLM + 星評価 + コメント（最大5段階スレッド） |
+| 認証 | ニックネーム / Google・GitHub・Apple OAuth / メール+パスワード（確認メール必須） |
+| パスワード | リセットメールによる再設定 |
 | 課題管理 | 管理者CRUD + ユーザー投稿（承認制） + AI課題生成 |
 | 通知 | Webプッシュ（コメント・評価・課題承認） |
 | モデレーション | 通報3件で自動非表示 |
 | 収益化 | AdSense 対応枠 |
+| PWA | manifest + アイコン + ホーム画面追加対応 |
 
 ## 環境変数
 
@@ -33,11 +35,17 @@ LLM_CHALLENGE_GEN_LIMIT=5
 VAPID_PUBLIC_KEY=...
 VAPID_PRIVATE_KEY=...
 VAPID_SUBJECT=mailto:contact@example.com
+APP_BASE_URL=https://your-domain.example
+SMTP_HOST=...
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASS=...
+SMTP_FROM=noreply@example.com
 ```
 
-## スコープ外（Phase 4）
+## スコープ外（Phase 5 候補）
 
-- メールアドレス確認（verification）
-- パスワードリセット
-- コメント3段階以上のネスト
-- ネイティブアプリ
+- ネイティブアプリ（iOS / Android）
+- 課題のタグ・カテゴリ分類
+- 多言語対応
+- フルオフライン対応

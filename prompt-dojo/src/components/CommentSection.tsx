@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Comment } from "@/lib/types";(dateStr: string) {
+import { useCallback, useEffect, useState } from "react";
+import { MAX_COMMENT_DEPTH } from "@/lib/constants";
+import type { Comment } from "@/lib/types";
+
+function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ja-JP", {
     month: "short",
     day: "numeric",
@@ -11,22 +14,28 @@ import type { Comment } from "@/lib/types";(dateStr: string) {
 }
 
 function countAll(comments: Comment[]): number {
-  return comments.reduce((n, c) => n + 1 + (c.replies?.length ?? 0), 0);
+  return comments.reduce(
+    (n, c) => n + 1 + (c.replies ? countAll(c.replies) : 0),
+    0,
+  );
 }
 
 function CommentItem({
   comment,
   submissionId,
+  depth,
   onReply,
 }: {
   comment: Comment;
   submissionId: number;
-  onReply: (comment: Comment) => void;
+  depth: number;
+  onReply: () => void;
 }) {
   const [replying, setReplying] = useState(false);
   const [replyBody, setReplyBody] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const canReply = depth < MAX_COMMENT_DEPTH;
 
   async function submitReply(e: React.FormEvent) {
     e.preventDefault();
@@ -47,36 +56,41 @@ function CommentItem({
       return;
     }
 
-    onReply(data);
+    onReply();
     setReplyBody("");
     setReplying(false);
   }
 
   return (
-    <li className="rounded-lg bg-gray-50 p-3">
+    <li className={`rounded-lg p-3 ${depth === 1 ? "bg-gray-50" : "bg-white"}`}>
       <div className="flex items-center justify-between text-xs text-gray-500">
         <span className="font-medium text-gray-700">{comment.author_name}</span>
         <span>{formatDate(comment.created_at)}</span>
       </div>
       <p className="mt-1 text-sm text-gray-800">{comment.body}</p>
-      <button
-        type="button"
-        onClick={() => setReplying(!replying)}
-        className="mt-2 text-xs text-indigo-600 hover:underline"
-      >
-        返信
-      </button>
+      {canReply && (
+        <button
+          type="button"
+          onClick={() => setReplying(!replying)}
+          className="mt-2 text-xs text-indigo-600 hover:underline"
+        >
+          返信
+        </button>
+      )}
 
       {comment.replies && comment.replies.length > 0 && (
-        <ul className="mt-3 ml-4 space-y-2 border-l-2 border-indigo-100 pl-3">
+        <ul
+          className="mt-3 space-y-2 border-l-2 border-indigo-100 pl-3"
+          style={{ marginLeft: Math.min(depth * 8, 32) }}
+        >
           {comment.replies.map((r) => (
-            <li key={r.id} className="rounded-lg bg-white p-2">
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="font-medium text-gray-700">{r.author_name}</span>
-                <span>{formatDate(r.created_at)}</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-800">{r.body}</p>
-            </li>
+            <CommentItem
+              key={r.id}
+              comment={r}
+              submissionId={submissionId}
+              depth={depth + 1}
+              onReply={onReply}
+            />
           ))}
         </ul>
       )}
@@ -111,12 +125,16 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const refreshComments = useCallback(() => {
     fetch(`/api/submissions/${submissionId}/comments`)
       .then((r) => r.json())
       .then(setComments)
       .catch(() => {});
   }, [submissionId]);
+
+  useEffect(() => {
+    refreshComments();
+  }, [refreshComments]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -138,18 +156,8 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
       return;
     }
 
-    fetch(`/api/submissions/${submissionId}/comments`)
-      .then((r) => r.json())
-      .then(setComments)
-      .catch(() => {});
+    refreshComments();
     setBody("");
-  }
-
-  function handleReply() {
-    fetch(`/api/submissions/${submissionId}/comments`)
-      .then((r) => r.json())
-      .then(setComments)
-      .catch(() => {});
   }
 
   return (
@@ -167,7 +175,8 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
               key={c.id}
               comment={c}
               submissionId={submissionId}
-              onReply={handleReply}
+              depth={1}
+              onReply={refreshComments}
             />
           ))}
         </ul>

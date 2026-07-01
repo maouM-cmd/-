@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSubmission, getChallengeById } from "@/lib/db";
+import { emailVerificationRequiredMessage, isEmailVerified } from "@/lib/auth-checks";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -13,6 +14,13 @@ export async function POST(
     return NextResponse.json(
       { error: "ニックネームを設定してから投稿してください" },
       { status: 401 },
+    );
+  }
+
+  if (!isEmailVerified(user)) {
+    return NextResponse.json(
+      { error: emailVerificationRequiredMessage() },
+      { status: 403 },
     );
   }
 

@@ -3,6 +3,8 @@ export const SITE_TAGLINE = "プロンプトを書いて、評価されよう";
 
 export const SESSION_COOKIE = "prompt_dojo_session";
 
+export const MAX_COMMENT_DEPTH = 5;
+
 export const RANK_COLORS: Record<string, string> = {
   S: "text-amber-500",
   A: "text-emerald-600",

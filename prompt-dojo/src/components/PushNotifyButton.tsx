@@ -26,7 +26,7 @@ export function PushNotifyButton() {
         return;
       }
 
-      const reg = await navigator.serviceWorker.register("/sw.js");
+      const reg = await navigator.serviceWorker.ready;
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         setMessage("通知が許可されませんでした");

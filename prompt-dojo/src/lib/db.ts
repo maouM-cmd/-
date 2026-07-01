@@ -9,6 +9,7 @@ import { evaluatePromptWithLLM } from "./llm-evaluator";
 import { checkAndIncrementLlmLimit } from "./rate-limit";
 import type {
   AdminSubmission,
+  AuthTokenType,
   Challenge,
   Comment,
   CreateChallengeInput,
@@ -19,6 +20,7 @@ import type {
   Submission,
   User,
 } from "./types";
+import { MAX_COMMENT_DEPTH } from "./constants";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "prompt-dojo.db");
@@ -132,12 +134,24 @@ function initSchema(database: Database.Database) {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
+    CREATE TABLE IF NOT EXISTS auth_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      type TEXT NOT NULL CHECK (type IN ('email_verify', 'password_reset')),
+      expires_at TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_submissions_challenge ON submissions(challenge_id);
     CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
     CREATE INDEX IF NOT EXISTS idx_ratings_submission ON ratings(submission_id);
     CREATE INDEX IF NOT EXISTS idx_comments_submission ON comments(submission_id);
     CREATE INDEX IF NOT EXISTS idx_reports_submission ON reports(submission_id);
     CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token);
+    CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id);
   `);
 }
 
@@ -274,10 +288,60 @@ export function createUserWithEmail(
   const result = database
     .prepare(
       `INSERT INTO users (display_name, session_token, email, password_hash, email_verified)
-       VALUES (?, ?, ?, ?, 1)`,
+       VALUES (?, ?, ?, ?, 0)`,
     )
     .run(displayName.trim(), token, email.toLowerCase(), passwordHash);
   return getUserById(Number(result.lastInsertRowid))!;
+}
+
+export function createAuthToken(
+  userId: number,
+  type: AuthTokenType,
+  expiresHours: number,
+): string {
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + expiresHours * 60 * 60 * 1000).toISOString();
+
+  getDb()
+    .prepare("DELETE FROM auth_tokens WHERE user_id = ? AND type = ?")
+    .run(userId, type);
+
+  getDb()
+    .prepare(
+      "INSERT INTO auth_tokens (user_id, token, type, expires_at) VALUES (?, ?, ?, ?)",
+    )
+    .run(userId, token, type, expiresAt);
+
+  return token;
+}
+
+export function consumeAuthToken(
+  token: string,
+  type: AuthTokenType,
+): number | null {
+  const row = getDb()
+    .prepare("SELECT user_id, expires_at FROM auth_tokens WHERE token = ? AND type = ?")
+    .get(token, type) as { user_id: number; expires_at: string } | undefined;
+
+  if (!row) return null;
+
+  getDb().prepare("DELETE FROM auth_tokens WHERE token = ?").run(token);
+
+  if (new Date(row.expires_at) < new Date()) return null;
+
+  return row.user_id;
+}
+
+export function markEmailVerified(userId: number): void {
+  getDb()
+    .prepare("UPDATE users SET email_verified = 1 WHERE id = ?")
+    .run(userId);
+}
+
+export function updateUserPassword(userId: number, passwordHash: string): void {
+  getDb()
+    .prepare("UPDATE users SET password_hash = ? WHERE id = ?")
+    .run(passwordHash, userId);
 }
 
 export function findOrCreateOAuthUser(
@@ -604,11 +668,42 @@ export function getCommentsBySubmission(submissionId: number): Comment[] {
     )
     .all(submissionId) as Comment[];
 
-  const topLevel = flat.filter((c) => c.parent_id === null);
-  return topLevel.map((c) => ({
-    ...c,
-    replies: flat.filter((r) => r.parent_id === c.id),
-  }));
+  return buildCommentTree(flat);
+}
+
+function buildCommentTree(flat: Comment[]): Comment[] {
+  const byParent = new Map<number | null, Comment[]>();
+  for (const comment of flat) {
+    const key = comment.parent_id;
+    const list = byParent.get(key) ?? [];
+    list.push(comment);
+    byParent.set(key, list);
+  }
+
+  function attachReplies(parentId: number | null): Comment[] {
+    return (byParent.get(parentId) ?? []).map((comment) => ({
+      ...comment,
+      replies: attachReplies(comment.id),
+    }));
+  }
+
+  return attachReplies(null);
+}
+
+function getCommentDepth(commentId: number, submissionId: number): number {
+  let depth = 0;
+  let currentId: number | null = commentId;
+
+  while (currentId !== null) {
+    depth += 1;
+    const row = getDb()
+      .prepare("SELECT parent_id FROM comments WHERE id = ? AND submission_id = ?")
+      .get(currentId, submissionId) as { parent_id: number | null } | undefined;
+    if (!row) return depth;
+    currentId = row.parent_id;
+  }
+
+  return depth;
 }
 
 export function countComments(submissionId: number): number {
@@ -639,9 +734,14 @@ export function createComment(
 
   if (parentId) {
     const parent = getDb()
-      .prepare("SELECT id, parent_id FROM comments WHERE id = ? AND submission_id = ?")
-      .get(parentId, submissionId) as { id: number; parent_id: number | null } | undefined;
-    if (!parent || parent.parent_id !== null) {
+      .prepare("SELECT id FROM comments WHERE id = ? AND submission_id = ?")
+      .get(parentId, submissionId) as { id: number } | undefined;
+    if (!parent) {
+      return null;
+    }
+
+    const parentDepth = getCommentDepth(parentId, submissionId);
+    if (parentDepth >= MAX_COMMENT_DEPTH) {
       return null;
     }
   }

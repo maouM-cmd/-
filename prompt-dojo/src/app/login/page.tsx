@@ -51,7 +51,15 @@ export default function LoginPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">パスワード</label>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="text-sm font-medium">パスワード</label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-indigo-600 hover:underline"
+            >
+              パスワードを忘れた方
+            </Link>
+          </div>
           <input
             type="password"
             value={form.password}

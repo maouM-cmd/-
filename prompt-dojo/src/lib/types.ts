@@ -133,6 +133,17 @@ export interface GeneratedChallenge {
   sample_output: string;
 }
 
+export type AuthTokenType = "email_verify" | "password_reset";
+
+export interface AuthToken {
+  id: number;
+  user_id: number;
+  token: string;
+  type: AuthTokenType;
+  expires_at: string;
+  created_at: string;
+}
+
 export interface PushSubscriptionRecord {
   id: number;
   user_id: number;

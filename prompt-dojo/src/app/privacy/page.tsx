@@ -15,12 +15,12 @@ export default function PrivacyPage() {
       </LegalSection>
       <LegalSection title="2. 利用目的">
         <p>
-          収集した情報は、サービスの提供、認証、アカウント管理、ランキング表示、プッシュ通知の送信、不正利用の防止、サービス改善のために利用します。
+          収集した情報は、サービスの提供、認証、アカウント管理、メールアドレス確認・パスワードリセットメールの送信、ランキング表示、プッシュ通知の送信、不正利用の防止、サービス改善のために利用します。
         </p>
       </LegalSection>
       <LegalSection title="3. 外部サービスへの送信">
         <p>
-          LLM機能利用時はプロンプト文・課題説明がOpenAI APIに送信されます。OAuthログイン時は各プロバイダ（Google、GitHub、Apple）の認証サービスを利用します。プッシュ通知はブラウザのWeb Push APIを利用します。
+          LLM機能利用時はプロンプト文・課題説明がOpenAI APIに送信されます。OAuthログイン時は各プロバイダ（Google、GitHub、Apple）の認証サービスを利用します。プッシュ通知はブラウザのWeb Push APIを利用します。メール送信時は設定されたSMTPサーバー（またはメール配信サービス）を利用します。
         </p>
       </LegalSection>
       <LegalSection title="4. 第三者提供">
