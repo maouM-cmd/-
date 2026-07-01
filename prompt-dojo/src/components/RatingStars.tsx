@@ -1,7 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/routing";
+import { mapApiError } from "@/lib/map-api-error";
 
 export function RatingStars({
   submissionId,
@@ -13,6 +15,8 @@ export function RatingStars({
   canRate: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations();
+  const tr = useTranslations("rating");
   const [hover, setHover] = useState(0);
   const [rating, setRating] = useState(currentRating);
   const [loading, setLoading] = useState(false);
@@ -30,7 +34,7 @@ export function RatingStars({
     const data = await res.json();
     setLoading(false);
     if (!res.ok) {
-      setError(data.error ?? "評価に失敗しました");
+      setError(mapApiError(data, t));
       return;
     }
     setRating(stars);
@@ -41,15 +45,15 @@ export function RatingStars({
     return (
       <p className="text-sm text-gray-500">
         {rating
-          ? `あなたの評価: ★${rating}`
-          : "自分の投稿は評価できません"}
+          ? tr("yourRating", { rating })
+          : tr("cannotRateOwn")}
       </p>
     );
   }
 
   return (
     <div>
-      <p className="mb-2 text-sm font-medium text-gray-700">このプロンプトを評価</p>
+      <p className="mb-2 text-sm font-medium text-gray-700">{tr("title")}</p>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map((star) => (
           <button
@@ -74,7 +78,7 @@ export function RatingStars({
         ))}
       </div>
       {rating && (
-        <p className="mt-1 text-xs text-gray-500">あなたの評価: ★{rating}</p>
+        <p className="mt-1 text-xs text-gray-500">{tr("yourRating", { rating })}</p>
       )}
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
@@ -82,6 +86,7 @@ export function RatingStars({
 }
 
 export function CopyLinkButton({ path }: { path: string }) {
+  const tr = useTranslations("rating");
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -97,7 +102,7 @@ export function CopyLinkButton({ path }: { path: string }) {
       onClick={handleCopy}
       className="rounded-lg border border-indigo-200 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50"
     >
-      {copied ? "コピーしました！" : "リンクをコピー"}
+      {copied ? tr("copied") : tr("copyLink")}
     </button>
   );
 }

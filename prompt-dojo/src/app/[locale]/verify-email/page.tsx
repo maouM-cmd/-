@@ -1,17 +1,22 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { mapApiError } from "@/lib/map-api-error";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const t = useTranslations();
+  const tv = useTranslations("verify");
+  const tc = useTranslations("common");
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     token ? "loading" : "error",
   );
   const [message, setMessage] = useState(
-    token ? "" : "確認リンクが無効です",
+    token ? "" : tv("invalidLink"),
   );
 
   useEffect(() => {
@@ -22,28 +27,28 @@ function VerifyEmailContent() {
         const data = await res.json();
         if (res.ok) {
           setStatus("success");
-          setMessage(data.message ?? "メールアドレスを確認しました");
+          setMessage(tv("success"));
         } else {
           setStatus("error");
-          setMessage(data.error ?? "確認に失敗しました");
+          setMessage(mapApiError(data, t));
         }
       })
       .catch(() => {
         setStatus("error");
-        setMessage("確認に失敗しました");
+        setMessage(tv("failed"));
       });
-  }, [token]);
+  }, [token, t, tv]);
 
   return (
     <div className="mx-auto max-w-md px-4 py-8">
       <Link href="/" className="text-sm text-indigo-600 hover:underline">
-        ← トップ
+        {tc("backHome")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">メールアドレスの確認</h1>
+      <h1 className="mt-4 text-2xl font-bold">{tv("title")}</h1>
 
       <div className="mt-6 rounded-2xl border bg-white p-6">
         {status === "loading" && (
-          <p className="text-sm text-gray-600">確認中...</p>
+          <p className="text-sm text-gray-600">{tv("verifying")}</p>
         )}
         {status === "success" && (
           <>
@@ -52,21 +57,19 @@ function VerifyEmailContent() {
               href="/"
               className="mt-4 inline-block rounded-xl bg-indigo-600 px-4 py-2 text-sm text-white"
             >
-              トップへ
+              {tv("toHome")}
             </Link>
           </>
         )}
         {status === "error" && (
           <>
             <p className="text-sm text-red-600">{message}</p>
-            <p className="mt-4 text-sm text-gray-600">
-              ログイン後、確認メールを再送できます。
-            </p>
+            <p className="mt-4 text-sm text-gray-600">{tv("loginHint")}</p>
             <Link
               href="/login"
               className="mt-4 inline-block text-sm text-indigo-600 hover:underline"
             >
-              ログインへ
+              {tv("toLogin")}
             </Link>
           </>
         )}
@@ -76,8 +79,10 @@ function VerifyEmailContent() {
 }
 
 export default function VerifyEmailPage() {
+  const tc = useTranslations("common");
+
   return (
-    <Suspense fallback={<div className="p-8 text-center">読み込み中...</div>}>
+    <Suspense fallback={<div className="p-8 text-center">{tc("loading")}</div>}>
       <VerifyEmailContent />
     </Suspense>
   );

@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { RANK_BG } from "@/lib/constants";
 import { scoreToRank } from "@/lib/constants";
@@ -10,6 +13,8 @@ export function ChallengeCard({
   challenge: Challenge;
   categoryLabel?: string;
 }) {
+  const tChallenge = useTranslations("challenge");
+
   return (
     <Link
       href={`/challenges/${challenge.id}`}
@@ -21,12 +26,12 @@ export function ChallengeCard({
             {categoryLabel}
           </span>
         )}
-        {challenge.tags?.map((t) => (
+        {challenge.tags?.map((tag) => (
           <span
-            key={t.id}
+            key={tag.id}
             className="rounded-full bg-cyan-50 px-2 py-0.5 text-xs text-cyan-700"
           >
-            #{t.name}
+            #{tag.name}
           </span>
         ))}
       </div>
@@ -35,8 +40,10 @@ export function ChallengeCard({
         {challenge.description}
       </p>
       <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-        <span>{challenge.submission_count ?? 0} 件の投稿</span>
-        <span className="font-medium text-indigo-600">挑戦する →</span>
+        <span>
+          {tChallenge("submissions", { count: challenge.submission_count ?? 0 })}
+        </span>
+        <span className="font-medium text-indigo-600">{tChallenge("tryIt")}</span>
       </div>
     </Link>
   );
@@ -56,7 +63,9 @@ export function SubmissionCard({
     prompt_text: string;
   };
 }) {
+  const t = useTranslations("submission");
   const rank = scoreToRank(submission.total_score ?? submission.auto_score);
+
   return (
     <Link
       href={`/submissions/${submission.id}`}
@@ -65,7 +74,7 @@ export function SubmissionCard({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-gray-900">
-            {submission.author_name ?? "匿名"}
+            {submission.author_name ?? t("anonymous")}
           </p>
           <p className="mt-1 line-clamp-2 text-xs text-gray-500">
             {submission.prompt_text}
@@ -78,11 +87,15 @@ export function SubmissionCard({
         </span>
       </div>
       <div className="mt-3 flex gap-3 text-xs text-gray-500">
-        <span>自動 {submission.auto_score}点</span>
+        <span>
+          {t("autoScore")} {t("points", { score: submission.auto_score })}
+        </span>
         {submission.community_score !== null && (
           <span>
-            みんなの評価 ★{submission.community_score.toFixed(1)} (
-            {submission.rating_count}件)
+            {t("communityCount", {
+              score: submission.community_score.toFixed(1),
+              count: submission.rating_count,
+            })}
           </span>
         )}
       </div>

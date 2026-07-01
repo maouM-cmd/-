@@ -46,7 +46,11 @@
     "verifyBannerTitle": "Email verification required",
     "verifyBannerBody": "We sent a verification email to {email}. Verification is required to post or comment.",
     "resendVerify": "Resend verification email",
-    "sending": "Sending..."
+    "sending": "Sending...",
+    "logout": "Log out",
+    "emailRegisterHint": "You can also sign up with email",
+    "backToLogin": "← Log in",
+    "toHome": "Home"
   },
   "challenge": {
     "tryIt": "Try it →",
@@ -68,5 +72,175 @@
   "locale": {
     "ja": "日本語",
     "en": "English"
+  },
+  "errors": {
+    "AUTH_REQUIRED": "Login required",
+    "ADMIN_AUTH_REQUIRED": "Authentication required",
+    "ADMIN_WRONG_PASSWORD": "Incorrect password",
+    "EMAIL_NOT_VERIFIED": "Email verification required. Please check your inbox.",
+    "INVALID_EMAIL": "Please enter a valid email address",
+    "INVALID_PASSWORD": "Password must be at least 8 characters",
+    "INVALID_NICKNAME": "Nickname must be 1–20 characters",
+    "EMAIL_ALREADY_EXISTS": "This email is already registered",
+    "INVALID_CREDENTIALS": "Invalid email or password",
+    "MISSING_EMAIL_PASSWORD": "Please enter email and password",
+    "TOKEN_REQUIRED": "Token is required",
+    "TOKEN_INVALID": "Link is invalid or expired",
+    "CHALLENGE_NOT_FOUND": "Challenge not found",
+    "SUBMISSION_NOT_FOUND": "Submission not found",
+    "INVALID_TITLE": "Title must be 1–100 characters",
+    "INVALID_DESCRIPTION": "Description must be 1–2000 characters",
+    "INVALID_PROMPT": "Prompt must be at least 10 characters",
+    "INVALID_PROMPT_TOO_LONG": "Prompt must be 5000 characters or less",
+    "INVALID_COMMENT": "Comment must be 1–1000 characters",
+    "COMMENT_TARGET_INVALID": "Submission not found or invalid reply target",
+    "INVALID_THEME": "Theme must be 1–100 characters",
+    "CHALLENGE_GEN_FAILED": "Failed to generate challenge",
+    "INVALID_PUSH_SUBSCRIPTION": "Invalid subscription data",
+    "INVALID_LOCALE": "Invalid locale",
+    "INVALID_ID": "Invalid ID",
+    "APPROVE_FAILED": "Cannot approve",
+    "UNKNOWN_ACTION": "Unknown action",
+    "CANNOT_RATE_OWN": "You cannot rate your own submission",
+    "INVALID_RATING": "Rating must be 1–5 stars",
+    "CHALLENGE_GEN_DISABLED": "AI challenge generation is currently unavailable",
+    "CHALLENGE_GEN_LIMIT_REACHED": "Daily AI challenge generation limit reached",
+    "GENERIC_ERROR": "An error occurred"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Total = auto score × 40% + community rating × 60%",
+    "empty": "No leaderboard data yet",
+    "rank": "#",
+    "author": "Author",
+    "challenge": "Challenge",
+    "overall": "Total",
+    "autoCol": "Auto",
+    "llmCol": "LLM",
+    "communityCol": "Community",
+    "total": "Overall",
+    "auto": "Auto score",
+    "llm": "LLM score",
+    "community": "Community"
+  },
+  "history": {
+    "title": "Submission history",
+    "empty": "No submissions yet",
+    "loginRequired": "Set a nickname or log in to see your history",
+    "submissionCount": "Submissions",
+    "avgAuto": "Avg auto score",
+    "bestTotal": "Best total score",
+    "tryChallenge": "Try a challenge",
+    "tryChallengeSuffix": " to get started."
+  },
+  "submission": {
+    "backChallenge": "← Challenges",
+    "expectedOutput": "Expected output",
+    "writePrompt": "Write your prompt",
+    "submissions": "Submissions",
+    "noSubmissions": "No submissions yet",
+    "detail": "Submission detail",
+    "back": "← Back",
+    "autoScore": "Auto score",
+    "llmScore": "LLM score",
+    "communityScore": "Community rating",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "queued": "Added to sync queue while offline",
+    "evaluateHint": "Auto-check runs as you type",
+    "notFound": "Submission not found",
+    "totalScore": "Total {total} pts",
+    "points": "{score} pts",
+    "communityNone": "Community: none yet",
+    "communityCount": "Community: ★{score} ({count})",
+    "prompt": "Prompt",
+    "llmEvaluation": "LLM evaluation",
+    "rateLoginHint": "Set a nickname or sign in with Google to rate",
+    "anonymous": "Anonymous",
+    "metaDescription": "{author}'s prompt (total {total} pts)",
+    "ogDescription": "Auto {auto} / Total {total}"
+  },
+  "comment": {
+    "title": "Comments",
+    "empty": "No comments yet",
+    "placeholder": "Share feedback or advice...",
+    "reply": "Reply",
+    "replyPlaceholder": "Write a reply...",
+    "submit": "Comment",
+    "replySubmit": "Reply",
+    "posting": "Posting...",
+    "sending": "Sending...",
+    "queued": "Added to sync queue while offline"
+  },
+  "nickname": {
+    "title": "Set nickname",
+    "placeholder": "Display name (1–20 chars)",
+    "save": "Save",
+    "saving": "Saving...",
+    "loggedIn": "Signed in:",
+    "required": "A nickname is required to post or rate",
+    "nicknamePlaceholder": "Nickname (1–20 chars)",
+    "set": "Set nickname",
+    "setting": "Setting..."
+  },
+  "sync": {
+    "pending": "{count} pending sync",
+    "syncing": "Syncing...",
+    "synced": "Sync complete"
+  },
+  "forgot": {
+    "title": "Forgot password",
+    "desc": "Enter your registered email. We will send a reset link.",
+    "submit": "Send reset email",
+    "sending": "Sending...",
+    "sendFailed": "Failed to send email",
+    "sent": "If that email is registered, we sent a password reset link."
+  },
+  "reset": {
+    "title": "Set new password",
+    "newPassword": "New password",
+    "confirm": "Confirm password",
+    "mismatch": "Passwords do not match",
+    "submit": "Update password",
+    "updating": "Updating...",
+    "invalidLink": "Reset link is invalid",
+    "retry": "Request again",
+    "updateFailed": "Failed to update password"
+  },
+  "verify": {
+    "title": "Verify email",
+    "verifying": "Verifying...",
+    "invalidLink": "Verification link is invalid",
+    "loginHint": "You can resend the verification email after logging in.",
+    "toLogin": "Go to login",
+    "success": "Email verified",
+    "failed": "Verification failed",
+    "toHome": "Home"
+  },
+  "gen": {
+    "title": "Generate with AI",
+    "themePlaceholder": "Theme (e.g. marketing, programming)",
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "generate": "Generate",
+    "generating": "Generating...",
+    "failed": "Generation failed"
+  },
+  "rating": {
+    "title": "Rate this prompt",
+    "yourRating": "Your rating: ★{rating}",
+    "cannotRateOwn": "You cannot rate your own submission",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "rateFailed": "Rating failed"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "backHome": "Back to home"
+  },
+  "legal": {
+    "backHome": "← Back to home",
+    "lastUpdated": "Last updated"
   }
 }

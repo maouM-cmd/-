@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { SyncBadge } from "./SyncBadge";
 
 export function Header() {
   const t = useTranslations("header");
@@ -23,6 +24,7 @@ export function Header() {
           </div>
         </Link>
         <nav className="flex shrink-0 items-center gap-2">
+          <SyncBadge />
           <LocaleSwitcher />
           <Link
             href="/challenges/new"

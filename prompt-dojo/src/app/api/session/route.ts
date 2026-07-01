@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { findOrCreateUser } from "@/lib/db";
 import { createSessionToken, getCurrentUser, getSessionCookie } from "@/lib/session";
 
@@ -8,10 +9,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const displayName = (body.display_name as string)?.trim();
   if (!displayName || displayName.length < 1 || displayName.length > 20) {
-    return NextResponse.json(
-      { error: "ニックネームは1〜20文字で入力してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_NICKNAME, 400);
   }
 
   const existingUser = await getCurrentUser();

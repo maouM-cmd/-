@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import {
   getAdminClearCookie,
   getAdminSessionCookie,
@@ -24,7 +25,7 @@ export const runtime = "nodejs";
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    return apiError(ApiErrorCode.ADMIN_AUTH_REQUIRED, 401);
   }
   return NextResponse.json({
     challenges: getAllChallengesAdmin(),
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
 
   if (body.action === "login") {
     if (!verifyAdminPassword(body.password)) {
-      return NextResponse.json({ error: "パスワードが違います" }, { status: 401 });
+      return apiError(ApiErrorCode.ADMIN_WRONG_PASSWORD, 401);
     }
     const session = getAdminSessionCookie();
     const response = NextResponse.json({ ok: true });
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
   }
 
   if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    return apiError(ApiErrorCode.ADMIN_AUTH_REQUIRED, 401);
   }
 
   if (body.action === "create") {
@@ -92,7 +93,7 @@ export async function POST(request: Request) {
       tags,
     });
     if (!challenge) {
-      return NextResponse.json({ error: "課題が見つかりません" }, { status: 404 });
+      return apiError(ApiErrorCode.CHALLENGE_NOT_FOUND, 404);
     }
     return NextResponse.json({ challenge });
   }
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
     const authorId = getChallengeAuthorId(challengeId);
     const challenge = approveChallenge(challengeId);
     if (!challenge) {
-      return NextResponse.json({ error: "承認できません" }, { status: 400 });
+      return apiError(ApiErrorCode.APPROVE_FAILED, 400);
     }
     if (authorId) {
       void sendPushToUser(authorId, {
@@ -117,7 +118,7 @@ export async function POST(request: Request) {
   if (body.action === "delete") {
     const ok = deleteChallenge(Number(body.id));
     if (!ok) {
-      return NextResponse.json({ error: "課題が見つかりません" }, { status: 404 });
+      return apiError(ApiErrorCode.CHALLENGE_NOT_FOUND, 404);
     }
     return NextResponse.json({ ok: true });
   }
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
   if (body.action === "hide_submission") {
     const ok = setSubmissionHidden(Number(body.id), true);
     if (!ok) {
-      return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
+      return apiError(ApiErrorCode.SUBMISSION_NOT_FOUND, 404);
     }
     return NextResponse.json({ ok: true });
   }
@@ -133,7 +134,7 @@ export async function POST(request: Request) {
   if (body.action === "restore_submission") {
     const ok = setSubmissionHidden(Number(body.id), false);
     if (!ok) {
-      return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
+      return apiError(ApiErrorCode.SUBMISSION_NOT_FOUND, 404);
     }
     return NextResponse.json({ ok: true });
   }
@@ -141,10 +142,10 @@ export async function POST(request: Request) {
   if (body.action === "delete_submission") {
     const ok = deleteSubmission(Number(body.id));
     if (!ok) {
-      return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
+      return apiError(ApiErrorCode.SUBMISSION_NOT_FOUND, 404);
     }
     return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+  return apiError(ApiErrorCode.UNKNOWN_ACTION, 400);
 }

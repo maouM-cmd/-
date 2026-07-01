@@ -1,13 +1,22 @@
-import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { PushNotifyButton } from "@/components/PushNotifyButton";
 import { SubmissionCard } from "@/components/ChallengeCard";
 import { NicknameSetup } from "@/components/NicknameSetup";
-import { RANK_BG } from "@/lib/constants";
+import { RANK_BG, scoreToRank } from "@/lib/constants";
 import { getUserSubmissions } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { scoreToRank } from "@/lib/constants";
 
-export default async function HistoryPage() {
+export default async function HistoryPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("history");
+  const tc = await getTranslations("common");
+
   const user = await getCurrentUser();
   const submissions = user ? getUserSubmissions(user.id) : [];
 
@@ -25,9 +34,9 @@ export default async function HistoryPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
       <Link href="/" className="text-sm text-indigo-600 hover:underline">
-        ← トップ
+        {tc("backHome")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">投稿履歴</h1>
+      <h1 className="mt-4 text-2xl font-bold">{t("title")}</h1>
 
       {!user && (
         <div className="mt-6">
@@ -43,14 +52,12 @@ export default async function HistoryPage() {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl border bg-white p-4 text-center">
-              <p className="text-2xl font-bold text-indigo-600">
-                {submissions.length}
-              </p>
-              <p className="text-sm text-gray-500">投稿数</p>
+              <p className="text-2xl font-bold text-indigo-600">{submissions.length}</p>
+              <p className="text-sm text-gray-500">{t("submissionCount")}</p>
             </div>
             <div className="rounded-xl border bg-white p-4 text-center">
               <p className="text-2xl font-bold text-indigo-600">{avgAuto}</p>
-              <p className="text-sm text-gray-500">平均自動スコア</p>
+              <p className="text-sm text-gray-500">{t("avgAuto")}</p>
             </div>
             <div className="rounded-xl border bg-white p-4 text-center">
               <span
@@ -58,18 +65,18 @@ export default async function HistoryPage() {
               >
                 {bestTotal}
               </span>
-              <p className="mt-2 text-sm text-gray-500">最高総合スコア</p>
+              <p className="mt-2 text-sm text-gray-500">{t("bestTotal")}</p>
             </div>
           </div>
 
           <section className="mt-8">
             {submissions.length === 0 ? (
               <p className="text-gray-500">
-                まだ投稿がありません。
+                {t("empty")}
                 <Link href="/" className="text-indigo-600 hover:underline">
-                  課題に挑戦
+                  {t("tryChallenge")}
                 </Link>
-                してみましょう。
+                {t("tryChallengeSuffix")}
               </p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">

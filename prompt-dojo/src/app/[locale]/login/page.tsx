@@ -3,10 +3,12 @@
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { useState } from "react";
+import { mapApiError } from "@/lib/map-api-error";
 
 export default function LoginPage() {
   const router = useRouter();
-  const t = useTranslations("auth");
+  const t = useTranslations();
+  const ta = useTranslations("auth");
   const tc = useTranslations("common");
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Error");
+      setError(mapApiError(data, t));
       return;
     }
 
@@ -39,11 +41,11 @@ export default function LoginPage() {
       <Link href="/" className="text-sm text-indigo-600 hover:underline">
         {tc("backHome")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">{t("login")}</h1>
+      <h1 className="mt-4 text-2xl font-bold">{ta("login")}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border bg-white p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium">{t("email")}</label>
+          <label className="mb-1 block text-sm font-medium">{ta("email")}</label>
           <input
             type="email"
             value={form.email}
@@ -54,12 +56,12 @@ export default function LoginPage() {
         </div>
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <label className="text-sm font-medium">{t("password")}</label>
+            <label className="text-sm font-medium">{ta("password")}</label>
             <Link
               href="/forgot-password"
               className="text-xs text-indigo-600 hover:underline"
             >
-              {t("forgotPassword")}
+              {ta("forgotPassword")}
             </Link>
           </div>
           <input
@@ -78,13 +80,13 @@ export default function LoginPage() {
           disabled={loading}
           className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? t("loggingIn") : t("login")}
+          {loading ? ta("loggingIn") : ta("login")}
         </button>
 
         <p className="text-center text-sm text-gray-500">
-          {t("noAccount")}
+          {ta("noAccount")}
           <Link href="/register" className="text-indigo-600 hover:underline">
-            {t("register")}
+            {ta("register")}
           </Link>
         </p>
       </form>

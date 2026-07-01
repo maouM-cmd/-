@@ -1,19 +1,27 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
 import { RANK_BG, RANK_COLORS } from "@/lib/constants";
+import { mapApiError } from "@/lib/map-api-error";
+import { enqueue } from "@/lib/offline-queue";
+import { useOfflineSync } from "@/components/OfflineSyncProvider";
 import type { EvaluationResult } from "@/lib/types";
 
 export function PromptForm({ challengeId }: { challengeId: number }) {
   const router = useRouter();
+  const t = useTranslations();
+  const ts = useTranslations("submission");
+  const { refresh } = useOfflineSync();
   const [text, setText] = useState("");
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [queued, setQueued] = useState(false);
 
   const evaluate = useCallback(async (promptText: string) => {
-    if (!promptText.trim()) {
+    if (!promptText.trim() || !navigator.onLine) {
       setEvaluation(null);
       return;
     }
@@ -34,12 +42,17 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
+    setQueued(false);
+
     if (!navigator.onLine) {
-      setError("オフラインのため投稿できません");
+      await enqueue({ type: "submission", challengeId, promptText: text });
+      await refresh();
+      setQueued(true);
       return;
     }
+
     setSubmitting(true);
-    setError("");
     const res = await fetch(`/api/challenges/${challengeId}/submissions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -48,7 +61,7 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
     const data = await res.json();
     setSubmitting(false);
     if (!res.ok) {
-      setError(data.error ?? "投稿に失敗しました");
+      setError(mapApiError(data, t));
       return;
     }
     router.push(`/submissions/${data.submission.id}`);
@@ -59,41 +72,34 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          あなたのプロンプト
+          {ts("writePrompt")}
         </label>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
-          placeholder="課題に対するプロンプトを入力してください..."
+          placeholder={ts("evaluateHint")}
           className="w-full rounded-xl border border-indigo-200 bg-white px-4 py-3 text-sm leading-relaxed focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
         />
-        <p className="mt-1 text-xs text-gray-400">{text.length} / 5000文字</p>
+        <p className="mt-1 text-xs text-gray-400">{text.length} / 5000</p>
       </div>
 
       {evaluation && (
         <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
           <div className="flex items-center gap-3">
-            <span
-              className={`text-2xl font-bold ${RANK_COLORS[evaluation.rank]}`}
-            >
+            <span className={`text-2xl font-bold ${RANK_COLORS[evaluation.rank]}`}>
               {evaluation.rank}
             </span>
             <div>
               <p className="font-medium text-gray-900">
-                自動スコア: {evaluation.score}点
+                {ts("autoScore")}: {evaluation.score}
               </p>
-              <p className="text-xs text-gray-500">構造チェックによる参考値</p>
             </div>
           </div>
           <ul className="mt-4 space-y-2">
             {evaluation.checks.map((check) => (
               <li key={check.label} className="text-sm">
-                <span
-                  className={
-                    check.passed ? "text-emerald-600" : "text-gray-400"
-                  }
-                >
+                <span className={check.passed ? "text-emerald-600" : "text-gray-400"}>
                   {check.passed ? "✓" : "○"}
                 </span>{" "}
                 <span className="font-medium">{check.label}</span>
@@ -111,13 +117,14 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
       )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {queued && <p className="text-sm text-amber-700">{ts("queued")}</p>}
 
       <button
         type="submit"
         disabled={submitting || text.trim().length < 10}
         className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 py-3 text-sm font-semibold text-white shadow-md hover:from-indigo-700 hover:to-cyan-600 disabled:opacity-50"
       >
-        {submitting ? "投稿中..." : "投稿する"}
+        {submitting ? ts("submitting") : ts("submit")}
       </button>
     </form>
   );
@@ -128,6 +135,7 @@ export function EvaluationDisplay({
 }: {
   evaluation: EvaluationResult;
 }) {
+  const ts = useTranslations("submission");
   return (
     <div className="rounded-xl border border-indigo-100 bg-white p-4">
       <div className="flex items-center gap-3">
@@ -136,7 +144,9 @@ export function EvaluationDisplay({
         >
           {evaluation.rank}
         </span>
-        <p className="font-medium">自動スコア: {evaluation.score}点</p>
+        <p className="font-medium">
+          {ts("autoScore")}: {evaluation.score}
+        </p>
       </div>
       <ul className="mt-4 space-y-2">
         {evaluation.checks.map((check) => (

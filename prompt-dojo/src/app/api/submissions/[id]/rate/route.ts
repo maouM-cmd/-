@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { getSubmissionOwnerId, rateSubmission } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
+
+const RATE_ERROR_CODES: Record<string, (typeof ApiErrorCode)[keyof typeof ApiErrorCode]> = {
+  "投稿が見つかりません": ApiErrorCode.SUBMISSION_NOT_FOUND,
+  "自分の投稿は評価できません": ApiErrorCode.CANNOT_RATE_OWN,
+  "評価は1〜5の星で行ってください": ApiErrorCode.INVALID_RATING,
+};
 
 export async function POST(
   request: Request,
@@ -11,10 +18,7 @@ export async function POST(
 ) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json(
-      { error: "ニックネームを設定してから評価してください" },
-      { status: 401 },
-    );
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   const { id } = await params;
@@ -24,7 +28,8 @@ export async function POST(
 
   const result = rateSubmission(submissionId, user.id, stars);
   if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 400 });
+    const code = RATE_ERROR_CODES[result.error ?? ""] ?? ApiErrorCode.GENERIC_ERROR;
+    return apiError(code, 400);
   }
 
   const ownerId = getSubmissionOwnerId(submissionId);

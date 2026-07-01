@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { getSubmissionById } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 
@@ -13,7 +14,7 @@ export async function GET(
   const user = await getCurrentUser();
   const submission = getSubmissionById(submissionId, user?.id);
   if (!submission) {
-    return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
+    return apiError(ApiErrorCode.SUBMISSION_NOT_FOUND, 404);
   }
   return NextResponse.json({ submission });
 }

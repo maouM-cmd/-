@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { updateUserLocale as setDbLocale } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
   const locale = (body.locale as string)?.trim();
 
   if (!locale || !ALLOWED.has(locale)) {
-    return NextResponse.json({ error: "Invalid locale" }, { status: 400 });
+    return apiError(ApiErrorCode.INVALID_LOCALE, 400);
   }
 
   const user = await getCurrentUser();

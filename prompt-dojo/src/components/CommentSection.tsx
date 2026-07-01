@@ -1,11 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { MAX_COMMENT_DEPTH } from "@/lib/constants";
+import { mapApiError } from "@/lib/map-api-error";
+import { enqueue } from "@/lib/offline-queue";
+import { useOfflineSync } from "@/components/OfflineSyncProvider";
 import type { Comment } from "@/lib/types";
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("ja-JP", {
+function formatDate(dateStr: string, locale: string) {
+  return new Date(dateStr).toLocaleDateString(locale === "en" ? "en-US" : "ja-JP", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -24,13 +28,18 @@ function CommentItem({
   comment,
   submissionId,
   depth,
+  locale,
   onReply,
 }: {
   comment: Comment;
   submissionId: number;
   depth: number;
+  locale: string;
   onReply: () => void;
 }) {
+  const t = useTranslations();
+  const tc = useTranslations("comment");
+  const { refresh } = useOfflineSync();
   const [replying, setReplying] = useState(false);
   const [replyBody, setReplyBody] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,6 +52,21 @@ function CommentItem({
     setLoading(true);
     setError("");
 
+    if (!navigator.onLine) {
+      await enqueue({
+        type: "comment",
+        submissionId,
+        body: replyBody,
+        parentId: comment.id,
+      });
+      await refresh();
+      setLoading(false);
+      onReply();
+      setReplyBody("");
+      setReplying(false);
+      return;
+    }
+
     const res = await fetch(`/api/submissions/${submissionId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -52,7 +76,7 @@ function CommentItem({
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "返信に失敗しました");
+      setError(mapApiError(data, t));
       return;
     }
 
@@ -65,7 +89,7 @@ function CommentItem({
     <li className={`rounded-lg p-3 ${depth === 1 ? "bg-gray-50" : "bg-white"}`}>
       <div className="flex items-center justify-between text-xs text-gray-500">
         <span className="font-medium text-gray-700">{comment.author_name}</span>
-        <span>{formatDate(comment.created_at)}</span>
+        <span>{formatDate(comment.created_at, locale)}</span>
       </div>
       <p className="mt-1 text-sm text-gray-800">{comment.body}</p>
       {canReply && (
@@ -74,7 +98,7 @@ function CommentItem({
           onClick={() => setReplying(!replying)}
           className="mt-2 text-xs text-indigo-600 hover:underline"
         >
-          返信
+          {tc("reply")}
         </button>
       )}
 
@@ -89,6 +113,7 @@ function CommentItem({
               comment={r}
               submissionId={submissionId}
               depth={depth + 1}
+              locale={locale}
               onReply={onReply}
             />
           ))}
@@ -101,7 +126,7 @@ function CommentItem({
             value={replyBody}
             onChange={(e) => setReplyBody(e.target.value)}
             rows={2}
-            placeholder="返信を書く..."
+            placeholder={tc("replyPlaceholder")}
             maxLength={1000}
             className="w-full rounded-lg border px-3 py-2 text-sm"
           />
@@ -111,7 +136,7 @@ function CommentItem({
             disabled={loading || !replyBody.trim()}
             className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white disabled:opacity-50"
           >
-            {loading ? "送信中..." : "返信する"}
+            {loading ? tc("sending") : tc("replySubmit")}
           </button>
         </form>
       )}
@@ -120,10 +145,15 @@ function CommentItem({
 }
 
 export function CommentSection({ submissionId }: { submissionId: number }) {
+  const locale = useLocale();
+  const t = useTranslations();
+  const tc = useTranslations("comment");
+  const { refresh } = useOfflineSync();
   const [comments, setComments] = useState<Comment[]>([]);
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [queued, setQueued] = useState(false);
 
   const refreshComments = useCallback(() => {
     fetch(`/api/submissions/${submissionId}/comments`)
@@ -139,13 +169,18 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!body.trim()) return;
+    setError("");
+    setQueued(false);
+
     if (!navigator.onLine) {
-      setError("オフラインのため投稿できません");
+      await enqueue({ type: "comment", submissionId, body });
+      await refresh();
+      setQueued(true);
+      setBody("");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     const res = await fetch(`/api/submissions/${submissionId}/comments`, {
       method: "POST",
@@ -156,7 +191,7 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "投稿に失敗しました");
+      setError(mapApiError(data, t));
       return;
     }
 
@@ -167,11 +202,11 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
   return (
     <section className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
       <h2 className="mb-4 font-bold text-gray-900">
-        コメント ({countAll(comments)})
+        {tc("title")} ({countAll(comments)})
       </h2>
 
       {comments.length === 0 ? (
-        <p className="mb-4 text-sm text-gray-500">まだコメントがありません</p>
+        <p className="mb-4 text-sm text-gray-500">{tc("empty")}</p>
       ) : (
         <ul className="mb-6 space-y-3">
           {comments.map((c) => (
@@ -180,6 +215,7 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
               comment={c}
               submissionId={submissionId}
               depth={1}
+              locale={locale}
               onReply={refreshComments}
             />
           ))}
@@ -191,17 +227,18 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={3}
-          placeholder="フィードバックやアドバイスを書く..."
+          placeholder={tc("placeholder")}
           maxLength={1000}
           className="w-full rounded-lg border border-indigo-200 px-3 py-2 text-sm"
         />
         {error && <p className="text-xs text-red-600">{error}</p>}
+        {queued && <p className="text-xs text-amber-700">{tc("queued")}</p>}
         <button
           type="submit"
           disabled={loading || !body.trim()}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white disabled:opacity-50"
         >
-          {loading ? "投稿中..." : "コメントする"}
+          {loading ? tc("posting") : tc("submit")}
         </button>
       </form>
     </section>

@@ -3,11 +3,13 @@
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { useState } from "react";
+import { mapApiError } from "@/lib/map-api-error";
 
 export default function RegisterPage() {
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations("auth");
+  const t = useTranslations();
+  const ta = useTranslations("auth");
   const tc = useTranslations("common");
   const [form, setForm] = useState({ email: "", password: "", display_name: "" });
   const [loading, setLoading] = useState(false);
@@ -28,7 +30,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Error");
+      setError(mapApiError(data, t));
       return;
     }
 
@@ -44,11 +46,11 @@ export default function RegisterPage() {
       <Link href="/" className="text-sm text-indigo-600 hover:underline">
         {tc("backHome")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">{t("register")}</h1>
+      <h1 className="mt-4 text-2xl font-bold">{ta("register")}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border bg-white p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium">{t("nickname")}</label>
+          <label className="mb-1 block text-sm font-medium">{ta("nickname")}</label>
           <input
             type="text"
             value={form.display_name}
@@ -59,7 +61,7 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">{t("email")}</label>
+          <label className="mb-1 block text-sm font-medium">{ta("email")}</label>
           <input
             type="email"
             value={form.email}
@@ -69,7 +71,7 @@ export default function RegisterPage() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">{t("passwordMin")}</label>
+          <label className="mb-1 block text-sm font-medium">{ta("passwordMin")}</label>
           <input
             type="password"
             value={form.password}
@@ -88,13 +90,13 @@ export default function RegisterPage() {
           disabled={loading}
           className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? t("registering") : t("register")}
+          {loading ? ta("registering") : ta("register")}
         </button>
 
         <p className="text-center text-sm text-gray-500">
-          {t("hasAccount")}
+          {ta("hasAccount")}
           <Link href="/login" className="text-indigo-600 hover:underline">
-            {t("login")}
+            {ta("login")}
           </Link>
         </p>
       </form>

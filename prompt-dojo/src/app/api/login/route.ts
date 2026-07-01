@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import { apiError, ApiErrorCode } from "@/lib/api-errors";
 import { getUserByEmail } from "@/lib/db";
 import { getSessionCookie } from "@/lib/session";
 
@@ -11,17 +12,17 @@ export async function POST(request: Request) {
   const password = body.password as string;
 
   if (!email || !password) {
-    return NextResponse.json({ error: "メールとパスワードを入力してください" }, { status: 400 });
+    return apiError(ApiErrorCode.MISSING_EMAIL_PASSWORD, 400);
   }
 
   const user = getUserByEmail(email);
   if (!user || !user.password_hash) {
-    return NextResponse.json({ error: "メールまたはパスワードが違います" }, { status: 401 });
+    return apiError(ApiErrorCode.INVALID_CREDENTIALS, 401);
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    return NextResponse.json({ error: "メールまたはパスワードが違います" }, { status: 401 });
+    return apiError(ApiErrorCode.INVALID_CREDENTIALS, 401);
   }
 
   const session = getSessionCookie(user.session_token);

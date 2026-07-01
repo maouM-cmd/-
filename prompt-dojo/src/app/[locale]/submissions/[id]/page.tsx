@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/CommentSection";
 import { LLMEvaluationDisplay } from "@/components/LLMEvaluationDisplay";
@@ -12,29 +13,40 @@ import { getCurrentUser } from "@/lib/session";
 import type { EvaluationResult } from "@/lib/types";
 
 interface Props {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("submission");
   const submission = getSubmissionById(Number(id));
-  if (!submission) return { title: "投稿が見つかりません" };
+  if (!submission) return { title: t("notFound") };
 
   const evaluation = JSON.parse(submission.auto_feedback_json) as EvaluationResult;
   const total = computeTotalScore(submission.auto_score, submission.community_score);
 
   return {
-    title: `${submission.challenge_title} — ${evaluation.rank}ランク | ${SITE_NAME}`,
-    description: `${submission.author_name}さんのプロンプト（総合${total}点）`,
+    title: `${submission.challenge_title} — ${evaluation.rank} | ${SITE_NAME}`,
+    description: t("metaDescription", {
+      author: submission.author_name ?? "Anonymous",
+      total,
+    }),
     openGraph: {
-      title: `${submission.challenge_title} — ${evaluation.rank}ランク`,
-      description: `自動${submission.auto_score}点 / 総合${total}点`,
+      title: `${submission.challenge_title} — ${evaluation.rank}`,
+      description: t("ogDescription", {
+        auto: submission.auto_score,
+        total,
+      }),
     },
   };
 }
 
 export default async function SubmissionPage({ params }: Props) {
-  const { id } = await params;
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("submission");
+
   const user = await getCurrentUser();
   const submission = getSubmissionById(Number(id), user?.id);
   if (!submission) notFound();
@@ -68,28 +80,36 @@ export default async function SubmissionPage({ params }: Props) {
               >
                 {evaluation.rank}
               </span>
-              <p className="mt-1 text-sm font-medium">総合 {total}点</p>
+              <p className="mt-1 text-sm font-medium">
+                {t("totalScore", { total })}
+              </p>
             </div>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
-            <span>自動スコア: {submission.auto_score}点</span>
+            <span>
+              {t("autoScore")}: {t("points", { score: submission.auto_score })}
+            </span>
             {submission.llm_score !== null && (
-              <span>LLMスコア: {submission.llm_score}点</span>
+              <span>
+                {t("llmScore")}: {t("points", { score: submission.llm_score })}
+              </span>
             )}
             {submission.community_score !== null ? (
               <span>
-                みんなの評価: ★{submission.community_score.toFixed(1)} (
-                {submission.rating_count}件)
+                {t("communityCount", {
+                  score: submission.community_score.toFixed(1),
+                  count: submission.rating_count,
+                })}
               </span>
             ) : (
-              <span className="text-gray-400">みんなの評価: まだありません</span>
+              <span className="text-gray-400">{t("communityNone")}</span>
             )}
           </div>
         </header>
 
         <section className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-3 font-bold text-gray-900">プロンプト</h2>
+          <h2 className="mb-3 font-bold text-gray-900">{t("prompt")}</h2>
           <pre className="whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-sm leading-relaxed text-gray-800">
             {submission.prompt_text}
           </pre>
@@ -98,7 +118,7 @@ export default async function SubmissionPage({ params }: Props) {
         <EvaluationDisplay evaluation={evaluation} />
 
         <section>
-          <h2 className="mb-3 font-bold text-gray-900">LLM評価</h2>
+          <h2 className="mb-3 font-bold text-gray-900">{t("llmEvaluation")}</h2>
           <LLMEvaluationDisplay
             llmScore={submission.llm_score}
             llmFeedbackJson={submission.llm_feedback_json}
@@ -112,9 +132,7 @@ export default async function SubmissionPage({ params }: Props) {
             canRate={!isOwner && !!user}
           />
           {!user && (
-            <p className="mt-2 text-sm text-amber-700">
-              評価するにはニックネームを設定するか、Googleでログインしてください
-            </p>
+            <p className="mt-2 text-sm text-amber-700">{t("rateLoginHint")}</p>
           )}
         </section>
 

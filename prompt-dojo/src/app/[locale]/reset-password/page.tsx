@@ -1,13 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { mapApiError } from "@/lib/map-api-error";
 
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
+  const t = useTranslations();
+  const tr = useTranslations("reset");
+  const ta = useTranslations("auth");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,7 +21,7 @@ function ResetPasswordContent() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (password !== confirm) {
-      setError("パスワードが一致しません");
+      setError(tr("mismatch"));
       return;
     }
 
@@ -32,7 +37,7 @@ function ResetPasswordContent() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "更新に失敗しました");
+      setError(mapApiError(data, t));
       return;
     }
 
@@ -43,9 +48,9 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <div className="mx-auto max-w-md px-4 py-8">
-        <p className="text-sm text-red-600">リセットリンクが無効です</p>
+        <p className="text-sm text-red-600">{tr("invalidLink")}</p>
         <Link href="/forgot-password" className="mt-4 inline-block text-sm text-indigo-600 hover:underline">
-          再度リクエストする
+          {tr("retry")}
         </Link>
       </div>
     );
@@ -54,13 +59,13 @@ function ResetPasswordContent() {
   return (
     <div className="mx-auto max-w-md px-4 py-8">
       <Link href="/login" className="text-sm text-indigo-600 hover:underline">
-        ← ログイン
+        {ta("backToLogin")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">新しいパスワードを設定</h1>
+      <h1 className="mt-4 text-2xl font-bold">{tr("title")}</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border bg-white p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium">新しいパスワード</label>
+          <label className="mb-1 block text-sm font-medium">{tr("newPassword")}</label>
           <input
             type="password"
             value={password}
@@ -71,7 +76,7 @@ function ResetPasswordContent() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">パスワード（確認）</label>
+          <label className="mb-1 block text-sm font-medium">{tr("confirm")}</label>
           <input
             type="password"
             value={confirm}
@@ -89,7 +94,7 @@ function ResetPasswordContent() {
           disabled={loading}
           className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? "更新中..." : "パスワードを更新"}
+          {loading ? tr("updating") : tr("submit")}
         </button>
       </form>
     </div>
@@ -97,8 +102,10 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
+  const tc = useTranslations("common");
+
   return (
-    <Suspense fallback={<div className="p-8 text-center">読み込み中...</div>}>
+    <Suspense fallback={<div className="p-8 text-center">{tc("loading")}</div>}>
       <ResetPasswordContent />
     </Suspense>
   );

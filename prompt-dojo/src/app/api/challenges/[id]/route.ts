@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { getChallengeById, getSubmissionsByChallenge } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 
@@ -11,12 +12,12 @@ export async function GET(
   const { id } = await params;
   const challengeId = Number(id);
   if (Number.isNaN(challengeId)) {
-    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+    return apiError(ApiErrorCode.INVALID_ID, 400);
   }
 
   const challenge = getChallengeById(challengeId);
   if (!challenge) {
-    return NextResponse.json({ error: "課題が見つかりません" }, { status: 404 });
+    return apiError(ApiErrorCode.CHALLENGE_NOT_FOUND, 404);
   }
 
   const user = await getCurrentUser();

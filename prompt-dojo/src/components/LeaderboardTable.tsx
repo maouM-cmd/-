@@ -1,4 +1,7 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { RANK_BG } from "@/lib/constants";
 import type { LeaderboardEntry, LeaderboardType } from "@/lib/types";
 
@@ -9,11 +12,11 @@ export function LeaderboardTable({
   entries: LeaderboardEntry[];
   type?: LeaderboardType;
 }) {
+  const t = useTranslations("leaderboard");
+
   if (entries.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-500">
-        まだランキングデータがありません
-      </p>
+      <p className="py-8 text-center text-sm text-gray-500">{t("empty")}</p>
     );
   }
 
@@ -22,13 +25,13 @@ export function LeaderboardTable({
       <table className="w-full text-sm">
         <thead className="bg-indigo-50 text-left text-xs font-medium text-indigo-800">
           <tr>
-            <th className="px-4 py-3">#</th>
-            <th className="px-4 py-3">投稿者</th>
-            <th className="px-4 py-3">課題</th>
-            <th className="px-4 py-3">総合</th>
-            <th className="px-4 py-3">自動</th>
-            <th className="px-4 py-3">LLM</th>
-            <th className="px-4 py-3">みんな</th>
+            <th className="px-4 py-3">{t("rank")}</th>
+            <th className="px-4 py-3">{t("author")}</th>
+            <th className="px-4 py-3">{t("challenge")}</th>
+            <th className="px-4 py-3">{t("overall")}</th>
+            <th className="px-4 py-3">{t("autoCol")}</th>
+            <th className="px-4 py-3">{t("llmCol")}</th>
+            <th className="px-4 py-3">{t("communityCol")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 bg-white">
@@ -55,9 +58,7 @@ export function LeaderboardTable({
                 {type === "auto" || type === "total" ? entry.auto_score : "—"}
               </td>
               <td className="px-4 py-3 text-gray-600">
-                {type === "llm"
-                  ? (entry.llm_score ?? "—")
-                  : entry.llm_score ?? "—"}
+                {type === "llm" ? (entry.llm_score ?? "—") : (entry.llm_score ?? "—")}
               </td>
               <td className="px-4 py-3 text-gray-600">
                 {entry.community_score !== null

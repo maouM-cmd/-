@@ -1,13 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { signIn, signOut, useSession } from "next-auth/react";
-import Link from "next/link";
 
 export function LoginButton() {
   const { data: session, status } = useSession();
+  const tc = useTranslations("common");
+  const ta = useTranslations("auth");
 
   if (status === "loading") {
-    return <span className="text-sm text-gray-400">読み込み中...</span>;
+    return <span className="text-sm text-gray-400">{tc("loading")}</span>;
   }
 
   if (session?.user) {
@@ -21,7 +24,7 @@ export function LoginButton() {
           onClick={() => signOut()}
           className="rounded-lg border border-indigo-200 px-3 py-1.5 text-xs text-indigo-700 hover:bg-indigo-50"
         >
-          ログアウト
+          {ta("logout")}
         </button>
       </div>
     );
@@ -38,13 +41,13 @@ export function LoginButton() {
         href="/login"
         className="rounded-lg border border-indigo-200 px-3 py-1.5 text-sm text-indigo-700 hover:bg-indigo-50"
       >
-        ログイン
+        {ta("login")}
       </Link>
       <Link
         href="/register"
         className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700"
       >
-        会員登録
+        {ta("register")}
       </Link>
       {process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true" && (
         <button
@@ -74,7 +77,7 @@ export function LoginButton() {
         </button>
       )}
       {!hasOAuth && (
-        <span className="text-xs text-gray-400">メールで登録もできます</span>
+        <span className="text-xs text-gray-400">{ta("emailRegisterHint")}</span>
       )}
     </div>
   );

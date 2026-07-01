@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { apiError, ApiErrorCode } from "@/lib/api-errors";
+import { isEmailVerified } from "@/lib/auth-checks";
 import { createSubmission, getChallengeById } from "@/lib/db";
-import { emailVerificationRequiredMessage, isEmailVerified } from "@/lib/auth-checks";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -11,39 +12,27 @@ export async function POST(
 ) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json(
-      { error: "ニックネームを設定してから投稿してください" },
-      { status: 401 },
-    );
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   if (!isEmailVerified(user)) {
-    return NextResponse.json(
-      { error: emailVerificationRequiredMessage() },
-      { status: 403 },
-    );
+    return apiError(ApiErrorCode.EMAIL_NOT_VERIFIED, 403);
   }
 
   const { id } = await params;
   const challengeId = Number(id);
   const challenge = getChallengeById(challengeId);
   if (!challenge) {
-    return NextResponse.json({ error: "課題が見つかりません" }, { status: 404 });
+    return apiError(ApiErrorCode.CHALLENGE_NOT_FOUND, 404);
   }
 
   const body = await request.json();
   const promptText = (body.prompt_text as string)?.trim();
   if (!promptText || promptText.length < 10) {
-    return NextResponse.json(
-      { error: "プロンプトは10文字以上で入力してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_PROMPT, 400);
   }
   if (promptText.length > 5000) {
-    return NextResponse.json(
-      { error: "プロンプトは5000文字以内で入力してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_PROMPT_TOO_LONG, 400);
   }
 
   const submission = await createSubmission(challengeId, user.id, promptText);

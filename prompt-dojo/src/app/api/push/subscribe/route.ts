@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ApiErrorCode, apiError } from "@/lib/api-errors";
 import { deletePushSubscription, savePushSubscription } from "@/lib/db";
 import { getVapidPublicKey } from "@/lib/push";
 import { getCurrentUser } from "@/lib/session";
@@ -16,7 +17,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   const body = await request.json();
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
   const keys = body.keys as { p256dh: string; auth: string };
 
   if (!endpoint || !keys?.p256dh || !keys?.auth) {
-    return NextResponse.json({ error: "無効な購読データです" }, { status: 400 });
+    return apiError(ApiErrorCode.INVALID_PUSH_SUBSCRIPTION, 400);
   }
 
   savePushSubscription(user.id, endpoint, keys.p256dh, keys.auth);
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json({ error: "ログインが必要です" }, { status: 401 });
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   const body = await request.json();

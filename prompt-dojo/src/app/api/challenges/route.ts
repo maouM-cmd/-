@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { apiError, ApiErrorCode } from "@/lib/api-errors";
+import { isEmailVerified } from "@/lib/auth-checks";
 import { createChallenge, getAllChallenges, seedIfEmpty } from "@/lib/db";
-import { emailVerificationRequiredMessage, isEmailVerified } from "@/lib/auth-checks";
 import { getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -20,17 +21,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json(
-      { error: "ニックネームを設定するか、Googleでログインしてください" },
-      { status: 401 },
-    );
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   if (!isEmailVerified(user)) {
-    return NextResponse.json(
-      { error: emailVerificationRequiredMessage() },
-      { status: 403 },
-    );
+    return apiError(ApiErrorCode.EMAIL_NOT_VERIFIED, 403);
   }
 
   const body = await request.json();
@@ -45,16 +40,10 @@ export async function POST(request: Request) {
       : undefined;
 
   if (!title || title.length > 100) {
-    return NextResponse.json(
-      { error: "タイトルは1〜100文字で入力してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_TITLE, 400);
   }
   if (!description || description.length > 2000) {
-    return NextResponse.json(
-      { error: "説明は1〜2000文字で入力してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_DESCRIPTION, 400);
   }
 
   const challenge = createChallenge({

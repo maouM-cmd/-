@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { apiError, ApiErrorCode } from "@/lib/api-errors";
+import { isEmailVerified } from "@/lib/auth-checks";
 import {
   createComment,
   getCommentsBySubmission,
   getSubmissionOwnerId,
 } from "@/lib/db";
-import { emailVerificationRequiredMessage, isEmailVerified } from "@/lib/auth-checks";
 import { sendPushToUser } from "@/lib/push";
 import { getCurrentUser } from "@/lib/session";
 
@@ -25,17 +26,11 @@ export async function POST(
 ) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json(
-      { error: "ログインが必要です" },
-      { status: 401 },
-    );
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   if (!isEmailVerified(user)) {
-    return NextResponse.json(
-      { error: emailVerificationRequiredMessage() },
-      { status: 403 },
-    );
+    return apiError(ApiErrorCode.EMAIL_NOT_VERIFIED, 403);
   }
 
   const { id } = await params;
@@ -45,18 +40,12 @@ export async function POST(
   const parentId = body.parent_id ? Number(body.parent_id) : null;
 
   if (!text || text.length > 1000) {
-    return NextResponse.json(
-      { error: "コメントは1〜1000文字で入力してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_COMMENT, 400);
   }
 
   const comment = createComment(submissionId, user.id, text, parentId);
   if (!comment) {
-    return NextResponse.json(
-      { error: "投稿が見つからないか、返信先が無効です" },
-      { status: 404 },
-    );
+    return apiError(ApiErrorCode.COMMENT_TARGET_INVALID, 404);
   }
 
   const ownerId = getSubmissionOwnerId(submissionId);

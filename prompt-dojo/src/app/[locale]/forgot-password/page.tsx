@@ -1,9 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/routing";
 import { useState } from "react";
+import { mapApiError } from "@/lib/map-api-error";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations();
+  const tf = useTranslations("forgot");
+  const ta = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -24,26 +29,24 @@ export default function ForgotPasswordPage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "送信に失敗しました");
+      setError(mapApiError(data, t, "GENERIC_ERROR"));
       return;
     }
 
-    setMessage(data.message);
+    setMessage(tf("sent"));
   }
 
   return (
     <div className="mx-auto max-w-md px-4 py-8">
       <Link href="/login" className="text-sm text-indigo-600 hover:underline">
-        ← ログイン
+        {ta("backToLogin")}
       </Link>
-      <h1 className="mt-4 text-2xl font-bold">パスワードを忘れた方</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        登録したメールアドレスを入力してください。リセット用のリンクを送信します。
-      </p>
+      <h1 className="mt-4 text-2xl font-bold">{tf("title")}</h1>
+      <p className="mt-2 text-sm text-gray-600">{tf("desc")}</p>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border bg-white p-6">
         <div>
-          <label className="mb-1 block text-sm font-medium">メールアドレス</label>
+          <label className="mb-1 block text-sm font-medium">{ta("email")}</label>
           <input
             type="email"
             value={email}
@@ -61,7 +64,7 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className="w-full rounded-xl bg-indigo-600 py-3 text-sm font-semibold text-white disabled:opacity-50"
         >
-          {loading ? "送信中..." : "リセットメールを送信"}
+          {loading ? tf("sending") : tf("submit")}
         </button>
       </form>
     </div>

@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
+import { apiError, ApiErrorCode } from "@/lib/api-errors";
 import { createAuthToken, createUserWithEmail, getUserByEmail } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/mail";
 import { getSessionCookie } from "@/lib/session";
@@ -15,17 +16,17 @@ export async function POST(request: Request) {
   const displayName = (body.display_name as string)?.trim();
 
   if (!email || !EMAIL_RE.test(email)) {
-    return NextResponse.json({ error: "有効なメールアドレスを入力してください" }, { status: 400 });
+    return apiError(ApiErrorCode.INVALID_EMAIL, 400);
   }
   if (!password || password.length < 8) {
-    return NextResponse.json({ error: "パスワードは8文字以上で入力してください" }, { status: 400 });
+    return apiError(ApiErrorCode.INVALID_PASSWORD, 400);
   }
   if (!displayName || displayName.length < 1 || displayName.length > 20) {
-    return NextResponse.json({ error: "ニックネームは1〜20文字で入力してください" }, { status: 400 });
+    return apiError(ApiErrorCode.INVALID_NICKNAME, 400);
   }
 
   if (getUserByEmail(email)) {
-    return NextResponse.json({ error: "このメールアドレスは既に登録されています" }, { status: 409 });
+    return apiError(ApiErrorCode.EMAIL_ALREADY_EXISTS, 409);
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
