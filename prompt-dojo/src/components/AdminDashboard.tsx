@@ -1,9 +1,11 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import type { AdminSubmission, Category, Challenge, GeneratedChallenge, Report } from "@/lib/types";
-import { REPORT_REASONS } from "@/lib/constants-reports";
 import { ChallengeGenButton } from "@/components/ChallengeGenButton";
+import { getCategoryLabel } from "@/lib/categories";
+import { mapApiError } from "@/lib/map-api-error";
 
 type Tab = "challenges" | "pending" | "reports" | "submissions";
 
@@ -21,6 +23,10 @@ export function AdminDashboard({
   isAuthenticated: boolean;
   initialData: AdminData | null;
 }) {
+  const locale = useLocale();
+  const t = useTranslations();
+  const ta = useTranslations("admin");
+  const tr = useTranslations("report");
   const [authed, setAuthed] = useState(isAuthenticated);
   const [password, setPassword] = useState("");
   const [tab, setTab] = useState<Tab>("challenges");
@@ -59,7 +65,8 @@ export function AdminDashboard({
       setError("");
       await loadData();
     } else {
-      setError("パスワードが違います");
+      const errData = await res.json();
+      setError(mapApiError(errData, t));
     }
   }
 
@@ -92,17 +99,17 @@ export function AdminDashboard({
   if (!authed || !data) {
     return (
       <form onSubmit={login} className="mx-auto max-w-sm space-y-4">
-        <h1 className="text-xl font-bold">管理画面ログイン</h1>
+        <h1 className="text-xl font-bold">{ta("loginTitle")}</h1>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="管理者パスワード"
+          placeholder={ta("passwordPlaceholder")}
           className="w-full rounded-lg border px-3 py-2"
         />
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" className="w-full rounded-lg bg-indigo-600 py-2 text-white">
-          ログイン
+          {ta("login")}
         </button>
       </form>
     );
@@ -111,35 +118,35 @@ export function AdminDashboard({
   const { challenges, pending, reports, submissions } = data;
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
-    { key: "challenges", label: "課題" },
-    { key: "pending", label: "承認待ち", count: pending.length },
-    { key: "reports", label: "通報", count: reports.length },
-    { key: "submissions", label: "投稿" },
+    { key: "challenges", label: ta("tabs.challenges") },
+    { key: "pending", label: ta("tabs.pending"), count: pending.length },
+    { key: "reports", label: ta("tabs.reports"), count: reports.length },
+    { key: "submissions", label: ta("tabs.submissions") },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">管理画面</h1>
+        <h1 className="text-xl font-bold">{ta("title")}</h1>
         <button type="button" onClick={logout} className="text-sm text-gray-500">
-          ログアウト
+          {ta("logout")}
         </button>
       </div>
 
       <nav className="flex flex-wrap gap-2">
-        {tabs.map((t) => (
+        {tabs.map((item) => (
           <button
-            key={t.key}
+            key={item.key}
             type="button"
-            onClick={() => setTab(t.key)}
+            onClick={() => setTab(item.key)}
             className={`rounded-full px-4 py-2 text-sm ${
-              tab === t.key
+              tab === item.key
                 ? "bg-indigo-600 text-white"
                 : "border border-indigo-200 text-indigo-700"
             }`}
           >
-            {t.label}
-            {t.count !== undefined && t.count > 0 && ` (${t.count})`}
+            {item.label}
+            {item.count !== undefined && item.count > 0 && ` (${item.count})`}
           </button>
         ))}
       </nav>
@@ -147,7 +154,7 @@ export function AdminDashboard({
       {tab === "challenges" && (
         <>
           <form onSubmit={createChallenge} className="space-y-3 rounded-xl border p-4">
-            <h2 className="font-medium">新規課題（即時公開）</h2>
+            <h2 className="font-medium">{ta("newChallenge")}</h2>
             <ChallengeGenButton
               onGenerated={(c: GeneratedChallenge) =>
                 setForm((prev) => ({
@@ -161,14 +168,14 @@ export function AdminDashboard({
             <input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="タイトル"
+              placeholder={ta("titlePlaceholder")}
               required
               className="w-full rounded-lg border px-3 py-2 text-sm"
             />
             <textarea
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="説明"
+              placeholder={ta("descriptionPlaceholder")}
               required
               rows={3}
               className="w-full rounded-lg border px-3 py-2 text-sm"
@@ -176,7 +183,7 @@ export function AdminDashboard({
             <input
               value={form.sample_output}
               onChange={(e) => setForm({ ...form, sample_output: e.target.value })}
-              placeholder="期待する出力例（任意）"
+              placeholder={ta("sampleOutputPlaceholder")}
               className="w-full rounded-lg border px-3 py-2 text-sm"
             />
             <select
@@ -184,21 +191,21 @@ export function AdminDashboard({
               onChange={(e) => setForm({ ...form, category_id: e.target.value })}
               className="w-full rounded-lg border px-3 py-2 text-sm"
             >
-              <option value="">カテゴリ（デフォルト: 一般）</option>
+              <option value="">{ta("categoryDefault")}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name_ja}
+                  {getCategoryLabel(c, locale)}
                 </option>
               ))}
             </select>
             <input
               value={form.tags}
               onChange={(e) => setForm({ ...form, tags: e.target.value })}
-              placeholder="タグ（カンマ区切り）"
+              placeholder={ta("tagsPlaceholder")}
               className="w-full rounded-lg border px-3 py-2 text-sm"
             />
             <button type="submit" className="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white">
-              追加
+              {ta("add")}
             </button>
           </form>
 
@@ -210,7 +217,7 @@ export function AdminDashboard({
                 <div className="mt-2 flex flex-wrap gap-1">
                   {c.category && (
                     <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-xs text-indigo-700">
-                      {c.category.name_ja}
+                      {getCategoryLabel(c.category, locale)}
                     </span>
                   )}
                   {c.tags?.map((tag) => (
@@ -227,7 +234,9 @@ export function AdminDashboard({
                     {c.status}
                   </span>
                   {c.author_name && (
-                    <span className="text-xs text-gray-400">by {c.author_name}</span>
+                    <span className="text-xs text-gray-400">
+                      {ta("by", { name: c.author_name })}
+                    </span>
                   )}
                   <button
                     type="button"
@@ -240,14 +249,14 @@ export function AdminDashboard({
                     }
                     className="ml-auto text-xs text-indigo-600"
                   >
-                    {c.status === "active" ? "非公開" : "公開"}
+                    {c.status === "active" ? ta("unpublish") : ta("publish")}
                   </button>
                   <button
                     type="button"
                     onClick={() => adminAction({ action: "delete", id: c.id })}
                     className="text-xs text-red-600"
                   >
-                    削除
+                    {ta("delete")}
                   </button>
                 </div>
               </div>
@@ -259,21 +268,23 @@ export function AdminDashboard({
       {tab === "pending" && (
         <div className="space-y-3">
           {pending.length === 0 ? (
-            <p className="text-sm text-gray-500">承認待ちの課題はありません</p>
+            <p className="text-sm text-gray-500">{ta("noPending")}</p>
           ) : (
             pending.map((c) => (
               <div key={c.id} className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <p className="font-medium">{c.title}</p>
                 <p className="mt-1 text-sm text-gray-600">{c.description}</p>
                 {c.author_name && (
-                  <p className="mt-1 text-xs text-gray-500">投稿者: {c.author_name}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {ta("author", { name: c.author_name })}
+                  </p>
                 )}
                 <button
                   type="button"
                   onClick={() => adminAction({ action: "approve", id: c.id })}
                   className="mt-3 rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white"
                 >
-                  承認して公開
+                  {ta("approve")}
                 </button>
               </div>
             ))
@@ -284,16 +295,16 @@ export function AdminDashboard({
       {tab === "reports" && (
         <div className="space-y-3">
           {reports.length === 0 ? (
-            <p className="text-sm text-gray-500">通報はありません</p>
+            <p className="text-sm text-gray-500">{ta("noReports")}</p>
           ) : (
             reports.map((r) => (
               <div key={r.id} className="rounded-xl border p-4 text-sm">
                 <p className="font-medium">
-                  {REPORT_REASONS.find((x) => x.value === r.reason)?.label ?? r.reason}
+                  {tr(`reasons.${r.reason}`)}
                 </p>
                 <p className="mt-1 text-gray-600">{r.submission_preview}...</p>
                 <p className="mt-1 text-xs text-gray-400">
-                  通報者: {r.author_name} / {r.created_at}
+                  {ta("reporter", { name: r.author_name ?? "", date: r.created_at })}
                 </p>
                 {r.detail && <p className="mt-1 text-gray-500">{r.detail}</p>}
               </div>
@@ -314,8 +325,12 @@ export function AdminDashboard({
               </p>
               <p className="mt-1 line-clamp-2 text-xs text-gray-500">{s.prompt_text}</p>
               <p className="mt-1 text-xs text-gray-400">
-                自動{s.auto_score}点 / 通報{s.report_count}件 / コメント{s.comment_count}件
-                {s.is_hidden ? " / 非表示" : ""}
+                {ta("stats", {
+                  auto: s.auto_score,
+                  reports: s.report_count,
+                  comments: s.comment_count,
+                })}
+                {s.is_hidden ? ` / ${ta("hidden")}` : ""}
               </p>
               <div className="mt-2 flex gap-2">
                 {s.is_hidden ? (
@@ -326,7 +341,7 @@ export function AdminDashboard({
                     }
                     className="text-xs text-emerald-600"
                   >
-                    復活
+                    {ta("restore")}
                   </button>
                 ) : (
                   <button
@@ -334,7 +349,7 @@ export function AdminDashboard({
                     onClick={() => adminAction({ action: "hide_submission", id: s.id })}
                     className="text-xs text-amber-600"
                   >
-                    非表示
+                    {ta("hide")}
                   </button>
                 )}
                 <button
@@ -342,7 +357,7 @@ export function AdminDashboard({
                   onClick={() => adminAction({ action: "delete_submission", id: s.id })}
                   className="text-xs text-red-600"
                 >
-                  削除
+                  {ta("delete")}
                 </button>
               </div>
             </div>

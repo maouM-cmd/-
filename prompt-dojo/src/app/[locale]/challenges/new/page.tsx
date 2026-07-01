@@ -7,11 +7,14 @@ import type { Category } from "@/lib/types";
 import { getCategoryLabel } from "@/lib/categories";
 import { ChallengeGenButton } from "@/components/ChallengeGenButton";
 import { NicknameSetup } from "@/components/NicknameSetup";
+import { mapApiError } from "@/lib/map-api-error";
+import { mapApiMessage } from "@/lib/map-api-message";
 
 export default function NewChallengePage() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("challenge");
+  const tAll = useTranslations();
   const tc = useTranslations("common");
   const toff = useTranslations("offline");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -57,11 +60,11 @@ export default function NewChallengePage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "Error");
+      setError(mapApiError(data, tAll));
       return;
     }
 
-    setSuccess(data.message);
+    setSuccess(mapApiMessage(data, tAll));
     setTimeout(() => router.push("/"), 2000);
   }
 

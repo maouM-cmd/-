@@ -105,7 +105,21 @@
     "INVALID_RATING": "評価は1〜5の星で行ってください",
     "CHALLENGE_GEN_DISABLED": "AI課題生成は現在利用できません",
     "CHALLENGE_GEN_LIMIT_REACHED": "本日のAI課題生成上限に達しました",
+    "INVALID_REPORT_REASON": "通報理由を選択してください",
+    "CANNOT_REPORT": "通報できません（投稿が見つからないか、自分の投稿です）",
     "GENERIC_ERROR": "エラーが発生しました"
+  },
+  "messages": {
+    "REGISTRATION_EMAIL_SENT": "確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
+    "CHALLENGE_SUBMITTED_PENDING": "課題を投稿しました。管理者の承認後に公開されます。",
+    "REPORT_ACCEPTED": "通報を受け付けました。ご協力ありがとうございます。",
+    "REPORT_ACCEPTED_HIDDEN": "通報を受け付けました。この投稿は非表示になりました。",
+    "PASSWORD_RESET_SENT": "登録されているメールアドレスの場合、パスワードリセット用のメールを送信しました。",
+    "PASSWORD_UPDATED": "パスワードを更新しました",
+    "EMAIL_VERIFIED": "メールアドレスを確認しました",
+    "EMAIL_ALREADY_VERIFIED": "既に確認済みです",
+    "VERIFICATION_EMAIL_SENT": "確認メールを送信しました",
+    "GENERIC_SUCCESS": "完了しました"
   },
   "leaderboard": {
     "title": "ランキング",
@@ -242,5 +256,85 @@
   "legal": {
     "backHome": "← トップに戻る",
     "lastUpdated": "最終更新日"
+  },
+  "report": {
+    "open": "通報する",
+    "title": "投稿を通報する",
+    "desc": "不適切な内容があれば教えてください",
+    "detailPlaceholder": "補足（任意）",
+    "cancel": "キャンセル",
+    "submit": "通報する",
+    "sending": "送信中...",
+    "close": "閉じる",
+    "failed": "通報に失敗しました",
+    "reasons": {
+      "inappropriate": "不適切な内容",
+      "spam": "スパム",
+      "off_topic": "課題と無関係",
+      "other": "その他"
+    }
+  },
+  "admin": {
+    "loginTitle": "管理画面ログイン",
+    "passwordPlaceholder": "管理者パスワード",
+    "login": "ログイン",
+    "title": "管理画面",
+    "logout": "ログアウト",
+    "tabs": {
+      "challenges": "課題",
+      "pending": "承認待ち",
+      "reports": "通報",
+      "submissions": "投稿"
+    },
+    "newChallenge": "新規課題（即時公開）",
+    "titlePlaceholder": "タイトル",
+    "descriptionPlaceholder": "説明",
+    "sampleOutputPlaceholder": "期待する出力例（任意）",
+    "categoryDefault": "カテゴリ（デフォルト: 一般）",
+    "tagsPlaceholder": "タグ（カンマ区切り）",
+    "add": "追加",
+    "by": "by {name}",
+    "publish": "公開",
+    "unpublish": "非公開",
+    "delete": "削除",
+    "noPending": "承認待ちの課題はありません",
+    "author": "投稿者: {name}",
+    "approve": "承認して公開",
+    "noReports": "通報はありません",
+    "reporter": "通報者: {name} / {date}",
+    "stats": "自動{auto}点 / 通報{reports}件 / コメント{comments}件",
+    "hidden": "非表示",
+    "restore": "復活",
+    "hide": "非表示"
+  },
+  "push": {
+    "title": "プッシュ通知",
+    "desc": "コメント・評価・課題承認をお知らせします",
+    "subscribe": "通知を受け取る",
+    "subscribing": "設定中...",
+    "enabled": "通知 ON",
+    "unavailable": "プッシュ通知は現在利用できません",
+    "denied": "通知が許可されませんでした",
+    "enabledMessage": "通知を有効にしました",
+    "failed": "通知の設定に失敗しました",
+    "registerFailed": "登録に失敗しました"
+  },
+  "ad": {
+    "sponsor": "スポンサー",
+    "placeholder": "広告スペース（{position}）"
+  },
+  "evaluator": {
+    "roleLabel": "役割の明示",
+    "roleTip": "「あなたは〜の専門家です」「You are a ...」のように役割を与えましょう。",
+    "taskLabel": "タスクの明確さ",
+    "taskTip": "何をしてほしいか、動詞で具体的に指示しましょう（作成・要約・分析・翻訳など）。",
+    "formatLabel": "出力形式の指定",
+    "formatTip": "JSON、箇条書き、表形式、文字数など、出力の形式を指定しましょう。",
+    "constraintsLabel": "制約・条件",
+    "constraintsTip": "「必ず」「禁止」「〜以内」「含めないで」など制約を明示しましょう。",
+    "contextLabel": "文脈・背景",
+    "contextTip": "対象読者、用途、前提情報などの背景を伝えましょう。",
+    "llmEmpty": "LLM評価は未実施です（APIキー未設定、または日次上限に達しています）",
+    "llmScore": "LLMスコア: {score}点"
   }
 }

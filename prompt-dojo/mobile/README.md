@@ -48,6 +48,18 @@ npx cap open ios
 
 To handle `prompt-dojo://` URLs, configure intent filters (Android) and URL schemes (iOS) in the native projects after `cap add`, then map paths to `APP_BASE_URL` in your app delegate / activity.
 
+## App icons
+
+Source icons live in the web app at `public/icons/` (192×192 and 512×512 PNG). After `cap add`, generate native launcher icons with [@capacitor/assets](https://github.com/ionic-team/capacitor-assets):
+
+```bash
+# From repo root — place a 1024×1024 source at assets/icon.png first
+npm install -g @capacitor/assets
+npx capacitor-assets generate --iconBackgroundColor '#4f46e5' --splashBackgroundColor '#4f46e5'
+```
+
+Or copy `public/icons/icon-512.png` into Android `res/` and iOS `Assets.xcassets` manually.
+
 ## Notes
 
 - CI does not build signed store binaries; use this README for local release builds.

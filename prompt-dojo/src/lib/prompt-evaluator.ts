@@ -1,18 +1,22 @@
 import { scoreToRank } from "./constants";
 import type { EvaluationResult, PromptCheck } from "./types";
+import enMessages from "../../messages/en.json";
+import jaMessages from "../../messages/ja.json";
+
+type Locale = "ja" | "en";
 
 interface CheckRule {
-  label: string;
+  labelKey: "roleLabel" | "taskLabel" | "formatLabel" | "constraintsLabel" | "contextLabel";
+  tipKey: "roleTip" | "taskTip" | "formatTip" | "constraintsTip" | "contextTip";
   maxPoints: number;
-  tip: string;
   test: (text: string) => boolean;
 }
 
 const RULES: CheckRule[] = [
   {
-    label: "役割の明示",
+    labelKey: "roleLabel",
+    tipKey: "roleTip",
     maxPoints: 20,
-    tip: "「あなたは〜の専門家です」「You are a ...」のように役割を与えましょう。",
     test: (text) =>
       /あなたは.{2,30}(です|であって|として)/.test(text) ||
       /you are (a |an )?.{3,40}/i.test(text) ||
@@ -20,9 +24,9 @@ const RULES: CheckRule[] = [
       /ロール[:：]/i.test(text),
   },
   {
-    label: "タスクの明確さ",
+    labelKey: "taskLabel",
+    tipKey: "taskTip",
     maxPoints: 25,
-    tip: "何をしてほしいか、動詞で具体的に指示しましょう（作成・要約・分析・翻訳など）。",
     test: (text) =>
       /(作成|生成|書いて|要約|分析|翻訳|説明|提案|比較|列挙|評価|改善|校正|チェック|まとめ)/.test(
         text,
@@ -32,9 +36,9 @@ const RULES: CheckRule[] = [
       ),
   },
   {
-    label: "出力形式の指定",
+    labelKey: "formatLabel",
+    tipKey: "formatTip",
     maxPoints: 20,
-    tip: "JSON、箇条書き、表形式、文字数など、出力の形式を指定しましょう。",
     test: (text) =>
       /(json|箇条書き|表形式|マークダウン|markdown|箇条書|番号付き|表で|リスト形式)/i.test(
         text,
@@ -43,9 +47,9 @@ const RULES: CheckRule[] = [
       /出力形式|形式で|フォーマット|format/i.test(text),
   },
   {
-    label: "制約・条件",
+    labelKey: "constraintsLabel",
+    tipKey: "constraintsTip",
     maxPoints: 20,
-    tip: "「必ず」「禁止」「〜以内」「含めないで」など制約を明示しましょう。",
     test: (text) =>
       /(必ず|禁止|してはいけない|含めない|避けて|以内|以上|以下|だけ|のみ|条件)/.test(
         text,
@@ -53,9 +57,9 @@ const RULES: CheckRule[] = [
       /(must|don't|do not|avoid|within|only|constraint|require)/i.test(text),
   },
   {
-    label: "文脈・背景",
+    labelKey: "contextLabel",
+    tipKey: "contextTip",
     maxPoints: 15,
-    tip: "対象読者、用途、前提情報などの背景を伝えましょう。",
     test: (text) =>
       /(対象|読者|ターゲット|用途|背景|前提|シチュエーション|状況|目的|コンテキスト|想定)/.test(
         text,
@@ -65,14 +69,20 @@ const RULES: CheckRule[] = [
   },
 ];
 
-export function evaluatePrompt(text: string): EvaluationResult {
+function getEvaluatorMessages(locale: Locale) {
+  return locale === "en" ? enMessages.evaluator : jaMessages.evaluator;
+}
+
+export function evaluatePrompt(text: string, locale: Locale = "ja"): EvaluationResult {
   const trimmed = text.trim();
+  const messages = getEvaluatorMessages(locale);
+
   const checks: PromptCheck[] = RULES.map((rule) => {
     const passed = trimmed.length > 0 && rule.test(trimmed);
     return {
-      label: rule.label,
+      label: messages[rule.labelKey],
       passed,
-      tip: rule.tip,
+      tip: messages[rule.tipKey],
       points: passed ? rule.maxPoints : 0,
       maxPoints: rule.maxPoints,
     };

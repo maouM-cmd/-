@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json(
-    { challenge, message: "課題を投稿しました。管理者の承認後に公開されます。" },
+    { challenge, messageCode: "CHALLENGE_SUBMITTED_PENDING" },
     { status: 201 },
   );
 }

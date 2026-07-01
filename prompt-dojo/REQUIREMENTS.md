@@ -1,10 +1,10 @@
-# プロンプ道場 要件定義 v6.0
+# プロンプ道場 要件定義 v7.0
 
 ## 概要
 
 プロンプトを書いて、自動構造チェック・LLM評価・コミュニティの星評価でスキルアップする公開Webサービス。
 
-## 確定事項（Phase 1〜6）
+## 確定事項（Phase 1〜7）
 
 | 項目 | 内容 |
 |------|------|
@@ -16,11 +16,14 @@
 | 課題分類 | カテゴリ（4種） + 自由タグ + フィルタ |
 | 多言語 | 日本語 / 英語（next-intl、`/ja/` `/en/`） |
 | API エラー | `errorCode` + クライアント `mapApiError()` 翻訳 |
+| API 成功メッセージ | `messageCode` + クライアント `mapApiMessage()` 翻訳 |
 | 法的文書 | 利用規約・プライバシーポリシー日英対応 |
+| 管理者画面 | 完全 i18n（`admin` ネームスペース） |
+| 自動採点ラベル | 評価時 locale に応じた日英ラベル |
 | 通知 | Webプッシュ（コメント・評価・課題承認） |
 | モデレーション | 通報3件で自動非表示 |
 | 収益化 | AdSense 対応枠 |
-| PWA | manifest + アイコン + ホーム画面追加対応 |
+| PWA | manifest（locale 別）+ アイコン PNG + apple-touch-icon |
 | オフライン読取 | 課題一覧・静的アセットの Service Worker キャッシュ |
 | オフライン書込 | IndexedDB キュー（投稿・コメント）+ オンライン復帰時同期 |
 | ネイティブシェル | Capacitor WebView（`mobile/`、`APP_BASE_URL` を表示） |
@@ -50,18 +53,19 @@ SMTP_PASS=...
 SMTP_FROM=noreply@example.com
 ```
 
-## Phase 6 実装サマリー
+## Phase 7 実装サマリー
 
-- `src/lib/api-errors.ts` — 全主要 API の `errorCode` 化
-- `src/lib/map-api-error.ts` — クライアント翻訳
-- `messages/ja.json` / `messages/en.json` — `errors` ネームスペース + 残 UI 文言
-- `src/lib/offline-queue.ts` + `OfflineSyncProvider` — オフライン投稿キュー
-- `src/components/LegalContent.tsx` — 利用規約・プライバシー英訳
-- `mobile/` — Capacitor ネイティブシェル（README 付き）
+- `map-api-message.ts` — API 成功レスポンスの `messageCode` 翻訳
+- report / register / challenges API の messageCode 化、report API の errorCode 化
+- `AdminDashboard` 完全 i18n、ReportButton / PushNotifyButton / LLMEvaluationDisplay / AdSlot
+- `prompt-evaluator` + `/api/evaluate` の locale 対応
+- `public/icons/` PNG アイコン、`/[locale]/manifest.webmanifest` 動的 manifest
+- `mobile/README.md` — `@capacitor/assets` 手順追記
 
-## スコープ外（Phase 7 候補）
+## スコープ外（Phase 8 候補）
 
 - React Native / Expo によるネイティブ UI 再実装
 - プッシュ通知のネイティブ FCM/APNs 統合
-- 管理者画面の完全 i18n
-- Background Sync API（ブラウザ互換性のため Phase 6 では `online` イベント同期を採用）
+- `prompt-dojo://` ディープリンク + Universal Links
+- Background Sync API
+- LLM フィードバック本文の多言語化（生成時 locale 依存）

@@ -30,8 +30,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     messageCode: "PASSWORD_RESET_SENT",
-    message:
-      "登録されているメールアドレスの場合、パスワードリセット用のメールを送信しました。",
   });
 }
 

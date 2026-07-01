@@ -1,16 +1,24 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { useRouter } from "@/i18n/routing";
 import { REPORT_REASONS } from "@/lib/constants-reports";
+import { mapApiError } from "@/lib/map-api-error";
+import { mapApiMessage } from "@/lib/map-api-message";
 import type { ReportReason } from "@/lib/types";
 
 export function ReportButton({ submissionId }: { submissionId: number }) {
+  const router = useRouter();
+  const t = useTranslations();
+  const tr = useTranslations("report");
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason | "">("");
   const [detail, setDetail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [done, setDone] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,12 +36,13 @@ export function ReportButton({ submissionId }: { submissionId: number }) {
     setLoading(false);
 
     if (!res.ok) {
-      setMessage(data.error ?? "通報に失敗しました");
+      setMessage(mapApiError(data, t));
       return;
     }
 
     setDone(true);
-    setMessage(data.message);
+    setHidden(!!data.hidden);
+    setMessage(mapApiMessage(data, t));
   }
 
   if (!open) {
@@ -43,7 +52,7 @@ export function ReportButton({ submissionId }: { submissionId: number }) {
         onClick={() => setOpen(true)}
         className="text-sm text-gray-400 hover:text-red-500"
       >
-        通報する
+        {tr("open")}
       </button>
     );
   }
@@ -58,21 +67,19 @@ export function ReportButton({ submissionId }: { submissionId: number }) {
               type="button"
               onClick={() => {
                 setOpen(false);
-                if (message.includes("非表示")) {
-                  window.location.href = "/";
+                if (hidden) {
+                  router.push("/");
                 }
               }}
               className="mt-5 rounded-full bg-indigo-600 px-6 py-2 text-sm text-white"
             >
-              閉じる
+              {tr("close")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <h3 className="text-lg font-bold">投稿を通報する</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              不適切な内容があれば教えてください
-            </p>
+            <h3 className="text-lg font-bold">{tr("title")}</h3>
+            <p className="mt-1 text-sm text-gray-500">{tr("desc")}</p>
 
             {message && (
               <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -81,11 +88,11 @@ export function ReportButton({ submissionId }: { submissionId: number }) {
             )}
 
             <div className="mt-4 space-y-2">
-              {REPORT_REASONS.map((r) => (
+              {REPORT_REASONS.map((value) => (
                 <label
-                  key={r.value}
+                  key={value}
                   className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
-                    reason === r.value
+                    reason === value
                       ? "border-red-300 bg-red-50"
                       : "border-gray-200"
                   }`}
@@ -93,18 +100,18 @@ export function ReportButton({ submissionId }: { submissionId: number }) {
                   <input
                     type="radio"
                     name="reason"
-                    value={r.value}
-                    checked={reason === r.value}
-                    onChange={() => setReason(r.value)}
+                    value={value}
+                    checked={reason === value}
+                    onChange={() => setReason(value)}
                   />
-                  {r.label}
+                  {tr(`reasons.${value}`)}
                 </label>
               ))}
             </div>
 
             <textarea
               rows={2}
-              placeholder="補足（任意）"
+              placeholder={tr("detailPlaceholder")}
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
               className="mt-4 w-full rounded-xl border px-4 py-2 text-sm"
@@ -116,14 +123,14 @@ export function ReportButton({ submissionId }: { submissionId: number }) {
                 onClick={() => setOpen(false)}
                 className="flex-1 rounded-xl border py-2.5 text-sm"
               >
-                キャンセル
+                {tr("cancel")}
               </button>
               <button
                 type="submit"
                 disabled={!reason || loading}
                 className="flex-1 rounded-xl bg-red-500 py-2.5 text-sm text-white disabled:opacity-50"
               >
-                {loading ? "送信中..." : "通報する"}
+                {loading ? tr("sending") : tr("submit")}
               </button>
             </div>
           </form>

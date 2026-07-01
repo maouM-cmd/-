@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/routing";
 import { useState } from "react";
 import { mapApiError } from "@/lib/map-api-error";
+import { mapApiMessage } from "@/lib/map-api-message";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function RegisterPage() {
       return;
     }
 
-    setSuccess(data.message ?? "");
+    setSuccess(mapApiMessage(data, t));
     setTimeout(() => {
       router.push("/");
       router.refresh();

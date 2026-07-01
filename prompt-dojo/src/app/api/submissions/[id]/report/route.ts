@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { apiError, ApiErrorCode } from "@/lib/api-errors";
 import { REPORT_REASONS } from "@/lib/constants-reports";
 import { createReport } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
@@ -6,7 +7,7 @@ import type { ReportReason } from "@/lib/types";
 
 export const runtime = "nodejs";
 
-const VALID_REASONS = new Set(REPORT_REASONS.map((r) => r.value));
+const VALID_REASONS = new Set(REPORT_REASONS);
 
 export async function POST(
   request: Request,
@@ -14,10 +15,7 @@ export async function POST(
 ) {
   const user = await getCurrentUser();
   if (!user) {
-    return NextResponse.json(
-      { error: "ログインが必要です" },
-      { status: 401 },
-    );
+    return apiError(ApiErrorCode.AUTH_REQUIRED, 401);
   }
 
   const { id } = await params;
@@ -25,10 +23,7 @@ export async function POST(
   const reason = body.reason as ReportReason;
 
   if (!reason || !VALID_REASONS.has(reason)) {
-    return NextResponse.json(
-      { error: "通報理由を選択してください" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.INVALID_REPORT_REASON, 400);
   }
 
   const result = createReport(
@@ -39,17 +34,12 @@ export async function POST(
   );
 
   if (!result) {
-    return NextResponse.json(
-      { error: "通報できません（投稿が見つからないか、自分の投稿です）" },
-      { status: 400 },
-    );
+    return apiError(ApiErrorCode.CANNOT_REPORT, 400);
   }
 
   return NextResponse.json({
     ok: true,
     hidden: result.hidden,
-    message: result.hidden
-      ? "通報を受け付けました。この投稿は非表示になりました。"
-      : "通報を受け付けました。ご協力ありがとうございます。",
+    messageCode: result.hidden ? "REPORT_ACCEPTED_HIDDEN" : "REPORT_ACCEPTED",
   });
 }

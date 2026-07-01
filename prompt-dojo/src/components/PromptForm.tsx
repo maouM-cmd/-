@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/routing";
 import { RANK_BG, RANK_COLORS } from "@/lib/constants";
 import { mapApiError } from "@/lib/map-api-error";
@@ -11,6 +11,7 @@ import type { EvaluationResult } from "@/lib/types";
 
 export function PromptForm({ challengeId }: { challengeId: number }) {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations();
   const ts = useTranslations("submission");
   const { refresh } = useOfflineSync();
@@ -28,12 +29,12 @@ export function PromptForm({ challengeId }: { challengeId: number }) {
     const res = await fetch("/api/evaluate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt_text: promptText }),
+      body: JSON.stringify({ prompt_text: promptText, locale }),
     });
     if (res.ok) {
       setEvaluation(await res.json());
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     const timer = setTimeout(() => evaluate(text), 500);

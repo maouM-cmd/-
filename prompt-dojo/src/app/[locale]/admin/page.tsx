@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AdminDashboard } from "@/components/AdminDashboard";
 import { isAdminAuthenticated } from "@/lib/admin";
 import {
@@ -7,7 +9,24 @@ import {
   getPendingChallenges,
 } from "@/lib/db";
 
-export default async function AdminPage() {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "admin" });
+  return { title: t("title") };
+}
+
+export default async function AdminPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const authed = await isAdminAuthenticated();
   const initialData = authed
     ? {

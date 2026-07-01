@@ -1,9 +1,14 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 interface AdSlotProps {
   position: "top" | "inline" | "bottom";
   className?: string;
 }
 
 export function AdSlot({ position, className = "" }: AdSlotProps) {
+  const ta = useTranslations("ad");
   const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
 
   if (adsenseId) {
@@ -26,9 +31,9 @@ export function AdSlot({ position, className = "" }: AdSlotProps) {
       className={`rounded-xl border border-dashed border-gray-200 bg-gray-50/80 px-4 py-6 text-center ${className}`}
     >
       <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400">
-        スポンサー
+        {ta("sponsor")}
       </p>
-      <p className="mt-1 text-xs text-gray-400">広告スペース（{position}）</p>
+      <p className="mt-1 text-xs text-gray-400">{ta("placeholder", { position })}</p>
     </div>
   );
 }

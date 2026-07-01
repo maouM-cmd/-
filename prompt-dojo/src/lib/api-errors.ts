@@ -32,6 +32,8 @@ export const ApiErrorCode = {
   INVALID_RATING: "INVALID_RATING",
   CHALLENGE_GEN_DISABLED: "CHALLENGE_GEN_DISABLED",
   CHALLENGE_GEN_LIMIT_REACHED: "CHALLENGE_GEN_LIMIT_REACHED",
+  INVALID_REPORT_REASON: "INVALID_REPORT_REASON",
+  CANNOT_REPORT: "CANNOT_REPORT",
   GENERIC_ERROR: "GENERIC_ERROR",
 } as const;
 
@@ -69,6 +71,8 @@ const FALLBACK_JA: Record<ApiErrorCodeType, string> = {
   INVALID_RATING: "評価は1〜5の星で行ってください",
   CHALLENGE_GEN_DISABLED: "AI課題生成は現在利用できません",
   CHALLENGE_GEN_LIMIT_REACHED: "本日のAI課題生成上限に達しました",
+  INVALID_REPORT_REASON: "通報理由を選択してください",
+  CANNOT_REPORT: "通報できません（投稿が見つからないか、自分の投稿です）",
   GENERIC_ERROR: "エラーが発生しました",
 };
 

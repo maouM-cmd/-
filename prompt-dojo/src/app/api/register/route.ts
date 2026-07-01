@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   const response = NextResponse.json(
     {
       user: { id: user.id, display_name: user.display_name, email: user.email },
-      message: "確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。",
+      messageCode: "REGISTRATION_EMAIL_SENT",
     },
     { status: 201 },
   );

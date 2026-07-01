@@ -1,8 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { mapApiError } from "@/lib/map-api-error";
 
 export function PushNotifyButton() {
+  const t = useTranslations();
+  const tp = useTranslations("push");
   const [supported] = useState(
     () =>
       typeof window !== "undefined" &&
@@ -21,7 +25,7 @@ export function PushNotifyButton() {
       const keyRes = await fetch("/api/push/subscribe");
       const { publicKey } = await keyRes.json();
       if (!publicKey) {
-        setMessage("プッシュ通知は現在利用できません");
+        setMessage(tp("unavailable"));
         setLoading(false);
         return;
       }
@@ -29,7 +33,7 @@ export function PushNotifyButton() {
       const reg = await navigator.serviceWorker.ready;
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
-        setMessage("通知が許可されませんでした");
+        setMessage(tp("denied"));
         setLoading(false);
         return;
       }
@@ -51,13 +55,13 @@ export function PushNotifyButton() {
 
       if (res.ok) {
         setSubscribed(true);
-        setMessage("通知を有効にしました");
+        setMessage(tp("enabledMessage"));
       } else {
         const data = await res.json();
-        setMessage(data.error ?? "登録に失敗しました");
+        setMessage(mapApiError(data, t));
       }
     } catch {
-      setMessage("通知の設定に失敗しました");
+      setMessage(tp("failed"));
     }
 
     setLoading(false);
@@ -67,10 +71,8 @@ export function PushNotifyButton() {
 
   return (
     <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
-      <p className="text-sm font-medium text-indigo-900">プッシュ通知</p>
-      <p className="mt-1 text-xs text-indigo-700">
-        コメント・評価・課題承認をお知らせします
-      </p>
+      <p className="text-sm font-medium text-indigo-900">{tp("title")}</p>
+      <p className="mt-1 text-xs text-indigo-700">{tp("desc")}</p>
       {!subscribed ? (
         <button
           type="button"
@@ -78,10 +80,10 @@ export function PushNotifyButton() {
           disabled={loading}
           className="mt-3 rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white disabled:opacity-50"
         >
-          {loading ? "設定中..." : "通知を受け取る"}
+          {loading ? tp("subscribing") : tp("subscribe")}
         </button>
       ) : (
-        <p className="mt-3 text-sm text-emerald-600">通知 ON</p>
+        <p className="mt-3 text-sm text-emerald-600">{tp("enabled")}</p>
       )}
       {message && <p className="mt-2 text-xs text-gray-600">{message}</p>}
     </div>

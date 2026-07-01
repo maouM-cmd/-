@@ -105,7 +105,21 @@
     "INVALID_RATING": "Rating must be 1–5 stars",
     "CHALLENGE_GEN_DISABLED": "AI challenge generation is currently unavailable",
     "CHALLENGE_GEN_LIMIT_REACHED": "Daily AI challenge generation limit reached",
+    "INVALID_REPORT_REASON": "Please select a report reason",
+    "CANNOT_REPORT": "Cannot report (submission not found or it is your own)",
     "GENERIC_ERROR": "An error occurred"
+  },
+  "messages": {
+    "REGISTRATION_EMAIL_SENT": "Verification email sent. Click the link in the email to complete registration.",
+    "CHALLENGE_SUBMITTED_PENDING": "Challenge submitted. It will be published after admin approval.",
+    "REPORT_ACCEPTED": "Report received. Thank you for your help.",
+    "REPORT_ACCEPTED_HIDDEN": "Report received. This submission has been hidden.",
+    "PASSWORD_RESET_SENT": "If that email is registered, we sent a password reset link.",
+    "PASSWORD_UPDATED": "Password updated",
+    "EMAIL_VERIFIED": "Email verified",
+    "EMAIL_ALREADY_VERIFIED": "Already verified",
+    "VERIFICATION_EMAIL_SENT": "Verification email sent",
+    "GENERIC_SUCCESS": "Done"
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -242,5 +256,85 @@
   "legal": {
     "backHome": "← Back to home",
     "lastUpdated": "Last updated"
+  },
+  "report": {
+    "open": "Report",
+    "title": "Report submission",
+    "desc": "Let us know if you see inappropriate content",
+    "detailPlaceholder": "Details (optional)",
+    "cancel": "Cancel",
+    "submit": "Report",
+    "sending": "Sending...",
+    "close": "Close",
+    "failed": "Report failed",
+    "reasons": {
+      "inappropriate": "Inappropriate content",
+      "spam": "Spam",
+      "off_topic": "Off topic",
+      "other": "Other"
+    }
+  },
+  "admin": {
+    "loginTitle": "Admin login",
+    "passwordPlaceholder": "Admin password",
+    "login": "Log in",
+    "title": "Admin dashboard",
+    "logout": "Log out",
+    "tabs": {
+      "challenges": "Challenges",
+      "pending": "Pending",
+      "reports": "Reports",
+      "submissions": "Submissions"
+    },
+    "newChallenge": "New challenge (publish immediately)",
+    "titlePlaceholder": "Title",
+    "descriptionPlaceholder": "Description",
+    "sampleOutputPlaceholder": "Expected output (optional)",
+    "categoryDefault": "Category (default: general)",
+    "tagsPlaceholder": "Tags (comma-separated)",
+    "add": "Add",
+    "by": "by {name}",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "delete": "Delete",
+    "noPending": "No challenges pending approval",
+    "author": "Author: {name}",
+    "approve": "Approve and publish",
+    "noReports": "No reports",
+    "reporter": "Reporter: {name} / {date}",
+    "stats": "Auto {auto} / Reports {reports} / Comments {comments}",
+    "hidden": "Hidden",
+    "restore": "Restore",
+    "hide": "Hide"
+  },
+  "push": {
+    "title": "Push notifications",
+    "desc": "Get notified about comments, ratings, and challenge approvals",
+    "subscribe": "Enable notifications",
+    "subscribing": "Setting up...",
+    "enabled": "Notifications ON",
+    "unavailable": "Push notifications are currently unavailable",
+    "denied": "Notification permission was denied",
+    "enabledMessage": "Notifications enabled",
+    "failed": "Failed to set up notifications",
+    "registerFailed": "Registration failed"
+  },
+  "ad": {
+    "sponsor": "Sponsored",
+    "placeholder": "Ad space ({position})"
+  },
+  "evaluator": {
+    "roleLabel": "Role definition",
+    "roleTip": "Assign a role such as \"You are an expert in...\"",
+    "taskLabel": "Clear task",
+    "taskTip": "State what to do with specific verbs (create, summarize, analyze, translate, etc.).",
+    "formatLabel": "Output format",
+    "formatTip": "Specify format: JSON, bullet list, table, word count, etc.",
+    "constraintsLabel": "Constraints",
+    "constraintsTip": "State constraints like must, don't, within, only, etc.",
+    "contextLabel": "Context",
+    "contextTip": "Provide audience, purpose, and background context.",
+    "llmEmpty": "LLM evaluation not available (API key missing or daily limit reached)",
+    "llmScore": "LLM score: {score} pts"
   }
 }
