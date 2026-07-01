@@ -1,0 +1,173 @@
+[
+  {
+    "id": "openai",
+    "name": "OpenAI",
+    "nameJa": "OpenAI",
+    "founded": 2015,
+    "headquarters": "San Francisco, USA",
+    "website": "https://openai.com",
+    "categories": [
+      "foundation_model",
+      "enterprise"
+    ],
+    "description": "Creator of GPT, ChatGPT, and DALL·E. Leading frontier LLM lab with consumer and enterprise products.",
+    "descriptionJa": "GPT・ChatGPT・DALL·Eの開発元。消費者向け・企業向けのフロンティアLLMを提供。",
+    "valuationUsdB": 157,
+    "employees": 3500,
+    "revenueUsdM": 3700,
+    "keyProducts": [
+      "ChatGPT",
+      "GPT-4o",
+      "o1",
+      "Sora",
+      "API Platform"
+    ],
+    "competitors": [
+      "anthropic",
+      "google-deepmind",
+      "meta-ai"
+    ],
+    "tags": [
+      "gpt",
+      "chatbot",
+      "multimodal",
+      "enterprise"
+    ]
+  },
+  {
+    "id": "anthropic",
+    "name": "Anthropic",
+    "nameJa": "Anthropic",
+    "founded": 2021,
+    "headquarters": "San Francisco, USA",
+    "website": "https://anthropic.com",
+    "categories": [
+      "foundation_model",
+      "enterprise"
+    ],
+    "description": "AI safety-focused lab behind Claude. Known for constitutional AI and long-context models.",
+    "descriptionJa": "Claudeを開発するAI安全性重視のラボ。Constitutional AIと長文コンテキストで知られる。",
+    "valuationUsdB": 61.5,
+    "employees": 1500,
+    "revenueUsdM": 875,
+    "keyProducts": [
+      "Claude 3.5 Sonnet",
+      "Claude 3 Opus",
+      "Claude API",
+      "Claude for Enterprise"
+    ],
+    "competitors": [
+      "openai",
+      "google-deepmind"
+    ],
+    "tags": [
+      "claude",
+      "safety",
+      "long-context",
+      "enterprise"
+    ]
+  },
+  {
+    "id": "google-deepmind",
+    "name": "Google DeepMind",
+    "nameJa": "Google DeepMind",
+    "founded": 2010,
+    "headquarters": "London, UK / Mountain View, USA",
+    "website": "https://deepmind.google",
+    "categories": [
+      "foundation_model",
+      "research"
+    ],
+    "description": "Google's AI research division. Gemini models, AlphaFold, and large-scale infrastructure.",
+    "descriptionJa": "GoogleのAI研究部門。Geminiモデル、AlphaFold、大規模インフラを展開。",
+    "valuationUsdB": null,
+    "employees": 5000,
+    "revenueUsdM": null,
+    "keyProducts": [
+      "Gemini 2.0",
+      "Gemini Ultra",
+      "AlphaFold",
+      "Vertex AI"
+    ],
+    "competitors": [
+      "openai",
+      "anthropic",
+      "meta-ai"
+    ],
+    "tags": [
+      "gemini",
+      "research",
+      "multimodal",
+      "google"
+    ]
+  },
+  {
+    "id": "meta-ai",
+    "name": "Meta AI",
+    "nameJa": "Meta AI",
+    "founded": 2013,
+    "headquarters": "Menlo Park, USA",
+    "website": "https://ai.meta.com",
+    "categories": [
+      "foundation_model",
+      "open_source"
+    ],
+    "description": "Meta's AI division. Llama open-weight models and on-device AI for social platforms.",
+    "descriptionJa": "MetaのAI部門。LlamaオープンウェイトモデルとSNS向けオンデバイスAI。",
+    "valuationUsdB": null,
+    "employees": 3000,
+    "revenueUsdM": null,
+    "keyProducts": [
+      "Llama 3.3",
+      "Llama 3.1 405B",
+      "Ray-Ban Meta AI",
+      "Segment Anything"
+    ],
+    "competitors": [
+      "openai",
+      "mistral",
+      "cohere"
+    ],
+    "tags": [
+      "llama",
+      "open-source",
+      "social",
+      "on-device"
+    ]
+  },
+  {
+    "id": "mistral",
+    "name": "Mistral AI",
+    "nameJa": "Mistral AI",
+    "founded": 2023,
+    "headquarters": "Paris, France",
+    "website": "https://mistral.ai",
+    "categories": [
+      "foundation_model",
+      "open_source",
+      "enterprise"
+    ],
+    "description": "European frontier lab offering open and proprietary models with strong efficiency.",
+    "descriptionJa": "欧州発のフロンティアラボ。効率の高いオープン・プロプライエタリモデルを提供。",
+    "valuationUsdB": 6,
+    "employees": 250,
+    "revenueUsdM": 50,
+    "keyProducts": [
+      "Mistral Large",
+      "Mixtral 8x22B",
+      "Codestral",
+      "Le Chat"
+    ],
+    "competitors": [
+      "meta-ai",
+      "cohere",
+      "anthropic"
+    ],
+    "tags": [
+      "europe",
+      "open-source",
+      "efficiency",
+      "mixture-of-experts"
+    ]
+  }
+]

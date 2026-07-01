@@ -1,0 +1,164 @@
+[
+  {
+    "id": "gpt-4o",
+    "companyId": "openai",
+    "name": "GPT-4o",
+    "releaseDate": "2024-05-13",
+    "contextWindowK": 128,
+    "modalities": ["text", "image", "audio"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 2.5,
+    "outputPricePer1M": 10,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 88.7, "maxScore": 100 },
+      { "name": "HumanEval", "score": 90.2, "maxScore": 100 }
+    ],
+    "notes": "Omni-modal flagship. Fast and cost-effective vs GPT-4 Turbo."
+  },
+  {
+    "id": "o1",
+    "companyId": "openai",
+    "name": "o1",
+    "releaseDate": "2024-12-05",
+    "contextWindowK": 200,
+    "modalities": ["text", "image"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 15,
+    "outputPricePer1M": 60,
+    "benchmarkScores": [
+      { "name": "AIME 2024", "score": 83.3, "maxScore": 100 },
+      { "name": "Codeforces", "score": 1891 }
+    ],
+    "notes": "Reasoning-focused model with extended chain-of-thought."
+  },
+  {
+    "id": "claude-3-5-sonnet",
+    "companyId": "anthropic",
+    "name": "Claude 3.5 Sonnet",
+    "releaseDate": "2024-06-20",
+    "contextWindowK": 200,
+    "modalities": ["text", "image"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 3,
+    "outputPricePer1M": 15,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 88.3, "maxScore": 100 },
+      { "name": "HumanEval", "score": 92, "maxScore": 100 }
+    ],
+    "notes": "Strong coding and agentic workflows. 200K context."
+  },
+  {
+    "id": "claude-3-opus",
+    "companyId": "anthropic",
+    "name": "Claude 3 Opus",
+    "releaseDate": "2024-03-04",
+    "contextWindowK": 200,
+    "modalities": ["text", "image"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 15,
+    "outputPricePer1M": 75,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 86.8, "maxScore": 100 },
+      { "name": "GPQA", "score": 50.4, "maxScore": 100 }
+    ],
+    "notes": "Previous flagship. Still strong on complex reasoning."
+  },
+  {
+    "id": "gemini-2-0-flash",
+    "companyId": "google-deepmind",
+    "name": "Gemini 2.0 Flash",
+    "releaseDate": "2024-12-11",
+    "contextWindowK": 1000,
+    "modalities": ["text", "image", "audio", "video"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 0.1,
+    "outputPricePer1M": 0.4,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 86.5, "maxScore": 100 }
+    ],
+    "notes": "1M token context. Native multimodal with agent capabilities."
+  },
+  {
+    "id": "llama-3-3-70b",
+    "companyId": "meta-ai",
+    "name": "Llama 3.3 70B",
+    "releaseDate": "2024-12-06",
+    "contextWindowK": 128,
+    "modalities": ["text"],
+    "openWeights": true,
+    "apiAvailable": false,
+    "inputPricePer1M": null,
+    "outputPricePer1M": null,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 86, "maxScore": 100 }
+    ],
+    "notes": "Open weights. Competitive with much larger closed models."
+  },
+  {
+    "id": "mistral-large-2",
+    "companyId": "mistral",
+    "name": "Mistral Large 2",
+    "releaseDate": "2024-07-24",
+    "contextWindowK": 128,
+    "modalities": ["text"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 2,
+    "outputPricePer1M": 6,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 84.2, "maxScore": 100 }
+    ],
+    "notes": "123B parameters. Strong multilingual support."
+  },
+  {
+    "id": "command-r-plus",
+    "companyId": "cohere",
+    "name": "Command R+",
+    "releaseDate": "2024-04-04",
+    "contextWindowK": 128,
+    "modalities": ["text"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 2.5,
+    "outputPricePer1M": 10,
+    "benchmarkScores": [
+      { "name": "RAG Benchmark", "score": 92, "maxScore": 100 }
+    ],
+    "notes": "Optimized for RAG and tool use in enterprise."
+  },
+  {
+    "id": "grok-2",
+    "companyId": "xai",
+    "name": "Grok-2",
+    "releaseDate": "2024-08-13",
+    "contextWindowK": 128,
+    "modalities": ["text", "image"],
+    "openWeights": false,
+    "apiAvailable": true,
+    "inputPricePer1M": 2,
+    "outputPricePer1M": 10,
+    "benchmarkScores": [
+      { "name": "MMLU", "score": 87.5, "maxScore": 100 }
+    ],
+    "notes": "Real-time X data integration. Image generation via Aurora."
+  },
+  {
+    "id": "stable-diffusion-3",
+    "companyId": "stability-ai",
+    "name": "Stable Diffusion 3",
+    "releaseDate": "2024-06-12",
+    "contextWindowK": null,
+    "modalities": ["text", "image"],
+    "openWeights": true,
+    "apiAvailable": true,
+    "inputPricePer1M": null,
+    "outputPricePer1M": null,
+    "benchmarkScores": [],
+    "notes": "MMDiT architecture. Open and API variants."
+  }
+]

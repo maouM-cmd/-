@@ -18,6 +18,12 @@ export function Header() {
         </Link>
         <div className="flex shrink-0 items-center gap-2">
           <Link
+            href="/kit"
+            className="hidden rounded-full border border-violet-200 px-3 py-2 text-sm font-medium text-violet-700 hover:bg-violet-50 sm:inline-block"
+          >
+            AI Kit
+          </Link>
+          <Link
             href="/favorites"
             className="hidden rounded-full border border-amber-200 px-3 py-2 text-sm font-medium text-amber-700 hover:bg-amber-50 sm:inline-block"
           >
@@ -41,6 +47,12 @@ export function Footer() {
       <div className="mx-auto max-w-5xl px-4 text-center text-sm text-gray-500">
         <p>{SITE_NAME} — 紹介キャンペーンをみんなで共有する掲示板</p>
         <nav className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
+          <Link href="/kit" className="text-violet-600 hover:underline">
+            AI Dashboard Kit
+          </Link>
+          <Link href="/tools/compare" className="text-violet-600 hover:underline">
+            Company Compare
+          </Link>
           <Link href="/terms" className="text-violet-600 hover:underline">
             利用規約
           </Link>

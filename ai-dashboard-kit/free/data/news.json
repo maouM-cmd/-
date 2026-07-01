@@ -1,0 +1,62 @@
+[
+  {
+    "id": "news-openai-o1",
+    "companyId": "openai",
+    "date": "2024-12-05",
+    "title": "OpenAI launches o1 reasoning models",
+    "titleJa": "OpenAIが推論特化モデル o1 を発表",
+    "category": "product",
+    "summary": "New reasoning models with improved math, coding, and science performance.",
+    "url": "https://openai.com/o1"
+  },
+  {
+    "id": "news-anthropic-computer-use",
+    "companyId": "anthropic",
+    "date": "2024-10-22",
+    "title": "Anthropic introduces computer use for Claude",
+    "titleJa": "AnthropicがClaudeのコンピュータ操作機能を発表",
+    "category": "product",
+    "summary": "Claude can interact with desktop environments via screenshots and mouse/keyboard.",
+    "url": "https://anthropic.com/news/computer-use"
+  },
+  {
+    "id": "news-google-gemini-2",
+    "companyId": "google-deepmind",
+    "date": "2024-12-11",
+    "title": "Google releases Gemini 2.0",
+    "titleJa": "GoogleがGemini 2.0をリリース",
+    "category": "product",
+    "summary": "Multimodal agentic model with 1M context and native tool use.",
+    "url": "https://deepmind.google/technologies/gemini"
+  },
+  {
+    "id": "news-meta-llama-33",
+    "companyId": "meta-ai",
+    "date": "2024-12-06",
+    "title": "Meta releases Llama 3.3 70B",
+    "titleJa": "MetaがLlama 3.3 70Bを公開",
+    "category": "product",
+    "summary": "Open-weight model matching 405B performance at lower cost.",
+    "url": "https://ai.meta.com/blog"
+  },
+  {
+    "id": "news-eu-ai-act",
+    "companyId": "mistral",
+    "date": "2024-08-01",
+    "title": "EU AI Act enters into force",
+    "titleJa": "EU AI法が発効",
+    "category": "regulation",
+    "summary": "European AI regulation impacts foundation model providers and deployers.",
+    "url": "https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai"
+  },
+  {
+    "id": "news-openai-funding",
+    "companyId": "openai",
+    "date": "2024-10-02",
+    "title": "OpenAI raises $6.6B at $157B valuation",
+    "titleJa": "OpenAIが評価額1570億ドルで66億ドル調達",
+    "category": "funding",
+    "summary": "Largest private funding round in tech history.",
+    "url": "https://openai.com"
+  }
+]
