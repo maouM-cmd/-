@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import { Footer, Header } from "@/components/Header";
+import { Providers } from "@/components/Providers";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
 import "./globals.css";
 
@@ -24,9 +25,11 @@ export default function RootLayout({
   return (
     <html lang="ja" className={`${notoSansJP.variable} h-full`}>
       <body className="flex min-h-full flex-col bg-gradient-to-b from-indigo-50/80 to-white font-sans text-gray-900 antialiased">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <Providers>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

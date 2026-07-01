@@ -1,13 +1,21 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { randomBytes } from "crypto";
+import { REPORT_HIDE_THRESHOLD } from "./constants-reports";
 import { computeTotalScore, scoreToRank } from "./constants";
 import { evaluatePrompt } from "./prompt-evaluator";
+import { evaluatePromptWithLLM } from "./llm-evaluator";
+import { checkAndIncrementLlmLimit } from "./rate-limit";
 import type {
+  AdminSubmission,
   Challenge,
+  Comment,
   CreateChallengeInput,
   LeaderboardEntry,
   LeaderboardType,
+  Report,
+  ReportReason,
   Submission,
   User,
 } from "./types";
@@ -17,7 +25,7 @@ const DB_PATH = path.join(DATA_DIR, "prompt-dojo.db");
 
 let db: Database.Database | null = null;
 
-function getDb(): Database.Database {
+export function getDb(): Database.Database {
   if (!db) {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -25,8 +33,16 @@ function getDb(): Database.Database {
     db = new Database(DB_PATH);
     db.pragma("journal_mode = WAL");
     initSchema(db);
+    migrateSchema(db);
   }
   return db;
+}
+
+function columnExists(database: Database.Database, table: string, column: string) {
+  const columns = database
+    .prepare(`PRAGMA table_info(${table})`)
+    .all() as { name: string }[];
+  return columns.some((c) => c.name === column);
 }
 
 function initSchema(database: Database.Database) {
@@ -35,6 +51,8 @@ function initSchema(database: Database.Database) {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       display_name TEXT NOT NULL,
       session_token TEXT NOT NULL UNIQUE,
+      oauth_provider TEXT,
+      oauth_id TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
 
@@ -44,7 +62,9 @@ function initSchema(database: Database.Database) {
       description TEXT NOT NULL,
       sample_output TEXT NOT NULL DEFAULT '',
       status TEXT NOT NULL DEFAULT 'active',
-      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+      author_id INTEGER,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (author_id) REFERENCES users(id)
     );
 
     CREATE TABLE IF NOT EXISTS submissions (
@@ -54,8 +74,12 @@ function initSchema(database: Database.Database) {
       prompt_text TEXT NOT NULL,
       auto_score INTEGER NOT NULL,
       auto_feedback_json TEXT NOT NULL,
+      llm_score INTEGER,
+      llm_feedback_json TEXT,
       community_score REAL,
       rating_count INTEGER NOT NULL DEFAULT 0,
+      report_count INTEGER NOT NULL DEFAULT 0,
+      is_hidden INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
       FOREIGN KEY (challenge_id) REFERENCES challenges(id),
       FOREIGN KEY (user_id) REFERENCES users(id)
@@ -78,10 +102,53 @@ function initSchema(database: Database.Database) {
   `);
 }
 
-function enrichSubmission(
-  row: Submission,
-  userId?: number | null,
-): Submission {
+function migrateSchema(database: Database.Database) {
+  const migrations: [string, string, string][] = [
+    ["challenges", "author_id", "ALTER TABLE challenges ADD COLUMN author_id INTEGER"],
+    ["submissions", "llm_score", "ALTER TABLE submissions ADD COLUMN llm_score INTEGER"],
+    ["submissions", "llm_feedback_json", "ALTER TABLE submissions ADD COLUMN llm_feedback_json TEXT"],
+    ["submissions", "report_count", "ALTER TABLE submissions ADD COLUMN report_count INTEGER NOT NULL DEFAULT 0"],
+    ["submissions", "is_hidden", "ALTER TABLE submissions ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0"],
+    ["users", "oauth_provider", "ALTER TABLE users ADD COLUMN oauth_provider TEXT"],
+    ["users", "oauth_id", "ALTER TABLE users ADD COLUMN oauth_id TEXT"],
+  ];
+  for (const [table, col, sql] of migrations) {
+    if (!columnExists(database, table, col)) {
+      database.exec(sql);
+    }
+  }
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      submission_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      body TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (submission_id) REFERENCES submissions(id),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      submission_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      reason TEXT NOT NULL,
+      detail TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (submission_id) REFERENCES submissions(id),
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE (submission_id, user_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_comments_submission ON comments(submission_id);
+    CREATE INDEX IF NOT EXISTS idx_reports_submission ON reports(submission_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oauth ON users(oauth_provider, oauth_id)
+      WHERE oauth_provider IS NOT NULL AND oauth_id IS NOT NULL;
+  `);
+}
+
+function enrichSubmission(row: Submission, userId?: number | null): Submission {
   const evaluation = JSON.parse(row.auto_feedback_json);
   const total_score = computeTotalScore(row.auto_score, row.community_score);
   let user_rating: number | null = null;
@@ -91,12 +158,7 @@ function enrichSubmission(
       .get(row.id, userId) as { stars: number } | undefined;
     user_rating = rating?.stars ?? null;
   }
-  return {
-    ...row,
-    total_score,
-    user_rating,
-    rank: evaluation.rank,
-  } as Submission & { rank?: string };
+  return { ...row, total_score, user_rating, rank: evaluation.rank };
 }
 
 export function seedIfEmpty() {
@@ -107,10 +169,9 @@ export function seedIfEmpty() {
   if (count > 0) return;
 
   const insert = database.prepare(
-    `INSERT INTO challenges (title, description, sample_output, status)
-     VALUES (?, ?, ?, 'active')`,
+    `INSERT INTO challenges (title, description, sample_output, status, author_id)
+     VALUES (?, ?, ?, 'active', NULL)`,
   );
-
   insert.run(
     "SNS投稿文を3パターン作成",
     "20代女性向けのカフェ紹介SNS投稿を作成するプロンプトを書いてください。マーケターの視点で、絵文字の使用や文字数制限も含めて指示しましょう。",
@@ -128,11 +189,26 @@ export function seedIfEmpty() {
   );
 }
 
+export function getUserById(id: number): User | null {
+  return (
+    (getDb().prepare("SELECT * FROM users WHERE id = ?").get(id) as User | undefined) ??
+    null
+  );
+}
+
 export function getUserBySessionToken(token: string): User | null {
   return (
     (getDb()
       .prepare("SELECT * FROM users WHERE session_token = ?")
       .get(token) as User | undefined) ?? null
+  );
+}
+
+export function getUserByOAuth(provider: string, oauthId: string): User | null {
+  return (
+    (getDb()
+      .prepare("SELECT * FROM users WHERE oauth_provider = ? AND oauth_id = ?")
+      .get(provider, oauthId) as User | undefined) ?? null
   );
 }
 
@@ -151,9 +227,26 @@ export function findOrCreateUser(token: string, displayName: string): User {
   const result = database
     .prepare("INSERT INTO users (display_name, session_token) VALUES (?, ?)")
     .run(displayName.trim(), token);
-  return database
-    .prepare("SELECT * FROM users WHERE id = ?")
-    .get(result.lastInsertRowid) as User;
+  return getUserById(Number(result.lastInsertRowid))!;
+}
+
+export function findOrCreateOAuthUser(
+  provider: string,
+  oauthId: string,
+  displayName: string,
+): User {
+  const existing = getUserByOAuth(provider, oauthId);
+  if (existing) return existing;
+
+  const token = randomBytes(32).toString("hex");
+  const database = getDb();
+  const result = database
+    .prepare(
+      `INSERT INTO users (display_name, session_token, oauth_provider, oauth_id)
+       VALUES (?, ?, ?, ?)`,
+    )
+    .run(displayName.trim(), token, provider, oauthId);
+  return getUserById(Number(result.lastInsertRowid))!;
 }
 
 export function getAllChallenges(): Challenge[] {
@@ -161,7 +254,7 @@ export function getAllChallenges(): Challenge[] {
     .prepare(
       `SELECT c.*, COUNT(s.id) as submission_count
        FROM challenges c
-       LEFT JOIN submissions s ON s.challenge_id = c.id
+       LEFT JOIN submissions s ON s.challenge_id = c.id AND s.is_hidden = 0
        WHERE c.status = 'active'
        GROUP BY c.id
        ORDER BY c.created_at DESC`,
@@ -169,15 +262,44 @@ export function getAllChallenges(): Challenge[] {
     .all() as Challenge[];
 }
 
-export function getChallengeById(id: number): Challenge | null {
+export function getPendingChallenges(): Challenge[] {
+  return getDb()
+    .prepare(
+      `SELECT c.*, u.display_name as author_name
+       FROM challenges c
+       LEFT JOIN users u ON u.id = c.author_id
+       WHERE c.status = 'pending'
+       ORDER BY c.created_at DESC`,
+    )
+    .all() as Challenge[];
+}
+
+export function getChallengeById(id: number, includePending = false): Challenge | null {
+  const statusFilter = includePending
+    ? "c.status IN ('active', 'pending', 'archived')"
+    : "c.status = 'active'";
   return (
     (getDb()
       .prepare(
-        `SELECT c.*, COUNT(s.id) as submission_count
+        `SELECT c.*, COUNT(s.id) as submission_count, u.display_name as author_name
          FROM challenges c
-         LEFT JOIN submissions s ON s.challenge_id = c.id
-         WHERE c.id = ?
+         LEFT JOIN submissions s ON s.challenge_id = c.id AND s.is_hidden = 0
+         LEFT JOIN users u ON u.id = c.author_id
+         WHERE c.id = ? AND ${statusFilter}
          GROUP BY c.id`,
+      )
+      .get(id) as Challenge | undefined) ?? null
+  );
+}
+
+export function getChallengeByIdAdmin(id: number): Challenge | null {
+  return (
+    (getDb()
+      .prepare(
+        `SELECT c.*, u.display_name as author_name
+         FROM challenges c
+         LEFT JOIN users u ON u.id = c.author_id
+         WHERE c.id = ?`,
       )
       .get(id) as Challenge | undefined) ?? null
   );
@@ -185,7 +307,12 @@ export function getChallengeById(id: number): Challenge | null {
 
 export function getAllChallengesAdmin(): Challenge[] {
   return getDb()
-    .prepare("SELECT * FROM challenges ORDER BY created_at DESC")
+    .prepare(
+      `SELECT c.*, u.display_name as author_name
+       FROM challenges c
+       LEFT JOIN users u ON u.id = c.author_id
+       ORDER BY c.created_at DESC`,
+    )
     .all() as Challenge[];
 }
 
@@ -193,40 +320,58 @@ export function createChallenge(input: CreateChallengeInput): Challenge {
   const database = getDb();
   const result = database
     .prepare(
-      `INSERT INTO challenges (title, description, sample_output, status)
-       VALUES (?, ?, ?, ?)`,
+      `INSERT INTO challenges (title, description, sample_output, status, author_id)
+       VALUES (?, ?, ?, ?, ?)`,
     )
     .run(
       input.title,
       input.description,
       input.sample_output ?? "",
       input.status ?? "active",
+      input.author_id ?? null,
     );
-  return getChallengeById(Number(result.lastInsertRowid))!;
+  return getChallengeByIdAdmin(Number(result.lastInsertRowid))!;
 }
 
 export function updateChallenge(
   id: number,
   input: Partial<CreateChallengeInput>,
 ): Challenge | null {
-  const existing = getChallengeById(id);
+  const existing = getChallengeByIdAdmin(id);
   if (!existing) return null;
   getDb()
     .prepare(
-      `UPDATE challenges SET title = ?, description = ?, sample_output = ?, status = ? WHERE id = ?`,
+      `UPDATE challenges SET title = ?, description = ?, sample_output = ?, status = ?, author_id = ? WHERE id = ?`,
     )
     .run(
       input.title ?? existing.title,
       input.description ?? existing.description,
       input.sample_output ?? existing.sample_output,
       input.status ?? existing.status,
+      input.author_id !== undefined ? input.author_id : existing.author_id,
       id,
     );
-  return getChallengeById(id);
+  return getChallengeByIdAdmin(id);
+}
+
+export function approveChallenge(id: number): Challenge | null {
+  const existing = getChallengeByIdAdmin(id);
+  if (!existing || existing.status !== "pending") return null;
+  return updateChallenge(id, { status: "active" });
 }
 
 export function deleteChallenge(id: number): boolean {
   const database = getDb();
+  database
+    .prepare(
+      `DELETE FROM reports WHERE submission_id IN (SELECT id FROM submissions WHERE challenge_id = ?)`,
+    )
+    .run(id);
+  database
+    .prepare(
+      `DELETE FROM comments WHERE submission_id IN (SELECT id FROM submissions WHERE challenge_id = ?)`,
+    )
+    .run(id);
   database
     .prepare(
       `DELETE FROM ratings WHERE submission_id IN (SELECT id FROM submissions WHERE challenge_id = ?)`,
@@ -237,17 +382,32 @@ export function deleteChallenge(id: number): boolean {
   return result.changes > 0;
 }
 
-export function createSubmission(
+export async function createSubmission(
   challengeId: number,
   userId: number,
   promptText: string,
-): Submission {
+): Promise<Submission> {
+  const challenge = getChallengeById(challengeId);
+  if (!challenge) throw new Error("課題が見つかりません");
+
   const evaluation = evaluatePrompt(promptText);
+  let llmScore: number | null = null;
+  let llmFeedback: string | null = null;
+
+  const limit = checkAndIncrementLlmLimit(userId);
+  if (limit.allowed) {
+    const llmResult = await evaluatePromptWithLLM(challenge.description, promptText);
+    if (llmResult) {
+      llmScore = llmResult.score;
+      llmFeedback = JSON.stringify(llmResult);
+    }
+  }
+
   const database = getDb();
   const result = database
     .prepare(
-      `INSERT INTO submissions (challenge_id, user_id, prompt_text, auto_score, auto_feedback_json)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO submissions (challenge_id, user_id, prompt_text, auto_score, auto_feedback_json, llm_score, llm_feedback_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       challengeId,
@@ -255,6 +415,8 @@ export function createSubmission(
       promptText.trim(),
       evaluation.score,
       JSON.stringify(evaluation),
+      llmScore,
+      llmFeedback,
     );
   return getSubmissionById(Number(result.lastInsertRowid))!;
 }
@@ -262,14 +424,16 @@ export function createSubmission(
 export function getSubmissionById(
   id: number,
   userId?: number | null,
+  includeHidden = false,
 ): Submission | null {
+  const hiddenFilter = includeHidden ? "" : "AND s.is_hidden = 0";
   const row = getDb()
     .prepare(
       `SELECT s.*, u.display_name as author_name, c.title as challenge_title
        FROM submissions s
        JOIN users u ON u.id = s.user_id
        JOIN challenges c ON c.id = s.challenge_id
-       WHERE s.id = ?`,
+       WHERE s.id = ? ${hiddenFilter}`,
     )
     .get(id) as Submission | undefined;
   if (!row) return null;
@@ -285,7 +449,7 @@ export function getSubmissionsByChallenge(
       `SELECT s.*, u.display_name as author_name
        FROM submissions s
        JOIN users u ON u.id = s.user_id
-       WHERE s.challenge_id = ?
+       WHERE s.challenge_id = ? AND s.is_hidden = 0
        ORDER BY s.created_at DESC`,
     )
     .all(challengeId) as Submission[];
@@ -305,6 +469,35 @@ export function getUserSubmissions(userId: number): Submission[] {
   return rows.map((r) => enrichSubmission(r, userId));
 }
 
+export function getAllSubmissionsAdmin(): AdminSubmission[] {
+  return getDb()
+    .prepare(
+      `SELECT s.*, u.display_name as author_name, c.title as challenge_title,
+              (SELECT COUNT(*) FROM comments WHERE submission_id = s.id) as comment_count
+       FROM submissions s
+       JOIN users u ON u.id = s.user_id
+       JOIN challenges c ON c.id = s.challenge_id
+       ORDER BY s.created_at DESC`,
+    )
+    .all() as AdminSubmission[];
+}
+
+export function setSubmissionHidden(id: number, hidden: boolean): boolean {
+  const result = getDb()
+    .prepare("UPDATE submissions SET is_hidden = ? WHERE id = ?")
+    .run(hidden ? 1 : 0, id);
+  return result.changes > 0;
+}
+
+export function deleteSubmission(id: number): boolean {
+  const database = getDb();
+  database.prepare("DELETE FROM reports WHERE submission_id = ?").run(id);
+  database.prepare("DELETE FROM comments WHERE submission_id = ?").run(id);
+  database.prepare("DELETE FROM ratings WHERE submission_id = ?").run(id);
+  const result = database.prepare("DELETE FROM submissions WHERE id = ?").run(id);
+  return result.changes > 0;
+}
+
 export function rateSubmission(
   submissionId: number,
   userId: number,
@@ -312,7 +505,7 @@ export function rateSubmission(
 ): { ok: boolean; error?: string; submission?: Submission } {
   const database = getDb();
   const submission = database
-    .prepare("SELECT * FROM submissions WHERE id = ?")
+    .prepare("SELECT * FROM submissions WHERE id = ? AND is_hidden = 0")
     .get(submissionId) as Submission | undefined;
   if (!submission) return { ok: false, error: "投稿が見つかりません" };
   if (submission.user_id === userId) {
@@ -350,6 +543,100 @@ export function rateSubmission(
   return { ok: true, submission: getSubmissionById(submissionId, userId)! };
 }
 
+export function getCommentsBySubmission(submissionId: number): Comment[] {
+  return getDb()
+    .prepare(
+      `SELECT c.*, u.display_name as author_name
+       FROM comments c
+       JOIN users u ON u.id = c.user_id
+       WHERE c.submission_id = ?
+       ORDER BY c.created_at ASC`,
+    )
+    .all(submissionId) as Comment[];
+}
+
+export function createComment(
+  submissionId: number,
+  userId: number,
+  body: string,
+): Comment | null {
+  const submission = getDb()
+    .prepare("SELECT id FROM submissions WHERE id = ? AND is_hidden = 0")
+    .get(submissionId);
+  if (!submission) return null;
+
+  const result = getDb()
+    .prepare(
+      "INSERT INTO comments (submission_id, user_id, body) VALUES (?, ?, ?)",
+    )
+    .run(submissionId, userId, body.trim());
+
+  return getDb()
+    .prepare(
+      `SELECT c.*, u.display_name as author_name
+       FROM comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?`,
+    )
+    .get(result.lastInsertRowid) as Comment;
+}
+
+export function createReport(
+  submissionId: number,
+  userId: number,
+  reason: ReportReason,
+  detail: string,
+): { hidden: boolean } | null {
+  const database = getDb();
+  const submission = database
+    .prepare("SELECT * FROM submissions WHERE id = ?")
+    .get(submissionId) as Submission | undefined;
+  if (!submission) return null;
+  if (submission.user_id === userId) return null;
+
+  const existing = database
+    .prepare("SELECT id FROM reports WHERE submission_id = ? AND user_id = ?")
+    .get(submissionId, userId);
+  if (existing) return { hidden: submission.is_hidden === 1 };
+
+  database
+    .prepare(
+      "INSERT INTO reports (submission_id, user_id, reason, detail) VALUES (?, ?, ?, ?)",
+    )
+    .run(submissionId, userId, reason, detail.trim());
+
+  const count = (
+    database
+      .prepare("SELECT COUNT(*) as c FROM reports WHERE submission_id = ?")
+      .get(submissionId) as { c: number }
+  ).c;
+
+  database
+    .prepare("UPDATE submissions SET report_count = ? WHERE id = ?")
+    .run(count, submissionId);
+
+  let hidden = false;
+  if (count >= REPORT_HIDE_THRESHOLD) {
+    database
+      .prepare("UPDATE submissions SET is_hidden = 1 WHERE id = ?")
+      .run(submissionId);
+    hidden = true;
+  }
+
+  return { hidden };
+}
+
+export function getAllReports(): Report[] {
+  return getDb()
+    .prepare(
+      `SELECT r.*, u.display_name as author_name,
+              substr(s.prompt_text, 1, 80) as submission_preview
+       FROM reports r
+       JOIN users u ON u.id = r.user_id
+       JOIN submissions s ON s.id = r.submission_id
+       ORDER BY r.created_at DESC`,
+    )
+    .all() as Report[];
+}
+
 export function getLeaderboard(
   type: LeaderboardType = "total",
   limit = 50,
@@ -357,26 +644,27 @@ export function getLeaderboard(
   const rows = getDb()
     .prepare(
       `SELECT s.id as submission_id, s.challenge_id, c.title as challenge_title,
-              u.display_name as author_name, s.auto_score, s.community_score,
-              s.rating_count, s.created_at
+              u.display_name as author_name, s.auto_score, s.llm_score,
+              s.community_score, s.rating_count, s.created_at
        FROM submissions s
        JOIN challenges c ON c.id = s.challenge_id
        JOIN users u ON u.id = s.user_id
-       WHERE c.status = 'active'`,
+       WHERE c.status = 'active' AND s.is_hidden = 0`,
     )
     .all() as Omit<LeaderboardEntry, "total_score" | "rank">[];
 
   const entries: LeaderboardEntry[] = rows.map((row) => {
     const total_score = computeTotalScore(row.auto_score, row.community_score);
-    return {
-      ...row,
-      total_score,
-      rank: scoreToRank(total_score),
-    };
+    return { ...row, total_score, rank: scoreToRank(total_score) };
   });
 
   entries.sort((a, b) => {
     if (type === "auto") return b.auto_score - a.auto_score;
+    if (type === "llm") {
+      const aScore = a.llm_score ?? 0;
+      const bScore = b.llm_score ?? 0;
+      return bScore - aScore;
+    }
     if (type === "community") {
       const aScore = a.community_score ?? 0;
       const bScore = b.community_score ?? 0;

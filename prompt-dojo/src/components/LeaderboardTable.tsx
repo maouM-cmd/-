@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { RANK_BG } from "@/lib/constants";
-import type { LeaderboardEntry } from "@/lib/types";
+import type { LeaderboardEntry, LeaderboardType } from "@/lib/types";
 
-export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
+export function LeaderboardTable({
+  entries,
+  type = "total",
+}: {
+  entries: LeaderboardEntry[];
+  type?: LeaderboardType;
+}) {
   if (entries.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-gray-500">
@@ -21,6 +27,7 @@ export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
             <th className="px-4 py-3">課題</th>
             <th className="px-4 py-3">総合</th>
             <th className="px-4 py-3">自動</th>
+            <th className="px-4 py-3">LLM</th>
             <th className="px-4 py-3">みんな</th>
           </tr>
         </thead>
@@ -41,10 +48,17 @@ export function LeaderboardTable({ entries }: { entries: LeaderboardEntry[] }) {
                 <span
                   className={`rounded-full px-2 py-0.5 text-xs font-bold ${RANK_BG[entry.rank]}`}
                 >
-                  {entry.total_score}
+                  {type === "total" ? entry.total_score : "—"}
                 </span>
               </td>
-              <td className="px-4 py-3 text-gray-600">{entry.auto_score}</td>
+              <td className="px-4 py-3 text-gray-600">
+                {type === "auto" || type === "total" ? entry.auto_score : "—"}
+              </td>
+              <td className="px-4 py-3 text-gray-600">
+                {type === "llm"
+                  ? (entry.llm_score ?? "—")
+                  : entry.llm_score ?? "—"}
+              </td>
               <td className="px-4 py-3 text-gray-600">
                 {entry.community_score !== null
                   ? `★${entry.community_score.toFixed(1)} (${entry.rating_count})`

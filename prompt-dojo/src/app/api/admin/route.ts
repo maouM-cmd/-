@@ -2,20 +2,34 @@ import { NextResponse } from "next/server";
 import {
   getAdminClearCookie,
   getAdminSessionCookie,
+  isAdminAuthenticated,
   verifyAdminPassword,
 } from "@/lib/admin";
 import {
+  approveChallenge,
   createChallenge,
   deleteChallenge,
+  deleteSubmission,
   getAllChallengesAdmin,
+  getAllReports,
+  getAllSubmissionsAdmin,
+  getPendingChallenges,
+  setSubmissionHidden,
   updateChallenge,
 } from "@/lib/db";
 
 export const runtime = "nodejs";
 
 export async function GET() {
-  const challenges = getAllChallengesAdmin();
-  return NextResponse.json({ challenges });
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+  }
+  return NextResponse.json({
+    challenges: getAllChallengesAdmin(),
+    pending: getPendingChallenges(),
+    reports: getAllReports(),
+    submissions: getAllSubmissionsAdmin(),
+  });
 }
 
 export async function POST(request: Request) {
@@ -38,7 +52,6 @@ export async function POST(request: Request) {
     return response;
   }
 
-  const { isAdminAuthenticated } = await import("@/lib/admin");
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
@@ -66,10 +79,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ challenge });
   }
 
+  if (body.action === "approve") {
+    const challenge = approveChallenge(Number(body.id));
+    if (!challenge) {
+      return NextResponse.json({ error: "承認できません" }, { status: 400 });
+    }
+    return NextResponse.json({ challenge });
+  }
+
   if (body.action === "delete") {
     const ok = deleteChallenge(Number(body.id));
     if (!ok) {
       return NextResponse.json({ error: "課題が見つかりません" }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (body.action === "hide_submission") {
+    const ok = setSubmissionHidden(Number(body.id), true);
+    if (!ok) {
+      return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (body.action === "restore_submission") {
+    const ok = setSubmissionHidden(Number(body.id), false);
+    if (!ok) {
+      return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  if (body.action === "delete_submission") {
+    const ok = deleteSubmission(Number(body.id));
+    if (!ok) {
+      return NextResponse.json({ error: "投稿が見つかりません" }, { status: 404 });
     }
     return NextResponse.json({ ok: true });
   }

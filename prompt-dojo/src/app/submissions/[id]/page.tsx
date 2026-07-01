@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommentSection } from "@/components/CommentSection";
+import { LLMEvaluationDisplay } from "@/components/LLMEvaluationDisplay";
 import { EvaluationDisplay } from "@/components/PromptForm";
+import { ReportButton } from "@/components/ReportButton";
 import { CopyLinkButton, RatingStars } from "@/components/RatingStars";
 import { RANK_BG, SITE_NAME, computeTotalScore } from "@/lib/constants";
 import { getSubmissionById } from "@/lib/db";
@@ -71,6 +74,9 @@ export default async function SubmissionPage({ params }: Props) {
 
           <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-600">
             <span>自動スコア: {submission.auto_score}点</span>
+            {submission.llm_score !== null && (
+              <span>LLMスコア: {submission.llm_score}点</span>
+            )}
             {submission.community_score !== null ? (
               <span>
                 みんなの評価: ★{submission.community_score.toFixed(1)} (
@@ -91,6 +97,14 @@ export default async function SubmissionPage({ params }: Props) {
 
         <EvaluationDisplay evaluation={evaluation} />
 
+        <section>
+          <h2 className="mb-3 font-bold text-gray-900">LLM評価</h2>
+          <LLMEvaluationDisplay
+            llmScore={submission.llm_score}
+            llmFeedbackJson={submission.llm_feedback_json}
+          />
+        </section>
+
         <section className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
           <RatingStars
             submissionId={submission.id}
@@ -99,13 +113,16 @@ export default async function SubmissionPage({ params }: Props) {
           />
           {!user && (
             <p className="mt-2 text-sm text-amber-700">
-              評価するにはトップページでニックネームを設定してください
+              評価するにはニックネームを設定するか、Googleでログインしてください
             </p>
           )}
         </section>
 
-        <div className="flex justify-center">
+        <CommentSection submissionId={submission.id} />
+
+        <div className="flex items-center justify-between">
           <CopyLinkButton path={`/submissions/${submission.id}`} />
+          {!isOwner && user && <ReportButton submissionId={submission.id} />}
         </div>
       </article>
     </div>

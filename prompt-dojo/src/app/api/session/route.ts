@@ -1,7 +1,6 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { findOrCreateUser } from "@/lib/db";
-import { createSessionToken, getSessionCookie } from "@/lib/session";
+import { createSessionToken, getCurrentUser, getSessionCookie } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -15,9 +14,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const cookieStore = await cookies();
-  const existingToken = cookieStore.get("prompt_dojo_session")?.value;
-  const token = existingToken ?? createSessionToken();
+  const existingUser = await getCurrentUser();
+  if (existingUser) {
+    return NextResponse.json({ user: existingUser });
+  }
+
+  const token = createSessionToken();
   const user = findOrCreateUser(token, displayName);
 
   const session = getSessionCookie(token);
@@ -27,12 +29,6 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("prompt_dojo_session")?.value;
-  if (!token) {
-    return NextResponse.json({ user: null });
-  }
-  const { getUserBySessionToken } = await import("@/lib/db");
-  const user = getUserBySessionToken(token);
+  const user = await getCurrentUser();
   return NextResponse.json({ user });
 }

@@ -18,6 +18,12 @@ export function Header() {
         </Link>
         <nav className="flex shrink-0 items-center gap-2">
           <Link
+            href="/challenges/new"
+            className="hidden rounded-full border border-cyan-200 px-3 py-2 text-sm font-medium text-cyan-700 hover:bg-cyan-50 sm:inline-block"
+          >
+            課題を投稿
+          </Link>
+          <Link
             href="/leaderboard"
             className="hidden rounded-full border border-indigo-200 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 sm:inline-block"
           >
@@ -49,7 +55,7 @@ export function Footer() {
           </Link>
         </nav>
         <p className="mt-3 text-xs text-gray-400">
-          自動採点は構造チェックによる参考スコアです。最終評価はコミュニティの星評価で決まります。
+          自動採点は構造チェックによる参考スコアです。LLM評価は投稿時に実行されます。
         </p>
       </div>
     </footer>

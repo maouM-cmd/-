@@ -1,7 +1,8 @@
+import { auth } from "@/auth";
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 import { SESSION_COOKIE } from "./constants";
-import { findOrCreateUser, getUserBySessionToken } from "./db";
+import { getUserById, getUserBySessionToken } from "./db";
 import type { User } from "./types";
 
 export async function getSessionToken(): Promise<string | null> {
@@ -10,6 +11,11 @@ export async function getSessionToken(): Promise<string | null> {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
+  const authSession = await auth();
+  if (authSession?.user?.id) {
+    return getUserById(authSession.user.id);
+  }
+
   const token = await getSessionToken();
   if (!token) return null;
   return getUserBySessionToken(token);
@@ -31,16 +37,4 @@ export function getSessionCookie(token: string) {
       maxAge: 60 * 60 * 24 * 365,
     },
   };
-}
-
-export async function ensureUser(displayName: string): Promise<User> {
-  const token = await getSessionToken();
-  if (token) {
-    const existing = getUserBySessionToken(token);
-    if (existing) {
-      return existing;
-    }
-  }
-  const newToken = createSessionToken();
-  return findOrCreateUser(newToken, displayName);
 }

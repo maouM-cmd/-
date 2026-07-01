@@ -1,3 +1,4 @@
+import { AdSlot } from "@/components/AdSlot";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SubmissionCard } from "@/components/ChallengeCard";
@@ -39,6 +40,8 @@ export default async function ChallengePage({
       <section className="mt-8">
         <NicknameSetup />
       </section>
+
+      <AdSlot position="inline" className="my-6" />
 
       <section className="mt-6 rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-bold">プロンプトを投稿</h2>

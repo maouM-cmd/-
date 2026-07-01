@@ -48,6 +48,16 @@ services:
         value: プロンプ道場運営
       - key: NEXT_PUBLIC_CONTACT_EMAIL
         sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
+        sync: false
     disk:
       name: prompt-dojo-data
       mountPath: /app/data

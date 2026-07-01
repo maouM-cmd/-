@@ -38,6 +38,6 @@ export async function POST(
     );
   }
 
-  const submission = createSubmission(challengeId, user.id, promptText);
+  const submission = await createSubmission(challengeId, user.id, promptText);
   return NextResponse.json({ submission }, { status: 201 });
 }

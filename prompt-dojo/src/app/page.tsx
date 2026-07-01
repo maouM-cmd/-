@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdSlot } from "@/components/AdSlot";
 import { ChallengeCard, SubmissionCard } from "@/components/ChallengeCard";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { NicknameSetup } from "@/components/NicknameSetup";
@@ -29,6 +30,8 @@ export default function Home() {
 
       <NicknameSetup />
 
+      <AdSlot position="inline" className="my-8" />
+
       <section className="mt-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900">課題一覧</h2>
@@ -57,7 +60,7 @@ export default function Home() {
             すべて見る →
           </Link>
         </div>
-        <LeaderboardTable entries={topEntries} />
+        <LeaderboardTable entries={topEntries} type="total" />
       </section>
 
       {topEntries.length > 0 && (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdSlot } from "@/components/AdSlot";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 import { getLeaderboard } from "@/lib/db";
 import type { LeaderboardType } from "@/lib/types";
@@ -6,6 +7,7 @@ import type { LeaderboardType } from "@/lib/types";
 const TABS: { key: LeaderboardType; label: string }[] = [
   { key: "total", label: "総合" },
   { key: "auto", label: "自動スコア" },
+  { key: "llm", label: "LLMスコア" },
   { key: "community", label: "みんなの評価" },
 ];
 
@@ -29,7 +31,7 @@ export default async function LeaderboardPage({
         総合スコア = 自動スコア×40% + みんなの評価×60%
       </p>
 
-      <nav className="mt-6 flex gap-2">
+      <nav className="mt-6 flex flex-wrap gap-2">
         {TABS.map((tab) => (
           <Link
             key={tab.key}
@@ -46,8 +48,10 @@ export default async function LeaderboardPage({
       </nav>
 
       <div className="mt-6">
-        <LeaderboardTable entries={entries} />
+        <LeaderboardTable entries={entries} type={validType} />
       </div>
+
+      <AdSlot position="bottom" className="mt-8" />
     </div>
   );
 }
