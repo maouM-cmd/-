@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { ChallengeGenButton } from "@/components/ChallengeGenButton";
 import { NicknameSetup } from "@/components/NicknameSetup";
 
 export default function NewChallengePage() {
@@ -51,6 +52,18 @@ export default function NewChallengePage() {
 
       <div className="mt-6">
         <NicknameSetup />
+      </div>
+
+      <div className="mt-4">
+        <ChallengeGenButton
+          onGenerated={(c) =>
+            setForm({
+              title: c.title,
+              description: c.description,
+              sample_output: c.sample_output,
+            })
+          }
+        />
       </div>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4 rounded-2xl border bg-white p-6">

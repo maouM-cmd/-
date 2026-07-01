@@ -1,52 +1,43 @@
-# プロンプ道場 要件定義 v2.0
+# プロンプ道場 要件定義 v3.0
 
 ## 概要
 
 プロンプトを書いて、自動構造チェック・LLM評価・コミュニティの星評価でスキルアップする公開Webサービス。
 
-## 確定事項（Phase 1 + 2）
+## 確定事項（Phase 1〜3）
 
 | 項目 | 内容 |
 |------|------|
 | サイト名 | **プロンプ道場** |
-| 評価方式 | ルールベース自動採点 + LLM採点（任意） + 星評価 + コメント |
-| 認証 | ニックネーム + セッションCookie / Google OAuth |
-| 課題管理 | 管理者CRUD + ユーザー投稿（承認制） |
-| モデレーション | 通報3件で自動非表示、管理画面で復活・削除 |
-| 共有 | 投稿ごとに固有URL、OGP対応 |
+| 評価方式 | ルールベース + LLM + 星評価 + コメント（スレッド返信可） |
+| 認証 | ニックネーム / Google・GitHub・Apple OAuth / メール+パスワード |
+| 課題管理 | 管理者CRUD + ユーザー投稿（承認制） + AI課題生成 |
+| 通知 | Webプッシュ（コメント・評価・課題承認） |
+| モデレーション | 通報3件で自動非表示 |
 | 収益化 | AdSense 対応枠 |
-
-## 機能一覧
-
-- 課題一覧・詳細・ユーザー課題投稿（承認待ち）
-- プロンプト入力（リアルタイムルールベースフィードバック）
-- LLM自動採点（投稿時、日次上限あり）
-- 星評価・コメント・通報
-- ランキング（総合 / 自動 / LLM / コミュニティ）
-- 投稿履歴
-- Google OAuth ログイン
-- 管理画面（課題承認・通報・投稿モデレーション）
-- 利用規約・プライバシーポリシー
 
 ## 環境変数
 
 ```
-ADMIN_PASSWORD=your-secure-password
-AUTH_SECRET=random-secret-string
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
+ADMIN_PASSWORD=...
+AUTH_SECRET=...
+GOOGLE_CLIENT_ID=... / GOOGLE_CLIENT_SECRET=...
+GITHUB_CLIENT_ID=... / GITHUB_CLIENT_SECRET=...
+APPLE_ID=... / APPLE_SECRET=...  # オプション
 NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
+NEXT_PUBLIC_GITHUB_AUTH_ENABLED=true
+NEXT_PUBLIC_APPLE_AUTH_ENABLED=true
+OPENAI_API_KEY=...
 LLM_DAILY_LIMIT=10
-NEXT_PUBLIC_SITE_NAME=プロンプ道場
-NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-...
-NEXT_PUBLIC_ADSENSE_SLOT=...
+LLM_CHALLENGE_GEN_LIMIT=5
+VAPID_PUBLIC_KEY=...
+VAPID_PRIVATE_KEY=...
+VAPID_SUBJECT=mailto:contact@example.com
 ```
 
-## スコープ外（Phase 3）
+## スコープ外（Phase 4）
 
-- メール＋パスワード会員登録
-- GitHub / Apple OAuth
-- コメントスレッド
-- プッシュ通知
+- メールアドレス確認（verification）
+- パスワードリセット
+- コメント3段階以上のネスト
+- ネイティブアプリ

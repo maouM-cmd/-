@@ -1,15 +1,108 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Comment } from "@/lib/types";
-
-function formatDate(dateStr: string) {
+import type { Comment } from "@/lib/types";(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ja-JP", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function countAll(comments: Comment[]): number {
+  return comments.reduce((n, c) => n + 1 + (c.replies?.length ?? 0), 0);
+}
+
+function CommentItem({
+  comment,
+  submissionId,
+  onReply,
+}: {
+  comment: Comment;
+  submissionId: number;
+  onReply: (comment: Comment) => void;
+}) {
+  const [replying, setReplying] = useState(false);
+  const [replyBody, setReplyBody] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submitReply(e: React.FormEvent) {
+    e.preventDefault();
+    if (!replyBody.trim()) return;
+    setLoading(true);
+    setError("");
+
+    const res = await fetch(`/api/submissions/${submissionId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: replyBody, parent_id: comment.id }),
+    });
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.error ?? "返信に失敗しました");
+      return;
+    }
+
+    onReply(data);
+    setReplyBody("");
+    setReplying(false);
+  }
+
+  return (
+    <li className="rounded-lg bg-gray-50 p-3">
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <span className="font-medium text-gray-700">{comment.author_name}</span>
+        <span>{formatDate(comment.created_at)}</span>
+      </div>
+      <p className="mt-1 text-sm text-gray-800">{comment.body}</p>
+      <button
+        type="button"
+        onClick={() => setReplying(!replying)}
+        className="mt-2 text-xs text-indigo-600 hover:underline"
+      >
+        返信
+      </button>
+
+      {comment.replies && comment.replies.length > 0 && (
+        <ul className="mt-3 ml-4 space-y-2 border-l-2 border-indigo-100 pl-3">
+          {comment.replies.map((r) => (
+            <li key={r.id} className="rounded-lg bg-white p-2">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span className="font-medium text-gray-700">{r.author_name}</span>
+                <span>{formatDate(r.created_at)}</span>
+              </div>
+              <p className="mt-1 text-sm text-gray-800">{r.body}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {replying && (
+        <form onSubmit={submitReply} className="mt-3 space-y-2">
+          <textarea
+            value={replyBody}
+            onChange={(e) => setReplyBody(e.target.value)}
+            rows={2}
+            placeholder="返信を書く..."
+            maxLength={1000}
+            className="w-full rounded-lg border px-3 py-2 text-sm"
+          />
+          {error && <p className="text-xs text-red-600">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading || !replyBody.trim()}
+            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs text-white disabled:opacity-50"
+          >
+            {loading ? "送信中..." : "返信する"}
+          </button>
+        </form>
+      )}
+    </li>
+  );
 }
 
 export function CommentSection({ submissionId }: { submissionId: number }) {
@@ -45,14 +138,24 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
       return;
     }
 
-    setComments((prev) => [...prev, data]);
+    fetch(`/api/submissions/${submissionId}/comments`)
+      .then((r) => r.json())
+      .then(setComments)
+      .catch(() => {});
     setBody("");
+  }
+
+  function handleReply() {
+    fetch(`/api/submissions/${submissionId}/comments`)
+      .then((r) => r.json())
+      .then(setComments)
+      .catch(() => {});
   }
 
   return (
     <section className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
       <h2 className="mb-4 font-bold text-gray-900">
-        コメント ({comments.length})
+        コメント ({countAll(comments)})
       </h2>
 
       {comments.length === 0 ? (
@@ -60,13 +163,12 @@ export function CommentSection({ submissionId }: { submissionId: number }) {
       ) : (
         <ul className="mb-6 space-y-3">
           {comments.map((c) => (
-            <li key={c.id} className="rounded-lg bg-gray-50 p-3">
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span className="font-medium text-gray-700">{c.author_name}</span>
-                <span>{formatDate(c.created_at)}</span>
-              </div>
-              <p className="mt-1 text-sm text-gray-800">{c.body}</p>
-            </li>
+            <CommentItem
+              key={c.id}
+              comment={c}
+              submissionId={submissionId}
+              onReply={handleReply}
+            />
           ))}
         </ul>
       )}

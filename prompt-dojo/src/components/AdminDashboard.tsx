@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { AdminSubmission, Challenge, Report } from "@/lib/types";
+import type { AdminSubmission, Challenge, GeneratedChallenge, Report } from "@/lib/types";
 import { REPORT_REASONS } from "@/lib/constants-reports";
+import { ChallengeGenButton } from "@/components/ChallengeGenButton";
 
 type Tab = "challenges" | "pending" | "reports" | "submissions";
 
@@ -139,6 +140,15 @@ export function AdminDashboard({
         <>
           <form onSubmit={createChallenge} className="space-y-3 rounded-xl border p-4">
             <h2 className="font-medium">新規課題（即時公開）</h2>
+            <ChallengeGenButton
+              onGenerated={(c: GeneratedChallenge) =>
+                setForm({
+                  title: c.title,
+                  description: c.description,
+                  sample_output: c.sample_output,
+                })
+              }
+            />
             <input
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}

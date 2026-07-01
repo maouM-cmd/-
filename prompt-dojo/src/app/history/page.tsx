@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PushNotifyButton } from "@/components/PushNotifyButton";
 import { SubmissionCard } from "@/components/ChallengeCard";
 import { NicknameSetup } from "@/components/NicknameSetup";
 import { RANK_BG } from "@/lib/constants";
@@ -36,6 +37,10 @@ export default async function HistoryPage() {
 
       {user && (
         <>
+          <div className="mt-6">
+            <PushNotifyButton />
+          </div>
+
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <div className="rounded-xl border bg-white p-4 text-center">
               <p className="text-2xl font-bold text-indigo-600">

@@ -53,6 +53,9 @@ function initSchema(database: Database.Database) {
       session_token TEXT NOT NULL UNIQUE,
       oauth_provider TEXT,
       oauth_id TEXT,
+      email TEXT UNIQUE,
+      password_hash TEXT,
+      email_verified INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
     );
 
@@ -96,33 +99,11 @@ function initSchema(database: Database.Database) {
       UNIQUE (submission_id, user_id)
     );
 
-    CREATE INDEX IF NOT EXISTS idx_submissions_challenge ON submissions(challenge_id);
-    CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
-    CREATE INDEX IF NOT EXISTS idx_ratings_submission ON ratings(submission_id);
-  `);
-}
-
-function migrateSchema(database: Database.Database) {
-  const migrations: [string, string, string][] = [
-    ["challenges", "author_id", "ALTER TABLE challenges ADD COLUMN author_id INTEGER"],
-    ["submissions", "llm_score", "ALTER TABLE submissions ADD COLUMN llm_score INTEGER"],
-    ["submissions", "llm_feedback_json", "ALTER TABLE submissions ADD COLUMN llm_feedback_json TEXT"],
-    ["submissions", "report_count", "ALTER TABLE submissions ADD COLUMN report_count INTEGER NOT NULL DEFAULT 0"],
-    ["submissions", "is_hidden", "ALTER TABLE submissions ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0"],
-    ["users", "oauth_provider", "ALTER TABLE users ADD COLUMN oauth_provider TEXT"],
-    ["users", "oauth_id", "ALTER TABLE users ADD COLUMN oauth_id TEXT"],
-  ];
-  for (const [table, col, sql] of migrations) {
-    if (!columnExists(database, table, col)) {
-      database.exec(sql);
-    }
-  }
-
-  database.exec(`
     CREATE TABLE IF NOT EXISTS comments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       submission_id INTEGER NOT NULL,
       user_id INTEGER NOT NULL,
+      parent_id INTEGER,
       body TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
       FOREIGN KEY (submission_id) REFERENCES submissions(id),
@@ -141,10 +122,55 @@ function migrateSchema(database: Database.Database) {
       UNIQUE (submission_id, user_id)
     );
 
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_submissions_challenge ON submissions(challenge_id);
+    CREATE INDEX IF NOT EXISTS idx_submissions_user ON submissions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_ratings_submission ON ratings(submission_id);
     CREATE INDEX IF NOT EXISTS idx_comments_submission ON comments(submission_id);
     CREATE INDEX IF NOT EXISTS idx_reports_submission ON reports(submission_id);
+    CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
+  `);
+}
+
+function migrateSchema(database: Database.Database) {
+  const migrations: [string, string, string][] = [
+    ["challenges", "author_id", "ALTER TABLE challenges ADD COLUMN author_id INTEGER"],
+    ["submissions", "llm_score", "ALTER TABLE submissions ADD COLUMN llm_score INTEGER"],
+    ["submissions", "llm_feedback_json", "ALTER TABLE submissions ADD COLUMN llm_feedback_json TEXT"],
+    ["submissions", "report_count", "ALTER TABLE submissions ADD COLUMN report_count INTEGER NOT NULL DEFAULT 0"],
+    ["submissions", "is_hidden", "ALTER TABLE submissions ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0"],
+    ["users", "oauth_provider", "ALTER TABLE users ADD COLUMN oauth_provider TEXT"],
+    ["users", "oauth_id", "ALTER TABLE users ADD COLUMN oauth_id TEXT"],
+    ["users", "email", "ALTER TABLE users ADD COLUMN email TEXT"],
+    ["users", "password_hash", "ALTER TABLE users ADD COLUMN password_hash TEXT"],
+    ["users", "email_verified", "ALTER TABLE users ADD COLUMN email_verified INTEGER NOT NULL DEFAULT 0"],
+    ["comments", "parent_id", "ALTER TABLE comments ADD COLUMN parent_id INTEGER"],
+  ];
+  for (const [table, col, sql] of migrations) {
+    if (!columnExists(database, table, col)) {
+      database.exec(sql);
+    }
+  }
+
+  database.exec(`
     CREATE UNIQUE INDEX IF NOT EXISTS idx_users_oauth ON users(oauth_provider, oauth_id)
       WHERE oauth_provider IS NOT NULL AND oauth_id IS NOT NULL;
+
+    CREATE TABLE IF NOT EXISTS llm_challenge_gen_usage (
+      user_id INTEGER NOT NULL,
+      usage_date TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, usage_date)
+    );
   `);
 }
 
@@ -227,6 +253,30 @@ export function findOrCreateUser(token: string, displayName: string): User {
   const result = database
     .prepare("INSERT INTO users (display_name, session_token) VALUES (?, ?)")
     .run(displayName.trim(), token);
+  return getUserById(Number(result.lastInsertRowid))!;
+}
+
+export function getUserByEmail(email: string): User | null {
+  return (
+    (getDb()
+      .prepare("SELECT * FROM users WHERE email = ?")
+      .get(email.toLowerCase()) as User | undefined) ?? null
+  );
+}
+
+export function createUserWithEmail(
+  email: string,
+  passwordHash: string,
+  displayName: string,
+): User {
+  const token = randomBytes(32).toString("hex");
+  const database = getDb();
+  const result = database
+    .prepare(
+      `INSERT INTO users (display_name, session_token, email, password_hash, email_verified)
+       VALUES (?, ?, ?, ?, 1)`,
+    )
+    .run(displayName.trim(), token, email.toLowerCase(), passwordHash);
   return getUserById(Number(result.lastInsertRowid))!;
 }
 
@@ -544,7 +594,7 @@ export function rateSubmission(
 }
 
 export function getCommentsBySubmission(submissionId: number): Comment[] {
-  return getDb()
+  const flat = getDb()
     .prepare(
       `SELECT c.*, u.display_name as author_name
        FROM comments c
@@ -553,23 +603,54 @@ export function getCommentsBySubmission(submissionId: number): Comment[] {
        ORDER BY c.created_at ASC`,
     )
     .all(submissionId) as Comment[];
+
+  const topLevel = flat.filter((c) => c.parent_id === null);
+  return topLevel.map((c) => ({
+    ...c,
+    replies: flat.filter((r) => r.parent_id === c.id),
+  }));
+}
+
+export function countComments(submissionId: number): number {
+  return (
+    getDb()
+      .prepare("SELECT COUNT(*) as c FROM comments WHERE submission_id = ?")
+      .get(submissionId) as { c: number }
+  ).c;
+}
+
+export function getSubmissionOwnerId(submissionId: number): number | null {
+  const row = getDb()
+    .prepare("SELECT user_id FROM submissions WHERE id = ?")
+    .get(submissionId) as { user_id: number } | undefined;
+  return row?.user_id ?? null;
 }
 
 export function createComment(
   submissionId: number,
   userId: number,
   body: string,
+  parentId?: number | null,
 ): Comment | null {
   const submission = getDb()
     .prepare("SELECT id FROM submissions WHERE id = ? AND is_hidden = 0")
     .get(submissionId);
   if (!submission) return null;
 
+  if (parentId) {
+    const parent = getDb()
+      .prepare("SELECT id, parent_id FROM comments WHERE id = ? AND submission_id = ?")
+      .get(parentId, submissionId) as { id: number; parent_id: number | null } | undefined;
+    if (!parent || parent.parent_id !== null) {
+      return null;
+    }
+  }
+
   const result = getDb()
     .prepare(
-      "INSERT INTO comments (submission_id, user_id, body) VALUES (?, ?, ?)",
+      "INSERT INTO comments (submission_id, user_id, body, parent_id) VALUES (?, ?, ?, ?)",
     )
-    .run(submissionId, userId, body.trim());
+    .run(submissionId, userId, body.trim(), parentId ?? null);
 
   return getDb()
     .prepare(
@@ -577,6 +658,40 @@ export function createComment(
        FROM comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?`,
     )
     .get(result.lastInsertRowid) as Comment;
+}
+
+export function savePushSubscription(
+  userId: number,
+  endpoint: string,
+  p256dh: string,
+  authKey: string,
+): void {
+  getDb()
+    .prepare(
+      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth`,
+    )
+    .run(userId, endpoint, p256dh, authKey);
+}
+
+export function deletePushSubscription(userId: number, endpoint: string): void {
+  getDb()
+    .prepare("DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?")
+    .run(userId, endpoint);
+}
+
+export function getPushSubscriptionsByUser(userId: number) {
+  return getDb()
+    .prepare("SELECT * FROM push_subscriptions WHERE user_id = ?")
+    .all(userId) as { endpoint: string; p256dh: string; auth: string }[];
+}
+
+export function getChallengeAuthorId(challengeId: number): number | null {
+  const row = getDb()
+    .prepare("SELECT author_id FROM challenges WHERE id = ?")
+    .get(challengeId) as { author_id: number | null } | undefined;
+  return row?.author_id ?? null;
 }
 
 export function createReport(

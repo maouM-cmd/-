@@ -44,6 +44,9 @@ export interface User {
   session_token: string;
   oauth_provider: string | null;
   oauth_id: string | null;
+  email: string | null;
+  password_hash: string | null;
+  email_verified: number;
   created_at: string;
 }
 
@@ -72,9 +75,11 @@ export interface Comment {
   id: number;
   submission_id: number;
   user_id: number;
+  parent_id: number | null;
   body: string;
   created_at: string;
   author_name?: string;
+  replies?: Comment[];
 }
 
 export interface Report {
@@ -120,4 +125,19 @@ export interface LeaderboardEntry {
 
 export interface AdminSubmission extends Submission {
   comment_count: number;
+}
+
+export interface GeneratedChallenge {
+  title: string;
+  description: string;
+  sample_output: string;
+}
+
+export interface PushSubscriptionRecord {
+  id: number;
+  user_id: number;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
 }

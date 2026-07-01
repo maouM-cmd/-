@@ -13,10 +13,12 @@ import {
   getAllChallengesAdmin,
   getAllReports,
   getAllSubmissionsAdmin,
+  getChallengeAuthorId,
   getPendingChallenges,
   setSubmissionHidden,
   updateChallenge,
 } from "@/lib/db";
+import { sendPushToUser } from "@/lib/push";
 
 export const runtime = "nodejs";
 
@@ -80,9 +82,18 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "approve") {
-    const challenge = approveChallenge(Number(body.id));
+    const challengeId = Number(body.id);
+    const authorId = getChallengeAuthorId(challengeId);
+    const challenge = approveChallenge(challengeId);
     if (!challenge) {
       return NextResponse.json({ error: "承認できません" }, { status: 400 });
+    }
+    if (authorId) {
+      void sendPushToUser(authorId, {
+        title: "課題が承認されました",
+        body: `「${challenge.title}」が公開されました`,
+        url: `/challenges/${challenge.id}`,
+      });
     }
     return NextResponse.json({ challenge });
   }
