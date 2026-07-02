@@ -1,0 +1,25 @@
+{
+  "name": "コスメノート",
+  "short_name": "コスメノート",
+  "description": "化粧品販売店員向けの商品・成分暗記アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff9f5",
+  "theme_color": "#c4a484",
+  "orientation": "portrait",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
