@@ -142,7 +142,12 @@ async function main() {
         const prUrl = runCapture(
           `gh pr create ${draftFlag} --base ${config.base_branch || "main"} --title ${JSON.stringify(ship.prTitle || commitMsg)} --body-file ${JSON.stringify(bodyFile)}`
         );
-        console.log(`  Created: ${prUrl}`);
+        if (prUrl) {
+          console.log(`  Created: ${prUrl}`);
+        } else {
+          console.log("  WARN: PR作成に失敗しました（トークン権限の可能性）");
+          console.log(`  手動: https://github.com/$(git remote get-url origin | sed 's/.*github.com[:/]//;s/.git$//')/pull/new/${branch}`);
+        }
       } finally {
         try { unlinkSync(bodyFile); } catch { /* ignore */ }
       }
