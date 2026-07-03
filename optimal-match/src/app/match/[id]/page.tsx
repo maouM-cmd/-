@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ConversationStarters } from "@/components/ConversationStarters";
+import { MatchTierBadge } from "@/components/MatchTierBadge";
 import { BreakdownBars, ScoreRing } from "@/components/ScoreRing";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
 import { getMyProfile, getProfileById } from "@/lib/db";
@@ -40,10 +42,20 @@ export default async function MatchDetailPage({
         <div className="flex items-start gap-4">
           <ScoreRing score={breakdown.totalScore} />
           <div>
-            <h1 className="text-2xl font-bold">{profile.name}</h1>
-            <p className="text-sm text-gray-400">{profile.age}歳 · {goalLabel(profile.looking_for)}</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold">{profile.name}</h1>
+              <MatchTierBadge breakdown={breakdown} />
+            </div>
+            <p className="text-sm text-gray-400">
+              {profile.age}歳 · {goalLabel(profile.looking_for)}
+            </p>
           </div>
         </div>
+        {breakdown.advantageSummary && (
+          <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            {breakdown.advantageSummary}
+          </p>
+        )}
         <p className="mt-4 text-gray-600">{profile.bio}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {profile.interests.map((tag) => (
@@ -62,7 +74,10 @@ export default async function MatchDetailPage({
       </div>
 
       <div className="mt-6 rounded-2xl border border-rose-100 bg-white p-6">
-        <h2 className="font-bold text-gray-900">相性内訳</h2>
+        <h2 className="font-bold text-gray-900">説明可能マッチング（相性内訳）</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          スワイプ型アプリにはない「なぜ相性が良いか」の可視化
+        </p>
         <div className="mt-4">
           <BreakdownBars breakdown={breakdown} />
         </div>
@@ -72,6 +87,12 @@ export default async function MatchDetailPage({
           ))}
         </ul>
       </div>
+
+      {breakdown.conversationStarters && (
+        <div className="mt-6 rounded-2xl border border-violet-100 bg-white p-6">
+          <ConversationStarters starters={breakdown.conversationStarters} />
+        </div>
+      )}
     </div>
   );
 }

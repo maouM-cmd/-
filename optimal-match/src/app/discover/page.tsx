@@ -29,7 +29,7 @@ export default function DiscoverPage() {
     <div className="mx-auto max-w-lg px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900">最適マッチ</h1>
       <p className="mt-2 text-sm text-gray-500">
-        {me.name} さんへの相性スコア順（全 {matches.length} 人）
+        {me.name} さんへの相性スコア順 — スワイプ型と違い、<strong>最適から</strong>見られます
       </p>
       <div className="mt-6 space-y-4">
         {matches.map((m, i) => (

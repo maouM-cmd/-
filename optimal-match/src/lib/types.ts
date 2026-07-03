@@ -35,6 +35,10 @@ export interface MatchBreakdown {
   valuesScore: number;
   totalScore: number;
   reasons: string[];
+  tier?: "optimal" | "good" | "explore";
+  tierLabel?: string;
+  conversationStarters?: string[];
+  advantageSummary?: string;
 }
 
 export interface MatchResult {

@@ -9,6 +9,9 @@ export function Header() {
           {SITE_NAME}
         </Link>
         <nav className="flex gap-4 text-sm font-medium text-gray-600">
+          <Link href="/why" className="hover:text-rose-600">
+            優位性
+          </Link>
           <Link href="/profile" className="hover:text-rose-600">
             プロフィール
           </Link>

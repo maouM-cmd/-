@@ -1,4 +1,5 @@
 import type { LookingFor, MatchBreakdown, Profile, Values } from "./types";
+import { enrichBreakdown } from "./insights";
 
 const COMPATIBLE_GOALS: Record<LookingFor, LookingFor[]> = {
   friendship: ["friendship", "dating"],
@@ -55,13 +56,15 @@ export function computeMatch(me: Profile, other: Profile): MatchBreakdown {
     (interestScore * 0.4 + goalScore * 0.3 + valuesScore * 0.3) * 100
   );
 
-  return {
+  const base = {
     interestScore: Math.round(interestScore * 100),
     goalScore: Math.round(goalScore * 100),
     valuesScore: Math.round(valuesScore * 100),
     totalScore,
     reasons,
   };
+
+  return enrichBreakdown(me, other, base);
 }
 
 export function withMatches(me: Profile, others: Profile[]) {
