@@ -2,52 +2,81 @@
 
 ワークスペースの反復業務を AI とスクリプトで短縮するための資産置き場です。
 
-## クイックスタート
+## クイックスタート（Web開発者向け）
 
-### 新記事を作る
+### 新プロジェクトを作る
 
 ```bash
-node business-ops/scripts/new-article.mjs --title "AIで残業を減らす3つの習慣" --slug ai-overtime-3
-# Cursor で @article-production + ブリーフで執筆
-node business-ops/scripts/article-qa.mjs articles/生成されたファイル.md
+node business-ops/scripts/new-web-project.mjs --name my-app --type nextjs
+# Cursor で @web-dev-github + templates/project-brief.md
 ```
 
-### coupon-board をデプロイ準備する
+### GitHubに投稿する
+
+```bash
+bash business-ops/scripts/github-preflight.sh
+node business-ops/scripts/github-ship.mjs
+# 文案確認 → commit → push → draft PR
+```
+
+### 記事を作る（副業・必要時）
+
+```bash
+node business-ops/scripts/new-article.mjs --title "..." --slug my-slug
+# @article-production → article-qa.mjs
+```
+
+### coupon-board デプロイ準備
 
 ```bash
 bash business-ops/scripts/pre-deploy-check.sh
-# チェックリスト: business-ops/checklists/coupon-board-deploy.md
 ```
 
 ## ディレクトリ
 
 ```
 business-ops/
-├── README.md                 # 本ファイル
-├── SOP.md                    # 日次・週次の手順
-├── BUSINESS_MAP.md           # 業務マップ
-├── AUTOMATION_CANDIDATES.md  # 改善案17件
+├── README.md
+├── SOP.md
+├── AI_AGENT_MASTERY.md       # マスターへの道筋
+├── BUSINESS_MAP.md
+├── AUTOMATION_CANDIDATES.md
 ├── scripts/
-│   ├── new-article.mjs       # 記事骨組み生成
-│   ├── article-qa.mjs        # 記事QA
-│   ├── topic-dedup.mjs       # トピック重複チェック
-│   └── pre-deploy-check.sh   # coupon-board検証
+│   ├── new-web-project.mjs   # 新規Webプロジェクト骨組み
+│   ├── github-preflight.sh   # 投稿前安全チェック
+│   ├── github-ship.mjs       # コミット/PR文案生成
+│   ├── new-article.mjs
+│   ├── article-qa.mjs
+│   ├── topic-dedup.mjs
+│   └── pre-deploy-check.sh
 ├── templates/
-│   ├── article-brief.md      # 記事入力フォーム
-│   └── prompts/              # コピペ用プロンプト
-└── checklists/
-    ├── article-publish.md
-    └── coupon-board-deploy.md
+│   ├── project-brief.md      # 新規開発入力フォーム
+│   ├── article-brief.md
+│   ├── agent-retrospective.md
+│   └── prompts/
+├── checklists/
+│   ├── github-ship.md
+│   ├── article-publish.md
+│   └── coupon-board-deploy.md
+└── briefs/
 
 .cursor/skills/
+├── web-dev-github/SKILL.md
+├── ai-agent-mastery/SKILL.md
 ├── article-production/SKILL.md
 └── coupon-board-dev/SKILL.md
+
+.github/
+├── pull_request_template.md
+└── ISSUE_TEMPLATE/
 ```
 
 ## Cursor Skill の呼び方
 
 | Skill | 呼び出し |
 |-------|----------|
+| **Web開発 + GitHub** | `@web-dev-github` |
+| **エージェントマスター** | `@ai-agent-mastery` |
 | 記事制作 | `@article-production` |
 | 掲示板開発 | `@coupon-board-dev` |
 
@@ -59,6 +88,6 @@ business-ops/
 
 ## 次に作ると効くもの
 
-1. `to-note.mjs` — Note投稿用フォーマット変換
-2. `content-calendar.json` — 公開スケジュール管理
-3. 業務ハブ静的HTML — スクリプトを1画面から起動
+1. `gh` CLI 連携 — PR作成まで半自動（人間承認ゲート付き）
+2. 業務ハブ静的HTML — スクリプトを1画面から起動
+3. E2Eテスト — coupon-board リグレッション防止
