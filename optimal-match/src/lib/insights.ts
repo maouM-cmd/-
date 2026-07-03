@@ -29,6 +29,12 @@ export const COMPETITIVE_PILLARS = [
     vs: "恋愛専用アプリが大半",
   },
   {
+    id: "sincerity",
+    title: "遊び型・誠実型の判定",
+    subtitle: "スタイル差を可視化し、ミスマッチを事前に警告",
+    vs: "外見だけで判断し期待値ズレが起きやすい",
+  },
+  {
     id: "icebreakers",
     title: "会話きっかけ自動生成",
     subtitle: "共通点から最初の一言を提案",
@@ -37,7 +43,9 @@ export const COMPETITIVE_PILLARS = [
 ] as const;
 
 export const COMPETITOR_TABLE: CompetitorRow[] = [
-  { feature: "相性の理由が見える", swipeApps: "×", optimalMatch: "◎ 3軸内訳", advantage: true },
+  { feature: "遊び/誠実スタイル判定", swipeApps: "×", optimalMatch: "◎ スライダー+バッジ", advantage: true },
+  { feature: "スタイル差の警告", swipeApps: "×", optimalMatch: "◎ ミスマッチ表示", advantage: true },
+  { feature: "相性の理由が見える", swipeApps: "×", optimalMatch: "◎ 4軸内訳", advantage: true },
   { feature: "最適順ランキング", swipeApps: "× ランダム表示", optimalMatch: "◎ スコア順", advantage: true },
   { feature: "恋愛以外の目的", swipeApps: "△ 恋愛中心", optimalMatch: "◎ 4種類", advantage: true },
   { feature: "会話のきっかけ提案", swipeApps: "×", optimalMatch: "◎ 自動生成", advantage: true },
@@ -79,6 +87,10 @@ export function generateConversationStarters(
     );
   }
 
+  if (breakdown.sincerityScore >= 80 && breakdown.sincerityAligned) {
+    starters.push("お互い誠実さのスタイルが近いみたいですね。どんな関係を築きたいですか？");
+  }
+
   if (breakdown.valuesScore >= 75) {
     starters.push("価値観が近いみたいですね。休日の過ごし方とか教えてもらえますか？");
   }
@@ -104,13 +116,19 @@ export function buildAdvantageSummary(
   if (breakdown.totalScore >= 75 && shared.length >= 2) {
     return `共通の${shared.length}つの興味と一致した目的 — 競合アプリでは見えない「根拠つき」マッチ`;
   }
+  if (breakdown.sincerityAligned) {
+    return "遊び/誠実スタイルが一致 — 期待値のすり合わせ不要";
+  }
+  if (breakdown.sincerityGap != null && breakdown.sincerityGap >= 3) {
+    return "⚠ スタイル差大 — 遊び型と誠実型のミスマッチに注意";
+  }
   if (breakdown.valuesScore >= 80) {
     return "価値観の近さが突出 — 長期的な関係に強い相性";
   }
   if (breakdown.goalScore >= 100) {
     return "目的が完全一致 — 無駄なスワイプを省ける";
   }
-  return "3軸スコアで可視化 — なぜこの人かが一目でわかる";
+  return "4軸スコアで可視化 — なぜこの人かが一目でわかる";
 }
 
 export function enrichBreakdown(

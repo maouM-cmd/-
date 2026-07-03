@@ -3,8 +3,10 @@
 import { useState } from "react";
 import type { CreateProfileInput, LookingFor, Profile } from "@/lib/types";
 import { INTEREST_TAGS, LOOKING_FOR_OPTIONS } from "@/lib/constants";
+import { getSincerityDescription, getSincerityLabel } from "@/lib/sincerity";
 
 const DEFAULT_VALUES = { social: 3, career: 3, family: 3, adventure: 3 };
+const DEFAULT_SINCERITY = 3;
 
 export function ProfileForm({ initial }: { initial: Profile | null }) {
   const [name, setName] = useState(initial?.name ?? "");
@@ -13,6 +15,7 @@ export function ProfileForm({ initial }: { initial: Profile | null }) {
   const [interests, setInterests] = useState<string[]>(initial?.interests ?? []);
   const [lookingFor, setLookingFor] = useState<LookingFor>(initial?.looking_for ?? "dating");
   const [values, setValues] = useState(initial?.values ?? DEFAULT_VALUES);
+  const [sincerity, setSincerity] = useState(initial?.sincerity ?? DEFAULT_SINCERITY);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -37,6 +40,7 @@ export function ProfileForm({ initial }: { initial: Profile | null }) {
       interests,
       looking_for: lookingFor,
       values,
+      sincerity,
       is_me: true,
     };
     const res = await fetch("/api/profile", {
@@ -123,6 +127,31 @@ export function ProfileForm({ initial }: { initial: Profile | null }) {
               {tag}
             </button>
           ))}
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          あなたのスタイル（遊び ↔ 誠実）
+        </label>
+        <p className="mt-1 text-xs text-gray-500">
+          気軽な出会い重視か、真剣な関係重視かを設定します。マッチング判定に使います。
+        </p>
+        <div className="mt-3 rounded-xl border border-teal-100 bg-teal-50/30 p-4">
+          <div className="flex justify-between text-xs font-medium text-gray-500">
+            <span>🎉 遊び型</span>
+            <span>🤝 誠実型</span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={5}
+            value={sincerity}
+            onChange={(e) => setSincerity(Number(e.target.value))}
+            className="mt-2 w-full accent-teal-500"
+          />
+          <p className="mt-2 text-center text-sm font-bold text-teal-700">
+            {getSincerityLabel(sincerity)} — {getSincerityDescription(sincerity)}
+          </p>
         </div>
       </div>
       <div>

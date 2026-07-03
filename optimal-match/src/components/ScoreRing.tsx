@@ -15,6 +15,7 @@ export function BreakdownBars({ breakdown }: { breakdown: MatchBreakdown }) {
     { label: "興味", value: breakdown.interestScore },
     { label: "目的", value: breakdown.goalScore },
     { label: "価値観", value: breakdown.valuesScore },
+    { label: "誠実さ", value: breakdown.sincerityScore ?? 0 },
   ];
   return (
     <div className="space-y-2">

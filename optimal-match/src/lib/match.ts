@@ -1,5 +1,10 @@
 import type { LookingFor, MatchBreakdown, Profile, Values } from "./types";
 import { enrichBreakdown } from "./insights";
+import {
+  computeSincerityCompatibility,
+  getSincerityLabel,
+  sincerityMatchReason,
+} from "./sincerity";
 
 const COMPATIBLE_GOALS: Record<LookingFor, LookingFor[]> = {
   friendship: ["friendship", "dating"],
@@ -52,16 +57,38 @@ export function computeMatch(me: Profile, other: Profile): MatchBreakdown {
     reasons.push("価値観・ライフスタイルが近いです");
   }
 
+  const sincerity = computeSincerityCompatibility(
+    me.sincerity,
+    other.sincerity,
+    me.looking_for
+  );
+  const sincerityReason = sincerityMatchReason(
+    me.sincerity,
+    other.sincerity,
+    sincerity.aligned,
+    sincerity.gap
+  );
+  if (sincerityReason) reasons.push(sincerityReason);
+
   const totalScore = Math.round(
-    (interestScore * 0.4 + goalScore * 0.3 + valuesScore * 0.3) * 100
+    (interestScore * 0.35 +
+      goalScore * 0.25 +
+      valuesScore * 0.25 +
+      sincerity.score * 0.15) *
+      100
   );
 
   const base = {
     interestScore: Math.round(interestScore * 100),
     goalScore: Math.round(goalScore * 100),
     valuesScore: Math.round(valuesScore * 100),
+    sincerityScore: Math.round(sincerity.score * 100),
     totalScore,
     reasons,
+    mySincerityLabel: getSincerityLabel(me.sincerity),
+    otherSincerityLabel: getSincerityLabel(other.sincerity),
+    sincerityAligned: sincerity.aligned,
+    sincerityGap: sincerity.gap,
   };
 
   return enrichBreakdown(me, other, base);

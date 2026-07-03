@@ -15,6 +15,8 @@ export interface Profile {
   interests: string[];
   looking_for: LookingFor;
   values: Values;
+  /** 1=遊び寄り 〜 5=誠実寄り */
+  sincerity: number;
   is_me: boolean;
   created_at: string;
 }
@@ -26,6 +28,7 @@ export interface CreateProfileInput {
   interests: string[];
   looking_for: LookingFor;
   values: Values;
+  sincerity: number;
   is_me?: boolean;
 }
 
@@ -33,8 +36,13 @@ export interface MatchBreakdown {
   interestScore: number;
   goalScore: number;
   valuesScore: number;
+  sincerityScore: number;
   totalScore: number;
   reasons: string[];
+  mySincerityLabel?: string;
+  otherSincerityLabel?: string;
+  sincerityAligned?: boolean;
+  sincerityGap?: number;
   tier?: "optimal" | "good" | "explore";
   tierLabel?: string;
   conversationStarters?: string[];

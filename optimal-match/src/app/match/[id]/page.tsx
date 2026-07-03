@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConversationStarters } from "@/components/ConversationStarters";
 import { MatchTierBadge } from "@/components/MatchTierBadge";
+import { SincerityBadge, SincerityMismatchWarning } from "@/components/SincerityBadge";
 import { BreakdownBars, ScoreRing } from "@/components/ScoreRing";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
 import { getMyProfile, getProfileById } from "@/lib/db";
@@ -49,12 +50,24 @@ export default async function MatchDetailPage({
             <p className="text-sm text-gray-400">
               {profile.age}歳 · {goalLabel(profile.looking_for)}
             </p>
+            <div className="mt-2">
+              <SincerityBadge score={profile.sincerity} size="md" />
+            </div>
           </div>
         </div>
         {breakdown.advantageSummary && (
           <p className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
             {breakdown.advantageSummary}
           </p>
+        )}
+        {breakdown.sincerityGap != null && breakdown.mySincerityLabel && breakdown.otherSincerityLabel && (
+          <div className="mt-4">
+            <SincerityMismatchWarning
+              gap={breakdown.sincerityGap}
+              myLabel={breakdown.mySincerityLabel}
+              otherLabel={breakdown.otherSincerityLabel}
+            />
+          </div>
         )}
         <p className="mt-4 text-gray-600">{profile.bio}</p>
         <div className="mt-4 flex flex-wrap gap-2">

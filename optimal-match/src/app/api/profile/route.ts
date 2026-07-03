@@ -12,6 +12,6 @@ export async function POST(request: Request) {
   if (!body.name?.trim() || !body.interests?.length) {
     return NextResponse.json({ error: "name and interests required" }, { status: 400 });
   }
-  const profile = upsertMyProfile(body);
+  const profile = upsertMyProfile({ ...body, sincerity: body.sincerity ?? 3 });
   return NextResponse.json({ profile });
 }

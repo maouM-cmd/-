@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { MatchBreakdown, Profile } from "@/lib/types";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
 import { MatchTierBadge } from "./MatchTierBadge";
+import { SincerityBadge } from "./SincerityBadge";
 import { ScoreRing } from "./ScoreRing";
 
 function goalLabel(value: string) {
@@ -35,6 +36,9 @@ export function MatchCard({
           <p className="mt-0.5 text-sm text-gray-400">
             {profile.age}歳 · {goalLabel(profile.looking_for)}
           </p>
+          <div className="mt-1">
+            <SincerityBadge score={profile.sincerity} />
+          </div>
           {breakdown.advantageSummary && (
             <p className="mt-1 line-clamp-1 text-xs text-emerald-600">
               {breakdown.advantageSummary}

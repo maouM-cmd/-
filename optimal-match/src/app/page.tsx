@@ -16,8 +16,8 @@ export default function HomePage() {
         <p className="mt-3 text-lg text-gray-600">{SITE_TAGLINE}</p>
         <p className="mt-4 text-sm leading-relaxed text-gray-500">
           相性の<strong className="text-gray-700">根拠が見える</strong>、
-          <strong className="text-gray-700">最適順ランキング</strong>、
-          <strong className="text-gray-700">会話のきっかけ自動生成</strong>
+          <strong className="text-gray-700">遊び型・誠実型を判定</strong>、
+          <strong className="text-gray-700">最適順ランキング</strong>
           — 3つの競合優位で、質の高い出会いを効率化します。
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
