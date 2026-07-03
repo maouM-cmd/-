@@ -1,0 +1,16 @@
+{
+  "$schema": "./autopilot.schema.json",
+  "level": 2,
+  "description": "L2=commit+push+draft PR まで全自動。L3=CI通過後auto-merge（要明示有効化）",
+  "auto_commit": true,
+  "auto_push": true,
+  "auto_pr": true,
+  "auto_merge": false,
+  "draft_pr": true,
+  "protected_branches": ["main", "master"],
+  "require_preflight": true,
+  "branch_prefix": "cursor/",
+  "branch_suffix": "-29d8",
+  "base_branch": "main",
+  "run_project_checks": true
+}

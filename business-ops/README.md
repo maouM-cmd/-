@@ -2,7 +2,16 @@
 
 ワークスペースの反復業務を AI とスクリプトで短縮するための資産置き場です。
 
-## クイックスタート（Web開発者向け）
+## クイックスタート（全自動モード）
+
+```bash
+node business-ops/scripts/autopilot.mjs check
+node business-ops/scripts/autopilot.mjs new --name my-app --type nextjs
+# brief 記入 → Cursor で @autopilot
+node business-ops/scripts/autopilot.mjs ship --yes   # commit→push→draft PR
+```
+
+## クイックスタート（手動モード）
 
 ### 新プロジェクトを作る
 
@@ -75,6 +84,7 @@ business-ops/
 
 | Skill | 呼び出し |
 |-------|----------|
+| **全自動** | `@autopilot` |
 | **Web開発 + GitHub** | `@web-dev-github` |
 | **エージェントマスター** | `@ai-agent-mastery` |
 | 記事制作 | `@article-production` |

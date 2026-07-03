@@ -2,7 +2,29 @@
 
 > 主業務: Web開発 / くり返し: GitHub投稿 / ゴール: 最強AIエージェントマスター
 
-## 日次: Web開発 + GitHub投稿（メインルーティン）
+## 日次: 全自動モード（推奨）
+
+```bash
+# 環境確認（初回のみ）
+node business-ops/scripts/autopilot.mjs check
+
+# 新規プロジェクト全自動立ち上げ
+node business-ops/scripts/autopilot.mjs new --name my-app --type nextjs
+# → brief を埋める → Cursor で @autopilot
+
+# 実装完了後（エージェントが自動実行）
+node business-ops/scripts/autopilot.mjs ship --yes
+# → preflight → commit → push → draft PR まで全自動
+```
+
+### 自動化レベル
+
+| Level | 内容 | 設定 |
+|-------|------|------|
+| L2 | commit + push + draft PR | デフォルト |
+| L3 | + CI通過後 auto-merge | `autopilot.json` で `auto_merge: true` + PRに `autopilot-merge` ラベル |
+
+## 日次: Web開発 + GitHub投稿（手動モード）
 
 ### A. 新規成果物を作る日
 
