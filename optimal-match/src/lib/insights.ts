@@ -45,6 +45,7 @@ export const COMPETITIVE_PILLARS = [
 export const COMPETITOR_TABLE: CompetitorRow[] = [
   { feature: "遊び/誠実スタイル判定", swipeApps: "×", optimalMatch: "◎ スライダー+バッジ", advantage: true },
   { feature: "スタイル差の警告", swipeApps: "×", optimalMatch: "◎ ミスマッチ表示", advantage: true },
+  { feature: "スタイルで絞り込み", swipeApps: "×", optimalMatch: "◎ 遊び/誠実フィルター", advantage: true },
   { feature: "相性の理由が見える", swipeApps: "×", optimalMatch: "◎ 4軸内訳", advantage: true },
   { feature: "最適順ランキング", swipeApps: "× ランダム表示", optimalMatch: "◎ スコア順", advantage: true },
   { feature: "恋愛以外の目的", swipeApps: "△ 恋愛中心", optimalMatch: "◎ 4種類", advantage: true },

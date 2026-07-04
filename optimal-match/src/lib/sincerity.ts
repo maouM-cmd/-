@@ -5,6 +5,39 @@ export type SincerityScore = 1 | 2 | 3 | 4 | 5;
 
 export type SincerityType = "playful" | "balanced" | "sincere";
 
+/** 一覧フィルター */
+export type SincerityFilter = "all" | SincerityType | "aligned";
+
+export const SINCERITY_FILTER_OPTIONS: {
+  value: SincerityFilter;
+  label: string;
+  icon: string;
+}[] = [
+  { value: "all", label: "すべて", icon: "👥" },
+  { value: "playful", label: "遊び型", icon: "🎉" },
+  { value: "balanced", label: "バランス型", icon: "⚖️" },
+  { value: "sincere", label: "誠実型", icon: "🤝" },
+  { value: "aligned", label: "スタイル一致", icon: "✓" },
+];
+
+export function matchesSincerityFilter(
+  sincerity: number,
+  aligned: boolean | undefined,
+  filter: SincerityFilter
+): boolean {
+  if (filter === "all") return true;
+  if (filter === "aligned") return aligned === true;
+  return getSincerityType(sincerity) === filter;
+}
+
+export function filterMatchesBySincerity<
+  T extends { profile: { sincerity: number }; breakdown: { sincerityAligned?: boolean } },
+>(matches: T[], filter: SincerityFilter): T[] {
+  return matches.filter((m) =>
+    matchesSincerityFilter(m.profile.sincerity, m.breakdown.sincerityAligned, filter)
+  );
+}
+
 export function clampSincerity(n: number): SincerityScore {
   return Math.min(5, Math.max(1, Math.round(n))) as SincerityScore;
 }

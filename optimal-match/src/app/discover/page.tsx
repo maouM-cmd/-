@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MatchCard } from "@/components/MatchCard";
+import { DiscoverView } from "@/components/DiscoverView";
 import { getMyProfile, getAllProfiles } from "@/lib/db";
 import { withMatches } from "@/lib/match";
 
@@ -25,22 +25,5 @@ export default function DiscoverPage() {
 
   const matches = withMatches(me, getAllProfiles());
 
-  return (
-    <div className="mx-auto max-w-lg px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900">最適マッチ</h1>
-      <p className="mt-2 text-sm text-gray-500">
-        {me.name} さんへの相性スコア順 — スワイプ型と違い、<strong>最適から</strong>見られます
-      </p>
-      <div className="mt-6 space-y-4">
-        {matches.map((m, i) => (
-          <MatchCard
-            key={m.profile.id}
-            profile={m.profile}
-            breakdown={m.breakdown}
-            rank={i + 1}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  return <DiscoverView meName={me.name} matches={matches} />;
 }
