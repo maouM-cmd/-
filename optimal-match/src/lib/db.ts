@@ -44,6 +44,7 @@ function parseProfile(row: Record<string, unknown>): Profile {
     looking_for: row.looking_for as Profile["looking_for"],
     values: JSON.parse(row.values_json as string) as Values,
     sincerity: clampSincerity((row.sincerity as number) ?? 3),
+    photo_path: (row.photo_path as string | null) ?? null,
     is_me: Boolean(row.is_me),
     created_at: row.created_at as string,
   };
@@ -86,9 +87,26 @@ function initSchema(database: Database.Database) {
       looking_for TEXT NOT NULL,
       values_json TEXT NOT NULL DEFAULT '{}',
       sincerity INTEGER NOT NULL DEFAULT 3,
+      photo_path TEXT,
       is_me INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  if (!columnExists(database, "profiles", "photo_path")) {
+    database.exec("ALTER TABLE profiles ADD COLUMN photo_path TEXT");
+  }
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS likes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_user_id INTEGER NOT NULL,
+      to_profile_id INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      UNIQUE(from_user_id, to_profile_id),
+      FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (to_profile_id) REFERENCES profiles(id) ON DELETE CASCADE
     );
   `);
 
@@ -267,4 +285,81 @@ export function upsertUserProfile(userId: number, input: CreateProfileInput): Pr
 
 export function getUserCount(): number {
   return (getDb().prepare("SELECT COUNT(*) as c FROM users").get() as { c: number }).c;
+}
+
+export function updateProfilePhoto(userId: number, filename: string): Profile {
+  getDb().prepare("UPDATE profiles SET photo_path = ? WHERE user_id = ?").run(filename, userId);
+  return getProfileByUserId(userId)!;
+}
+
+// --- Likes ---
+
+export function likeProfile(userId: number, profileId: number): boolean {
+  const myProfile = getProfileByUserId(userId);
+  if (!myProfile || myProfile.id === profileId) return false;
+  if (!getProfileById(profileId)) return false;
+
+  try {
+    getDb()
+      .prepare(`INSERT INTO likes (from_user_id, to_profile_id) VALUES (?, ?)`)
+      .run(userId, profileId);
+    return true;
+  } catch {
+    return false; // duplicate
+  }
+}
+
+export function unlikeProfile(userId: number, profileId: number): void {
+  getDb()
+    .prepare(`DELETE FROM likes WHERE from_user_id = ? AND to_profile_id = ?`)
+    .run(userId, profileId);
+}
+
+export function hasLiked(userId: number, profileId: number): boolean {
+  const row = getDb()
+    .prepare(`SELECT 1 FROM likes WHERE from_user_id = ? AND to_profile_id = ?`)
+    .get(userId, profileId);
+  return Boolean(row);
+}
+
+export function getLikedProfileIds(userId: number): number[] {
+  return (
+    getDb()
+      .prepare(`SELECT to_profile_id FROM likes WHERE from_user_id = ? ORDER BY created_at DESC`)
+      .all(userId) as { to_profile_id: number }[]
+  ).map((r) => r.to_profile_id);
+}
+
+export function getMutualMatches(userId: number): {
+  profile: Profile;
+  liked_at: string;
+  mutual_at: string;
+}[] {
+  const myProfile = getProfileByUserId(userId);
+  if (!myProfile) return [];
+
+  const rows = getDb()
+    .prepare(
+      `SELECT p.*, l1.created_at as liked_at, l2.created_at as mutual_at
+       FROM likes l1
+       JOIN profiles p ON p.id = l1.to_profile_id
+       JOIN likes l2 ON l2.from_user_id = p.user_id AND l2.to_profile_id = ?
+       WHERE l1.from_user_id = ? AND p.user_id IS NOT NULL
+       ORDER BY l2.created_at DESC`
+    )
+    .all(myProfile.id, userId) as Record<string, unknown>[];
+
+  return rows.map((row) => ({
+    profile: parseProfile(row),
+    liked_at: row.liked_at as string,
+    mutual_at: row.mutual_at as string,
+  }));
+}
+
+export function getLikesReceivedCount(profileId: number): number {
+  return (
+    getDb()
+      .prepare(`SELECT COUNT(*) as c FROM likes WHERE to_profile_id = ?`)
+      .get(profileId) as { c: number }
+  ).c;
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { MatchBreakdown, Profile } from "@/lib/types";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
+import { Avatar } from "./Avatar";
 import { MatchTierBadge } from "./MatchTierBadge";
 import { SincerityBadge } from "./SincerityBadge";
 import { ScoreRing } from "./ScoreRing";
@@ -23,15 +24,18 @@ export function MatchCard({
       href={`/match/${profile.id}`}
       className="block rounded-2xl border border-rose-100 bg-white p-4 shadow-sm transition hover:border-rose-300 hover:shadow-md"
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3">
         {rank != null && (
-          <span className="mt-1 text-xs font-bold text-rose-400">#{rank}</span>
+          <span className="mt-3 text-xs font-bold text-rose-400">#{rank}</span>
         )}
-        <ScoreRing score={breakdown.totalScore} />
+        <Avatar name={profile.name} photoPath={profile.photo_path} />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-gray-900">{profile.name}</h3>
-            <MatchTierBadge breakdown={breakdown} />
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-bold text-gray-900">{profile.name}</h3>
+              <MatchTierBadge breakdown={breakdown} />
+            </div>
+            <ScoreRing score={breakdown.totalScore} />
           </div>
           <p className="mt-0.5 text-sm text-gray-400">
             {profile.age}歳 · {goalLabel(profile.looking_for)}

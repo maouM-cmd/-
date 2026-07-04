@@ -19,6 +19,7 @@ export async function Header() {
               <Link href="/why" className="hover:text-rose-600">優位性</Link>
               <Link href="/profile" className="hover:text-rose-600">プロフィール</Link>
               <Link href="/discover" className="hover:text-rose-600">最適マッチ</Link>
+              <Link href="/matches" className="hover:text-rose-600">マッチ</Link>
               <LogoutButton />
             </>
           ) : (
@@ -42,7 +43,12 @@ export async function Header() {
 export function Footer() {
   return (
     <footer className="border-t border-rose-100 py-6 text-center text-xs text-gray-400">
-      MVP — 相性スコアは参考値です
+      <p>
+        <a href="/terms" className="hover:text-rose-500">利用規約</a>
+        {" · "}
+        <a href="/privacy" className="hover:text-rose-500">プライバシー</a>
+      </p>
+      <p className="mt-1">MVP — 相性スコアは参考値です</p>
     </footer>
   );
 }

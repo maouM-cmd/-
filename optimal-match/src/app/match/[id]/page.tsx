@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConversationStarters } from "@/components/ConversationStarters";
+import { LikeButton } from "@/components/LikeButton";
 import { MatchTierBadge } from "@/components/MatchTierBadge";
+import { Avatar } from "@/components/Avatar";
 import { SincerityBadge, SincerityMismatchWarning } from "@/components/SincerityBadge";
 import { BreakdownBars, ScoreRing } from "@/components/ScoreRing";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
-import { getProfileById } from "@/lib/db";
+import { getProfileById, hasLiked } from "@/lib/db";
 import { computeMatch } from "@/lib/match";
-import { requireProfile } from "@/lib/session";
+import { requireProfile, getCurrentUser } from "@/lib/session";
 
 function goalLabel(value: string) {
   return LOOKING_FOR_OPTIONS.find((o) => o.value === value)?.label ?? value;
@@ -19,12 +21,14 @@ export default async function MatchDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { profile: me } = await requireProfile();
+  const user = await getCurrentUser();
   const { id } = await params;
   const profile = getProfileById(Number(id));
 
   if (!profile || profile.id === me.id) notFound();
 
   const breakdown = computeMatch(me, profile);
+  const liked = user ? hasLiked(user.id, profile.id) : false;
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
@@ -33,8 +37,8 @@ export default async function MatchDetailPage({
       </Link>
       <div className="mt-4 rounded-3xl border border-rose-100 bg-white p-6 shadow-sm">
         <div className="flex items-start gap-4">
-          <ScoreRing score={breakdown.totalScore} />
-          <div>
+          <Avatar name={profile.name} photoPath={profile.photo_path} size="lg" />
+          <div className="flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">{profile.name}</h1>
               <MatchTierBadge breakdown={breakdown} />
@@ -44,6 +48,9 @@ export default async function MatchDetailPage({
             </p>
             <div className="mt-2">
               <SincerityBadge score={profile.sincerity} size="md" />
+            </div>
+            <div className="mt-3">
+              <ScoreRing score={breakdown.totalScore} />
             </div>
           </div>
         </div>
@@ -95,6 +102,10 @@ export default async function MatchDetailPage({
           <ConversationStarters starters={breakdown.conversationStarters} />
         </div>
       )}
+
+      <div className="mt-6 rounded-2xl border border-rose-100 bg-white p-6">
+        <LikeButton profileId={profile.id} initialLiked={liked} />
+      </div>
     </div>
   );
 }

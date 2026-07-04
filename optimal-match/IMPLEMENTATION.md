@@ -1,6 +1,6 @@
 # 最適人探し 実装対応表
 
-**ステータス: MVP v1.1 — ログイン・複数ユーザー対応**
+**ステータス: MVP v1.2 — 写真・いいね・デプロイ対応**
 
 ## 起動
 
@@ -10,29 +10,30 @@ npm install
 npm run dev
 ```
 
-| URL | 画面 |
+## 画面一覧
+
+| URL | 内容 |
 |-----|------|
-| http://localhost:3000 | トップ |
-| /signup | 新規登録 |
-| /login | ログイン |
-| /profile | プロフィール（要ログイン） |
-| /discover | 最適マッチ（要ログイン+プロフィール） |
-| /match/[id] | マッチ詳細 |
-| /why | 競合優位性 |
+| `/signup` `/login` | 認証 |
+| `/profile` | プロフィール + 写真 |
+| `/discover` | 最適マッチ + フィルター |
+| `/match/[id]` | 詳細 + いいね |
+| `/matches` | マッチ成立 + いいね一覧 |
+| `/why` | 競合優位性 |
+| `/terms` `/privacy` | 法務 |
 
-## 認証フロー
+## API
 
-1. `/signup` でアカウント作成
-2. `/profile` でマッチング用プロフィール登録
-3. `/discover` でサンプル8名 + 他ユーザーとマッチング
+| API | 機能 |
+|-----|------|
+| `api/auth/*` | 登録・ログイン・ログアウト |
+| `api/profile` | プロフィール CRUD |
+| `api/profile/photo` | 写真アップロード |
+| `api/uploads/[filename]` | 画像配信 |
+| `api/likes` | いいね CRUD + 一覧 |
+| `api/matches` | 相性一覧 |
+| `api/health` | ヘルスチェック |
 
-## 機能 → ファイル
+## デプロイ
 
-| 機能 | ページ | API | Lib |
-|------|--------|-----|-----|
-| 登録 | `app/signup/page.tsx` | `api/auth/signup` | `db.ts`, `auth.ts` |
-| ログイン | `app/login/page.tsx` | `api/auth/login` | 同上 |
-| ログアウト | Header | `api/auth/logout` | `session.ts` |
-| プロフィール | `app/profile/page.tsx` | `api/profile` | `db.ts` |
-| マッチ一覧 | `app/discover/page.tsx` | `api/matches` | `match.ts` |
-| マッチ詳細 | `app/match/[id]/page.tsx` | `api/matches/[id]` | `match.ts` |
+`DEPLOY.md` / `Dockerfile` / `render.yaml` 参照

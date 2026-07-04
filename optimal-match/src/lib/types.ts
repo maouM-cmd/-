@@ -18,6 +18,7 @@ export interface Profile {
   values: Values;
   /** 1=遊び寄り 〜 5=誠実寄り */
   sincerity: number;
+  photo_path: string | null;
   /** @deprecated user_id で判定。シードは null */
   is_me: boolean;
   created_at: string;
@@ -61,4 +62,18 @@ export interface MatchBreakdown {
 export interface MatchResult {
   profile: Profile;
   breakdown: MatchBreakdown;
+}
+
+export interface LikeRecord {
+  id: number;
+  from_user_id: number;
+  to_profile_id: number;
+  created_at: string;
+}
+
+export interface MutualMatch {
+  profile: Profile;
+  breakdown: MatchBreakdown;
+  liked_at: string;
+  mutual_at: string;
 }

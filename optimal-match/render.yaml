@@ -1,0 +1,25 @@
+# Render Blueprint — 最適人探し
+#
+# デプロイ手順:
+# 1. https://dashboard.render.com → New → Blueprint
+# 2. このリポジトリを接続
+# 3. rootDir: optimal-match を指定（または本ファイルをリポジトリルートにコピー）
+#
+# 月額: Starter + Disk 約 $7〜10（Render料金は変動します）
+
+services:
+  - type: web
+    name: optimal-match
+    runtime: docker
+    plan: starter
+    rootDir: optimal-match
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: optimal-match-data
+      mountPath: /app/data
+      sizeGB: 1
