@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { areMutualUsers, getMessages, getProfileByUserId, getUserById, sendMessage } from "@/lib/db";
+import { publishChatMessage } from "@/lib/realtime";
+import { sendPushToUser } from "@/lib/push";
 import { getCurrentUser } from "@/lib/session";
 
 export async function GET(
@@ -50,6 +52,16 @@ export async function POST(
   if (!message) {
     return NextResponse.json({ error: "送信できません（マッチしていない可能性）" }, { status: 403 });
   }
+
+  publishChatMessage(message);
+
+  const myProfile = getProfileByUserId(user.id);
+  const senderName = myProfile?.name ?? user.display_name;
+  void sendPushToUser(otherUserId, {
+    title: `${senderName}さんからメッセージ`,
+    body: text.slice(0, 100),
+    url: `/chat/${user.id}`,
+  });
 
   return NextResponse.json({ message });
 }

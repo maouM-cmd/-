@@ -128,6 +128,25 @@ function initSchema(database: Database.Database) {
   if (!columnExists(database, "profiles", "user_id")) {
     database.exec("ALTER TABLE profiles ADD COLUMN user_id INTEGER UNIQUE");
   }
+  if (!columnExists(database, "users", "google_id")) {
+    database.exec("ALTER TABLE users ADD COLUMN google_id TEXT");
+    database.exec(
+      "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL"
+    );
+  }
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      UNIQUE(user_id, endpoint),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
 
   const count = (database.prepare("SELECT COUNT(*) as c FROM profiles WHERE user_id IS NULL").get() as { c: number }).c;
   if (count === 0) seedProfiles(database);
@@ -175,6 +194,8 @@ function seedProfiles(database: Database.Database) {
   }
 }
 
+const OAUTH_MARKER = "oauth:no-pass";
+
 // --- Auth ---
 
 export function createUser(email: string, password: string, displayName: string): User {
@@ -198,8 +219,43 @@ export function authenticateUser(email: string, password: string): User | null {
     .prepare("SELECT * FROM users WHERE email = ?")
     .get(email.toLowerCase()) as Record<string, unknown> | undefined;
   if (!row) return null;
+  if ((row.password_hash as string) === OAUTH_MARKER) return null;
   if (!verifyPassword(password, row.password_hash as string)) return null;
   return parseUser(row);
+}
+
+export function findOrCreateGoogleUser(
+  googleId: string,
+  email: string,
+  displayName: string
+): User {
+  const database = getDb();
+  const byGoogle = database
+    .prepare("SELECT * FROM users WHERE google_id = ?")
+    .get(googleId) as Record<string, unknown> | undefined;
+  if (byGoogle) return parseUser(byGoogle);
+
+  const byEmail = database
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(email.toLowerCase()) as Record<string, unknown> | undefined;
+
+  if (byEmail) {
+    database.prepare("UPDATE users SET google_id = ? WHERE id = ?").run(googleId, byEmail.id);
+    return parseUser({ ...byEmail, google_id: googleId });
+  }
+
+  const result = database
+    .prepare(
+      `INSERT INTO users (email, password_hash, display_name, google_id) VALUES (?, ?, ?, ?)`
+    )
+    .run(email.toLowerCase(), OAUTH_MARKER, displayName.trim(), googleId);
+
+  return parseUser(
+    database.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid) as Record<
+      string,
+      unknown
+    >
+  );
 }
 
 export function createSession(userId: number): string {
@@ -451,4 +507,37 @@ export function getChatThreads(userId: number): import("./types").ChatThread[] {
       profile_id: m.profile.id,
     };
   });
+}
+
+// --- Push ---
+
+export function savePushSubscription(
+  userId: number,
+  endpoint: string,
+  p256dh: string,
+  auth: string
+): void {
+  getDb()
+    .prepare(
+      `INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(user_id, endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth`
+    )
+    .run(userId, endpoint, p256dh, auth);
+}
+
+export function getPushSubscriptions(userId: number): {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}[] {
+  return getDb()
+    .prepare(`SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE user_id = ?`)
+    .all(userId) as { endpoint: string; p256dh: string; auth: string }[];
+}
+
+export function removePushSubscription(userId: number, endpoint: string): void {
+  getDb()
+    .prepare(`DELETE FROM push_subscriptions WHERE user_id = ? AND endpoint = ?`)
+    .run(userId, endpoint);
 }

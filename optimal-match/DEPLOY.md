@@ -37,7 +37,27 @@ docker run -p 3000:3000 -v om-data:/app/data optimal-match
 - [ ] `/api/health` が `{"status":"ok"}`
 - [ ] サインアップ → プロフィール → 写真アップロード
 - [ ] いいね → `/matches` で確認
+- [ ] チャットでメッセージ送受信（リアルタイム表示）
 - [ ] データが再起動後も残る（ディスクマウント確認）
+
+## オプション環境変数（Render Dashboard）
+
+| 変数 | 用途 |
+|------|------|
+| `APP_URL` | 公開URL（OAuth・プッシュ） |
+| `GOOGLE_CLIENT_ID` | Google OAuth |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth |
+| `VAPID_PUBLIC_KEY` | Web Push 公開鍵 |
+| `VAPID_PRIVATE_KEY` | Web Push 秘密鍵 |
+| `VAPID_SUBJECT` | `mailto:you@example.com` |
+
+VAPID 生成:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Google OAuth リダイレクト URI: `{APP_URL}/api/auth/google/callback`
 
 ## 注意
 

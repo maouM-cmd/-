@@ -21,6 +21,7 @@ export function ChatRoom({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [live, setLive] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const refresh = useCallback(async () => {
@@ -41,12 +42,41 @@ export function ChatRoom({
     }
 
     void poll();
-    const interval = setInterval(() => void poll(), 3000);
+    const interval = setInterval(() => void poll(), 15000);
     return () => {
       cancelled = true;
       clearInterval(interval);
     };
   }, [otherUserId]);
+
+  useEffect(() => {
+    const source = new EventSource("/api/realtime/stream");
+
+    source.onopen = () => setLive(true);
+    source.onerror = () => setLive(false);
+
+    source.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "chat:message") {
+          const { from_user_id, to_user_id, message } = data.payload;
+          const inThisRoom =
+            (from_user_id === myUserId && to_user_id === otherUserId) ||
+            (from_user_id === otherUserId && to_user_id === myUserId);
+          if (inThisRoom) {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === message.id)) return prev;
+              return [...prev, message];
+            });
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+
+    return () => source.close();
+  }, [myUserId, otherUserId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,6 +100,9 @@ export function ChatRoom({
 
   return (
     <div className="flex h-[calc(100vh-12rem)] flex-col rounded-2xl border border-rose-100 bg-white shadow-sm">
+      <div className="border-b border-rose-50 px-4 py-2 text-center text-xs text-gray-400">
+        {live ? "● リアルタイム接続中" : "○ 接続中..."}
+      </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-8">

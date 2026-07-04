@@ -8,6 +8,8 @@ import {
   unlikeProfile,
 } from "@/lib/db";
 import { computeMatch } from "@/lib/match";
+import { publishNewMatch } from "@/lib/realtime";
+import { sendPushToUser } from "@/lib/push";
 import { getCurrentUser } from "@/lib/session";
 
 export async function GET() {
@@ -51,7 +53,26 @@ export async function POST(request: Request) {
   }
 
   const ok = likeProfile(user.id, profileId);
+  const targetProfile = getProfileById(profileId);
+  const myProfile = getProfileByUserId(user.id);
   const mutual = getMutualMatches(user.id).some((m) => m.profile.id === profileId);
+
+  if (ok && mutual && targetProfile && myProfile) {
+    if (targetProfile.user_id) {
+      publishNewMatch(targetProfile.user_id, myProfile.id, myProfile.name);
+      void sendPushToUser(targetProfile.user_id, {
+        title: "マッチ成立！",
+        body: `${myProfile.name}さんとマッチしました`,
+        url: "/matches",
+      });
+    }
+    publishNewMatch(user.id, profileId, targetProfile.name);
+    void sendPushToUser(user.id, {
+      title: "マッチ成立！",
+      body: `${targetProfile.name}さんとマッチしました`,
+      url: "/matches",
+    });
+  }
 
   return NextResponse.json({ ok, liked: true, mutual });
 }

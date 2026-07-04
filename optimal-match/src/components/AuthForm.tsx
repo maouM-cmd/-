@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({
+  mode,
+  oauthError,
+}: {
+  mode: "login" | "signup";
+  oauthError?: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -74,6 +80,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
           required
         />
       </div>
+      {oauthError && <p className="text-sm text-red-600">{oauthError}</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button
         type="submit"
