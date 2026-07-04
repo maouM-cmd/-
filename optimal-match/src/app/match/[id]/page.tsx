@@ -7,7 +7,7 @@ import { Avatar } from "@/components/Avatar";
 import { SincerityBadge, SincerityMismatchWarning } from "@/components/SincerityBadge";
 import { BreakdownBars, ScoreRing } from "@/components/ScoreRing";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
-import { getProfileById, hasLiked } from "@/lib/db";
+import { getProfileById, hasLiked, areMutualUsers } from "@/lib/db";
 import { computeMatch } from "@/lib/match";
 import { requireProfile, getCurrentUser } from "@/lib/session";
 
@@ -29,6 +29,8 @@ export default async function MatchDetailPage({
 
   const breakdown = computeMatch(me, profile);
   const liked = user ? hasLiked(user.id, profile.id) : false;
+  const isMutual =
+    user && profile.user_id ? areMutualUsers(user.id, profile.user_id) : false;
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
@@ -104,7 +106,12 @@ export default async function MatchDetailPage({
       )}
 
       <div className="mt-6 rounded-2xl border border-rose-100 bg-white p-6">
-        <LikeButton profileId={profile.id} initialLiked={liked} />
+        <LikeButton
+          profileId={profile.id}
+          initialLiked={liked}
+          initialMutual={isMutual}
+          chatUserId={profile.user_id}
+        />
       </div>
     </div>
   );

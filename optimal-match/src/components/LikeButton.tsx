@@ -1,19 +1,24 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export function LikeButton({
   profileId,
   initialLiked,
+  initialMutual = false,
+  chatUserId,
   onMutual,
 }: {
   profileId: number;
   initialLiked: boolean;
+  initialMutual?: boolean;
+  chatUserId?: number | null;
   onMutual?: () => void;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [loading, setLoading] = useState(false);
-  const [mutual, setMutual] = useState(false);
+  const [mutual, setMutual] = useState(initialMutual);
 
   async function toggle() {
     setLoading(true);
@@ -52,9 +57,19 @@ export function LikeButton({
         {loading ? "..." : liked ? "♥ いいね済み" : "♡ いいねする"}
       </button>
       {mutual && (
-        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-700">
-          🎉 マッチ成立！お互いにいいねしています
-        </p>
+        <div className="space-y-2">
+          <p className="rounded-xl bg-emerald-50 px-3 py-2 text-center text-sm font-bold text-emerald-700">
+            🎉 マッチ成立！お互いにいいねしています
+          </p>
+          {chatUserId && (
+            <Link
+              href={`/chat/${chatUserId}`}
+              className="block w-full rounded-xl bg-rose-500 py-3 text-center font-bold text-white hover:bg-rose-600"
+            >
+              チャットする
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );

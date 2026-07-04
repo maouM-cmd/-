@@ -14,17 +14,15 @@ export function MatchCard({
   profile,
   breakdown,
   rank,
+  chatUserId,
 }: {
   profile: Profile;
   breakdown: MatchBreakdown;
   rank?: number;
+  chatUserId?: number | null;
 }) {
-  return (
-    <Link
-      href={`/match/${profile.id}`}
-      className="block rounded-2xl border border-rose-100 bg-white p-4 shadow-sm transition hover:border-rose-300 hover:shadow-md"
-    >
-      <div className="flex items-start gap-3">
+  const cardBody = (
+    <div className="flex items-start gap-3">
         {rank != null && (
           <span className="mt-3 text-xs font-bold text-rose-400">#{rank}</span>
         )}
@@ -58,6 +56,41 @@ export function MatchCard({
           </div>
         </div>
       </div>
+  );
+
+  if (chatUserId) {
+    return (
+      <div className="rounded-2xl border border-rose-100 bg-white p-4 shadow-sm">
+        <Link
+          href={`/match/${profile.id}`}
+          className="block transition hover:opacity-90"
+        >
+          {cardBody}
+        </Link>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Link
+            href={`/chat/${chatUserId}`}
+            className="inline-block rounded-lg bg-rose-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-rose-700"
+          >
+            チャットする
+          </Link>
+          <Link
+            href={`/match/${profile.id}`}
+            className="inline-block text-sm font-medium text-rose-600 hover:underline"
+          >
+            プロフィール →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href={`/match/${profile.id}`}
+      className="block rounded-2xl border border-rose-100 bg-white p-4 shadow-sm transition hover:border-rose-300 hover:shadow-md"
+    >
+      {cardBody}
     </Link>
   );
 }

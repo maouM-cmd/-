@@ -20,6 +20,7 @@ export async function Header() {
               <Link href="/profile" className="hover:text-rose-600">プロフィール</Link>
               <Link href="/discover" className="hover:text-rose-600">最適マッチ</Link>
               <Link href="/matches" className="hover:text-rose-600">マッチ</Link>
+              <Link href="/chat" className="hover:text-rose-600">チャット</Link>
               <LogoutButton />
             </>
           ) : (

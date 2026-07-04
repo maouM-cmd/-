@@ -108,6 +108,18 @@ function initSchema(database: Database.Database) {
       FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (to_profile_id) REFERENCES profiles(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_user_id INTEGER NOT NULL,
+      to_user_id INTEGER NOT NULL,
+      body TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_messages_pair ON messages(from_user_id, to_user_id);
   `);
 
   if (!columnExists(database, "profiles", "sincerity")) {
@@ -362,4 +374,81 @@ export function getLikesReceivedCount(profileId: number): number {
       .prepare(`SELECT COUNT(*) as c FROM likes WHERE to_profile_id = ?`)
       .get(profileId) as { c: number }
   ).c;
+}
+
+export function getUserById(id: number): User | null {
+  const row = getDb().prepare("SELECT * FROM users WHERE id = ?").get(id);
+  return row ? parseUser(row as Record<string, unknown>) : null;
+}
+
+// --- Chat ---
+
+export function areMutualUsers(userId: number, otherUserId: number): boolean {
+  if (userId === otherUserId) return false;
+  const myProfile = getProfileByUserId(userId);
+  const theirProfile = getProfileByUserId(otherUserId);
+  if (!myProfile || !theirProfile) return false;
+  return hasLiked(userId, theirProfile.id) && hasLiked(otherUserId, myProfile.id);
+}
+
+function parseMessage(row: Record<string, unknown>): import("./types").Message {
+  return {
+    id: row.id as number,
+    from_user_id: row.from_user_id as number,
+    to_user_id: row.to_user_id as number,
+    body: row.body as string,
+    created_at: row.created_at as string,
+  };
+}
+
+export function sendMessage(fromUserId: number, toUserId: number, body: string): import("./types").Message | null {
+  const text = body.trim();
+  if (!text || text.length > 2000) return null;
+  if (!areMutualUsers(fromUserId, toUserId)) return null;
+
+  const result = getDb()
+    .prepare(`INSERT INTO messages (from_user_id, to_user_id, body) VALUES (?, ?, ?)`)
+    .run(fromUserId, toUserId, text);
+
+  const row = getDb().prepare("SELECT * FROM messages WHERE id = ?").get(result.lastInsertRowid);
+  return row ? parseMessage(row as Record<string, unknown>) : null;
+}
+
+export function getMessages(userId: number, otherUserId: number, limit = 100): import("./types").Message[] {
+  if (!areMutualUsers(userId, otherUserId)) return [];
+
+  return (
+    getDb()
+      .prepare(
+        `SELECT * FROM messages
+         WHERE (from_user_id = ? AND to_user_id = ?) OR (from_user_id = ? AND to_user_id = ?)
+         ORDER BY created_at ASC
+         LIMIT ?`
+      )
+      .all(userId, otherUserId, otherUserId, userId, limit) as Record<string, unknown>[]
+  ).map(parseMessage);
+}
+
+export function getChatThreads(userId: number): import("./types").ChatThread[] {
+  const mutuals = getMutualMatches(userId);
+
+  return mutuals.map((m) => {
+    const otherUserId = m.profile.user_id!;
+    const last = getDb()
+      .prepare(
+        `SELECT body, created_at FROM messages
+         WHERE (from_user_id = ? AND to_user_id = ?) OR (from_user_id = ? AND to_user_id = ?)
+         ORDER BY created_at DESC LIMIT 1`
+      )
+      .get(userId, otherUserId, otherUserId, userId) as { body: string; created_at: string } | undefined;
+
+    return {
+      other_user_id: otherUserId,
+      other_name: m.profile.name,
+      other_photo: m.profile.photo_path,
+      last_message: last?.body ?? null,
+      last_at: last?.created_at ?? null,
+      profile_id: m.profile.id,
+    };
+  });
 }

@@ -54,7 +54,12 @@ export default async function MatchesPage() {
         ) : (
           <div className="mt-4 space-y-4">
             {mutual.map((m) => (
-              <MatchCard key={m.profile.id} profile={m.profile} breakdown={m.breakdown} />
+              <MatchCard
+                key={m.profile.id}
+                profile={m.profile}
+                breakdown={m.breakdown}
+                chatUserId={m.profile.user_id}
+              />
             ))}
           </div>
         )}

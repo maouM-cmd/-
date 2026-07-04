@@ -77,3 +77,20 @@ export interface MutualMatch {
   liked_at: string;
   mutual_at: string;
 }
+
+export interface Message {
+  id: number;
+  from_user_id: number;
+  to_user_id: number;
+  body: string;
+  created_at: string;
+}
+
+export interface ChatThread {
+  other_user_id: number;
+  other_name: string;
+  other_photo: string | null;
+  last_message: string | null;
+  last_at: string | null;
+  profile_id: number;
+}
