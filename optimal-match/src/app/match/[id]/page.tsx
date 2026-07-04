@@ -5,8 +5,9 @@ import { MatchTierBadge } from "@/components/MatchTierBadge";
 import { SincerityBadge, SincerityMismatchWarning } from "@/components/SincerityBadge";
 import { BreakdownBars, ScoreRing } from "@/components/ScoreRing";
 import { LOOKING_FOR_OPTIONS } from "@/lib/constants";
-import { getMyProfile, getProfileById } from "@/lib/db";
+import { getProfileById } from "@/lib/db";
 import { computeMatch } from "@/lib/match";
+import { requireProfile } from "@/lib/session";
 
 function goalLabel(value: string) {
   return LOOKING_FOR_OPTIONS.find((o) => o.value === value)?.label ?? value;
@@ -17,20 +18,11 @@ export default async function MatchDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { profile: me } = await requireProfile();
   const { id } = await params;
-  const me = getMyProfile();
   const profile = getProfileById(Number(id));
 
-  if (!profile) notFound();
-  if (!me) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <Link href="/profile" className="text-rose-600 underline">
-          プロフィールを作成してください
-        </Link>
-      </div>
-    );
-  }
+  if (!profile || profile.id === me.id) notFound();
 
   const breakdown = computeMatch(me, profile);
 
@@ -88,9 +80,6 @@ export default async function MatchDetailPage({
 
       <div className="mt-6 rounded-2xl border border-rose-100 bg-white p-6">
         <h2 className="font-bold text-gray-900">説明可能マッチング（相性内訳）</h2>
-        <p className="mt-1 text-xs text-gray-500">
-          スワイプ型アプリにはない「なぜ相性が良いか」の可視化
-        </p>
         <div className="mt-4">
           <BreakdownBars breakdown={breakdown} />
         </div>

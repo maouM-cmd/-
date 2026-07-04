@@ -9,6 +9,7 @@ export interface Values {
 
 export interface Profile {
   id: number;
+  user_id: number | null;
   name: string;
   age: number;
   bio: string;
@@ -17,7 +18,15 @@ export interface Profile {
   values: Values;
   /** 1=遊び寄り 〜 5=誠実寄り */
   sincerity: number;
+  /** @deprecated user_id で判定。シードは null */
   is_me: boolean;
+  created_at: string;
+}
+
+export interface User {
+  id: number;
+  email: string;
+  display_name: string;
   created_at: string;
 }
 

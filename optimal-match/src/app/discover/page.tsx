@@ -1,29 +1,11 @@
-import Link from "next/link";
 import { DiscoverView } from "@/components/DiscoverView";
-import { getMyProfile, getAllProfiles } from "@/lib/db";
+import { getDiscoverableProfiles } from "@/lib/db";
 import { withMatches } from "@/lib/match";
+import { requireProfile } from "@/lib/session";
 
-export default function DiscoverPage() {
-  const me = getMyProfile();
+export default async function DiscoverPage() {
+  const { profile } = await requireProfile();
+  const matches = withMatches(profile, getDiscoverableProfiles(profile.id));
 
-  if (!me) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <h1 className="text-xl font-bold text-gray-900">プロフィールが必要です</h1>
-        <p className="mt-2 text-sm text-gray-500">
-          まずあなたの情報を登録してから、最適マッチを表示できます。
-        </p>
-        <Link
-          href="/profile"
-          className="mt-6 inline-block rounded-xl bg-rose-500 px-6 py-3 font-bold text-white"
-        >
-          プロフィールを作成
-        </Link>
-      </div>
-    );
-  }
-
-  const matches = withMatches(me, getAllProfiles());
-
-  return <DiscoverView meName={me.name} matches={matches} />;
+  return <DiscoverView meName={profile.name} matches={matches} />;
 }

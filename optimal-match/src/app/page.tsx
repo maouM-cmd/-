@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/constants";
 import { COMPETITIVE_PILLARS } from "@/lib/insights";
-import { getMyProfile } from "@/lib/db";
+import { getProfileByUserId } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
 
-export default function HomePage() {
-  const me = getMyProfile();
+export default async function HomePage() {
+  const user = await getCurrentUser();
+  const profile = user ? getProfileByUserId(user.id) : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -21,12 +23,37 @@ export default function HomePage() {
           — 3つの競合優位で、質の高い出会いを効率化します。
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="/profile"
-            className="rounded-xl bg-rose-500 px-6 py-3 text-center font-bold text-white hover:bg-rose-600"
-          >
-            {me ? "プロフィールを編集" : "無料で最適マッチを試す"}
-          </Link>
+          {user ? (
+            <>
+              <Link
+                href={profile ? "/discover" : "/profile"}
+                className="rounded-xl bg-rose-500 px-6 py-3 text-center font-bold text-white hover:bg-rose-600"
+              >
+                {profile ? "最適マッチを見る" : "プロフィールを作成"}
+              </Link>
+              <Link
+                href="/profile"
+                className="rounded-xl border border-rose-200 px-6 py-3 text-center font-medium text-rose-600 hover:bg-rose-50"
+              >
+                プロフィール編集
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/signup"
+                className="rounded-xl bg-rose-500 px-6 py-3 text-center font-bold text-white hover:bg-rose-600"
+              >
+                無料で始める
+              </Link>
+              <Link
+                href="/login"
+                className="rounded-xl border border-rose-200 px-6 py-3 text-center font-medium text-rose-600 hover:bg-rose-50"
+              >
+                ログイン
+              </Link>
+            </>
+          )}
           <Link
             href="/why"
             className="rounded-xl border border-rose-200 px-6 py-3 text-center font-medium text-rose-600 hover:bg-rose-50"
@@ -38,20 +65,11 @@ export default function HomePage() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {COMPETITIVE_PILLARS.map((p) => (
-          <div
-            key={p.id}
-            className="rounded-2xl border border-rose-50 bg-white/80 p-4"
-          >
+          <div key={p.id} className="rounded-2xl border border-rose-50 bg-white/80 p-4">
             <h3 className="font-bold text-rose-600">{p.title}</h3>
             <p className="mt-1 text-sm text-gray-600">{p.subtitle}</p>
           </div>
         ))}
-      </div>
-
-      <div className="mt-6 text-center">
-        <Link href="/discover" className="text-sm font-medium text-rose-500 hover:underline">
-          最適マッチ一覧を見る →
-        </Link>
       </div>
     </div>
   );

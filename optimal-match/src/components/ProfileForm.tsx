@@ -8,8 +8,14 @@ import { getSincerityDescription, getSincerityLabel } from "@/lib/sincerity";
 const DEFAULT_VALUES = { social: 3, career: 3, family: 3, adventure: 3 };
 const DEFAULT_SINCERITY = 3;
 
-export function ProfileForm({ initial }: { initial: Profile | null }) {
-  const [name, setName] = useState(initial?.name ?? "");
+export function ProfileForm({
+  initial,
+  defaultName = "",
+}: {
+  initial: Profile | null;
+  defaultName?: string;
+}) {
+  const [name, setName] = useState(initial?.name ?? defaultName);
   const [age, setAge] = useState(initial?.age ?? 28);
   const [bio, setBio] = useState(initial?.bio ?? "");
   const [interests, setInterests] = useState<string[]>(initial?.interests ?? []);

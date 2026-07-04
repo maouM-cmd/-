@@ -1,11 +1,17 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
-import type { CreateProfileInput, Profile, Values } from "./types";
+import {
+  generateSessionToken,
+  hashPassword,
+  verifyPassword,
+} from "./auth";
+import type { CreateProfileInput, Profile, User, Values } from "./types";
 import { clampSincerity } from "./sincerity";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "match.db");
+const SESSION_DAYS = 7;
 
 let db: Database.Database | null = null;
 
@@ -27,8 +33,10 @@ function columnExists(database: Database.Database, table: string, column: string
 }
 
 function parseProfile(row: Record<string, unknown>): Profile {
+  const userId = row.user_id as number | null | undefined;
   return {
     id: row.id as number,
+    user_id: userId ?? null,
     name: row.name as string,
     age: row.age as number,
     bio: row.bio as string,
@@ -41,10 +49,36 @@ function parseProfile(row: Record<string, unknown>): Profile {
   };
 }
 
+function parseUser(row: Record<string, unknown>): User {
+  return {
+    id: row.id as number,
+    email: row.email as string,
+    display_name: row.display_name as string,
+    created_at: row.created_at as string,
+  };
+}
+
 function initSchema(database: Database.Database) {
   database.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS profiles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER UNIQUE,
       name TEXT NOT NULL,
       age INTEGER NOT NULL,
       bio TEXT NOT NULL DEFAULT '',
@@ -53,35 +87,29 @@ function initSchema(database: Database.Database) {
       values_json TEXT NOT NULL DEFAULT '{}',
       sincerity INTEGER NOT NULL DEFAULT 3,
       is_me INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
 
   if (!columnExists(database, "profiles", "sincerity")) {
     database.exec("ALTER TABLE profiles ADD COLUMN sincerity INTEGER NOT NULL DEFAULT 3");
   }
+  if (!columnExists(database, "profiles", "user_id")) {
+    database.exec("ALTER TABLE profiles ADD COLUMN user_id INTEGER UNIQUE");
+  }
 
-  const count = (database.prepare("SELECT COUNT(*) as c FROM profiles").get() as { c: number }).c;
+  const count = (database.prepare("SELECT COUNT(*) as c FROM profiles WHERE user_id IS NULL").get() as { c: number }).c;
   if (count === 0) seedProfiles(database);
   else patchSeedSincerity(database);
 }
 
-/** 既存シードに遊び/誠実スコアを付与（初回マイグレーション用） */
 function patchSeedSincerity(database: Database.Database) {
   const presets: Record<string, number> = {
-    さくら: 5,
-    健太: 4,
-    美咲: 4,
-    大輔: 2,
-    ゆい: 4,
-    亮: 5,
-    あかり: 1,
-    翔: 5,
+    さくら: 5, 健太: 4, 美咲: 4, 大輔: 2, ゆい: 4, 亮: 5, あかり: 1, 翔: 5,
   };
-  const rows = database.prepare("SELECT id, name, sincerity FROM profiles WHERE is_me = 0").all() as {
-    id: number;
-    name: string;
-    sincerity: number;
+  const rows = database.prepare("SELECT id, name, sincerity FROM profiles WHERE user_id IS NULL").all() as {
+    id: number; name: string; sincerity: number;
   }[];
   const update = database.prepare("UPDATE profiles SET sincerity = ? WHERE id = ?");
   for (const row of rows) {
@@ -104,8 +132,8 @@ function seedProfiles(database: Database.Database) {
   ];
 
   const insert = database.prepare(`
-    INSERT INTO profiles (name, age, bio, interests, looking_for, values_json, sincerity, is_me)
-    VALUES (@name, @age, @bio, @interests, @looking_for, @values_json, @sincerity, 0)
+    INSERT INTO profiles (name, age, bio, interests, looking_for, values_json, sincerity, is_me, user_id)
+    VALUES (@name, @age, @bio, @interests, @looking_for, @values_json, @sincerity, 0, NULL)
   `);
 
   for (const s of samples) {
@@ -117,16 +145,82 @@ function seedProfiles(database: Database.Database) {
   }
 }
 
-export function getMyProfile(): Profile | null {
-  const row = getDb().prepare("SELECT * FROM profiles WHERE is_me = 1 LIMIT 1").get();
+// --- Auth ---
+
+export function createUser(email: string, password: string, displayName: string): User {
+  const database = getDb();
+  const existing = database.prepare("SELECT id FROM users WHERE email = ?").get(email.toLowerCase());
+  if (existing) throw new Error("EMAIL_EXISTS");
+
+  const result = database
+    .prepare(
+      `INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)`
+    )
+    .run(email.toLowerCase(), hashPassword(password), displayName.trim());
+
+  return parseUser(
+    database.prepare("SELECT * FROM users WHERE id = ?").get(result.lastInsertRowid) as Record<string, unknown>
+  );
+}
+
+export function authenticateUser(email: string, password: string): User | null {
+  const row = getDb()
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(email.toLowerCase()) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  if (!verifyPassword(password, row.password_hash as string)) return null;
+  return parseUser(row);
+}
+
+export function createSession(userId: number): string {
+  const database = getDb();
+  const token = generateSessionToken();
+  const expires = new Date();
+  expires.setDate(expires.getDate() + SESSION_DAYS);
+
+  database
+    .prepare(`INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)`)
+    .run(userId, token, expires.toISOString());
+
+  return token;
+}
+
+export function deleteSession(token: string): void {
+  getDb().prepare("DELETE FROM sessions WHERE token = ?").run(token);
+}
+
+export function getUserBySession(token: string): User | null {
+  const row = getDb()
+    .prepare(
+      `SELECT u.* FROM users u
+       JOIN sessions s ON s.user_id = u.id
+       WHERE s.token = ? AND datetime(s.expires_at) > datetime('now')`
+    )
+    .get(token) as Record<string, unknown> | undefined;
+  return row ? parseUser(row) : null;
+}
+
+// --- Profiles ---
+
+export function getProfileByUserId(userId: number): Profile | null {
+  const row = getDb().prepare("SELECT * FROM profiles WHERE user_id = ?").get(userId);
   return row ? parseProfile(row as Record<string, unknown>) : null;
 }
 
+/** @deprecated use getProfileByUserId */
+export function getMyProfile(): Profile | null {
+  return null;
+}
+
+export function getDiscoverableProfiles(excludeProfileId?: number): Profile[] {
+  const rows = excludeProfileId
+    ? getDb().prepare("SELECT * FROM profiles WHERE id != ? ORDER BY id ASC").all(excludeProfileId)
+    : getDb().prepare("SELECT * FROM profiles ORDER BY id ASC").all();
+  return rows.map((r) => parseProfile(r as Record<string, unknown>));
+}
+
 export function getAllProfiles(): Profile[] {
-  return getDb()
-    .prepare("SELECT * FROM profiles ORDER BY is_me DESC, id ASC")
-    .all()
-    .map((r) => parseProfile(r as Record<string, unknown>));
+  return getDiscoverableProfiles();
 }
 
 export function getProfileById(id: number): Profile | null {
@@ -134,9 +228,9 @@ export function getProfileById(id: number): Profile | null {
   return row ? parseProfile(row as Record<string, unknown>) : null;
 }
 
-export function upsertMyProfile(input: CreateProfileInput): Profile {
+export function upsertUserProfile(userId: number, input: CreateProfileInput): Profile {
   const database = getDb();
-  const existing = getMyProfile();
+  const existing = getProfileByUserId(userId);
   const sincerity = clampSincerity(input.sincerity ?? 3);
 
   const payload = {
@@ -147,24 +241,30 @@ export function upsertMyProfile(input: CreateProfileInput): Profile {
     looking_for: input.looking_for,
     values_json: JSON.stringify(input.values),
     sincerity,
+    user_id: userId,
   };
 
   if (existing) {
     database
       .prepare(
         `UPDATE profiles SET name=@name, age=@age, bio=@bio, interests=@interests,
-         looking_for=@looking_for, values_json=@values_json, sincerity=@sincerity WHERE id=@id`
+         looking_for=@looking_for, values_json=@values_json, sincerity=@sincerity
+         WHERE user_id=@user_id`
       )
-      .run({ ...payload, id: existing.id });
-    return getProfileById(existing.id)!;
+      .run(payload);
+    return getProfileByUserId(userId)!;
   }
 
   const result = database
     .prepare(
-      `INSERT INTO profiles (name, age, bio, interests, looking_for, values_json, sincerity, is_me)
-       VALUES (@name, @age, @bio, @interests, @looking_for, @values_json, @sincerity, 1)`
+      `INSERT INTO profiles (user_id, name, age, bio, interests, looking_for, values_json, sincerity, is_me)
+       VALUES (@user_id, @name, @age, @bio, @interests, @looking_for, @values_json, @sincerity, 0)`
     )
     .run(payload);
 
   return getProfileById(Number(result.lastInsertRowid))!;
+}
+
+export function getUserCount(): number {
+  return (getDb().prepare("SELECT COUNT(*) as c FROM users").get() as { c: number }).c;
 }
