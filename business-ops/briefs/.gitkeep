@@ -1,0 +1,5 @@
+# briefs 置き場
+
+記事ブリーフを `YYYYMMDD-slug-brief.md` 形式で保存してください。
+
+テンプレート: `../templates/article-brief.md`

@@ -1,0 +1,77 @@
+name: Autopilot CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "articles/**"
+      - "business-ops/briefs/**"
+  push:
+    branches: ["cursor/**"]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      coupon-board: ${{ steps.filter.outputs.coupon-board }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            coupon-board:
+              - 'coupon-board/**'
+
+  coupon-board:
+    needs: detect
+    if: needs.detect.outputs.coupon-board == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coupon-board
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: coupon-board/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  business-ops:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate autopilot scripts
+        run: |
+          node business-ops/scripts/autopilot.mjs --help
+          node business-ops/scripts/github-ship.mjs --json > /dev/null
+          node business-ops/scripts/new-web-project.mjs --name ci-dry --dry-run
+
+  auto-merge:
+    needs: [detect, coupon-board, business-ops]
+    if: |
+      always() &&
+      github.event_name == 'pull_request' &&
+      contains(github.event.pull_request.labels.*.name, 'autopilot-merge')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Enable auto-merge (L3 only — requires label)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --auto --squash
+          echo "Auto-merge enabled. Merges when CI is green."

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutopilotConfig",
+  "type": "object",
+  "properties": {
+    "level": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "auto_commit": { "type": "boolean" },
+    "auto_push": { "type": "boolean" },
+    "auto_pr": { "type": "boolean" },
+    "auto_merge": { "type": "boolean" },
+    "draft_pr": { "type": "boolean" },
+    "protected_branches": { "type": "array", "items": { "type": "string" } },
+    "require_preflight": { "type": "boolean" },
+    "branch_prefix": { "type": "string" },
+    "branch_suffix": { "type": "string" },
+    "base_branch": { "type": "string" },
+    "run_project_checks": { "type": "boolean" }
+  }
+}
