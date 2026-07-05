@@ -9,7 +9,6 @@ on:
 
 jobs:
   deploy:
-    if: ${{ secrets.RENDER_API_KEY != '' && secrets.OPTIMAL_MATCH_RENDER_SERVICE_ID != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Install Render CLI
@@ -21,5 +20,12 @@ jobs:
       - name: Trigger deploy
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: ${{ secrets.OPTIMAL_MATCH_RENDER_SERVICE_ID }}
           CI: true
-        run: render deploys create ${{ secrets.OPTIMAL_MATCH_RENDER_SERVICE_ID }} --output json --confirm
+        run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$SERVICE_ID" ]; then
+            echo "Render secrets not configured — skipping deploy"
+            echo "Set RENDER_API_KEY and OPTIMAL_MATCH_RENDER_SERVICE_ID in repo Secrets"
+            exit 0
+          fi
+          render deploys create "$SERVICE_ID" --output json --confirm
