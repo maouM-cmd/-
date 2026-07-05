@@ -126,7 +126,10 @@ function initSchema(database: Database.Database) {
     database.exec("ALTER TABLE profiles ADD COLUMN sincerity INTEGER NOT NULL DEFAULT 3");
   }
   if (!columnExists(database, "profiles", "user_id")) {
-    database.exec("ALTER TABLE profiles ADD COLUMN user_id INTEGER UNIQUE");
+    database.exec("ALTER TABLE profiles ADD COLUMN user_id INTEGER");
+    database.exec(
+      "CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id) WHERE user_id IS NOT NULL"
+    );
   }
   if (!columnExists(database, "users", "google_id")) {
     database.exec("ALTER TABLE users ADD COLUMN google_id TEXT");
