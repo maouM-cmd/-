@@ -5,6 +5,7 @@ import {
   isEventExpired,
   updateParticipant,
 } from "@/lib/db";
+import { checkAndNotifyAllAnswered } from "@/lib/notification-service";
 import type { UpdateParticipantInput } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -51,6 +52,8 @@ export async function PUT(
     if (!participant) {
       return NextResponse.json({ error: "更新に失敗しました" }, { status: 403 });
     }
+
+    await checkAndNotifyAllAnswered(slug);
 
     return NextResponse.json({ participant });
   } catch {

@@ -28,6 +28,8 @@ export interface Event {
   date_options: DateOption[];
   edit_token: string;
   expires_at: string;
+  expected_participant_count: number | null;
+  all_answered_notified_at: string | null;
   created_at: string;
 }
 
@@ -101,6 +103,7 @@ export interface CreateEventInput {
   mood: Mood;
   date_options: DateOption[];
   organizer_user_id?: number | null;
+  expected_participant_count?: number | null;
 }
 
 export interface JoinEventInput {

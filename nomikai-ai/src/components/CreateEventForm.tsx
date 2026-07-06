@@ -26,6 +26,7 @@ export function CreateEventForm() {
   const [budget, setBudget] = useState(5000);
   const [mood, setMood] = useState<Mood>("casual");
   const [dateOptions, setDateOptions] = useState<DateOption[]>(defaultDateOptions);
+  const [expectedCount, setExpectedCount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,6 +60,7 @@ export function CreateEventForm() {
           budget,
           mood,
           date_options: dateOptions,
+          expected_participant_count: expectedCount ? Number(expectedCount) : null,
         }),
       });
       const data = await res.json();
@@ -168,6 +170,23 @@ export function CreateEventForm() {
         >
           + 候補日を追加
         </button>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">
+          想定参加人数（任意）
+        </label>
+        <input
+          type="number"
+          min={1}
+          value={expectedCount}
+          onChange={(e) => setExpectedCount(e.target.value)}
+          placeholder="例: 5"
+          className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
+        />
+        <p className="mt-1 text-xs text-gray-500">
+          設定すると、人数が揃ったとき幹事にプッシュ通知します（未設定時は通知なし）
+        </p>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { authenticateUser, createSession } from "@/lib/db";
+import { authenticateUser, createSession, isOAuthOnlyUser } from "@/lib/db";
 import { getSessionCookieOptions } from "@/lib/auth";
 
 export const runtime = "nodejs";
@@ -11,6 +11,13 @@ export async function POST(request: Request) {
 
   if (!email || !password) {
     return NextResponse.json({ error: "メールとパスワードを入力してください" }, { status: 400 });
+  }
+
+  if (isOAuthOnlyUser(email)) {
+    return NextResponse.json(
+      { error: "このアカウントはGoogleログインをご利用ください" },
+      { status: 401 }
+    );
   }
 
   const user = authenticateUser(email, password);

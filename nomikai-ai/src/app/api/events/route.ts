@@ -24,10 +24,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "日時候補を1つ以上指定してください" }, { status: 400 });
     }
 
+    let expectedCount: number | null = null;
+    if (body.expected_participant_count != null) {
+      const parsed = Number(body.expected_participant_count);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        return NextResponse.json({ error: "想定参加人数は1以上の整数で指定してください" }, { status: 400 });
+      }
+      expectedCount = parsed;
+    }
+
     const user = await getCurrentUser();
     const event = createEvent({
       ...body,
       organizer_user_id: user?.id ?? null,
+      expected_participant_count: expectedCount,
     });
     return NextResponse.json({
       slug: event.slug,

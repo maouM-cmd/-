@@ -16,14 +16,14 @@ export async function POST(
     const body = (await request.json()) as { edit_token?: string };
     const editToken = body.edit_token;
 
-    let organizerUserId: number | null | undefined;
+    let auth: { editToken?: string; sessionUserId?: number };
 
     if (editToken) {
       const event = verifyEditToken(slug, editToken);
       if (!event) {
         return NextResponse.json({ error: "認証に失敗しました" }, { status: 403 });
       }
-      organizerUserId = event.organizer_user_id;
+      auth = { editToken };
     } else {
       const cookieStore = await cookies();
       const sessionToken = cookieStore.get(SESSION_COOKIE)?.value;
@@ -34,10 +34,10 @@ export async function POST(
       if (!user) {
         return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
       }
-      organizerUserId = user.id;
+      auth = { sessionUserId: user.id };
     }
 
-    const cloned = cloneEvent(slug, organizerUserId);
+    const cloned = cloneEvent(slug, auth);
     if (!cloned) {
       return NextResponse.json({ error: "複製に失敗しました" }, { status: 403 });
     }

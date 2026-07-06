@@ -51,6 +51,59 @@ function columnExists(database: Database.Database, table: string, column: string
   return columns.some((c) => c.name === column);
 }
 
+function indexExists(database: Database.Database, indexName: string) {
+  const row = database
+    .prepare("SELECT name FROM sqlite_master WHERE type = 'index' AND name = ?")
+    .get(indexName) as { name: string } | undefined;
+  return Boolean(row);
+}
+
+function migratePushSubscriptionsSchema(database: Database.Database) {
+  if (indexExists(database, "idx_push_event_endpoint")) return;
+
+  database.exec(`
+    CREATE TABLE push_subscriptions_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL,
+      endpoint TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      UNIQUE(event_id, endpoint),
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+    );
+    INSERT OR IGNORE INTO push_subscriptions_new (id, event_id, endpoint, p256dh, auth, created_at)
+      SELECT id, event_id, endpoint, p256dh, auth, created_at FROM push_subscriptions;
+    DROP TABLE push_subscriptions;
+    ALTER TABLE push_subscriptions_new RENAME TO push_subscriptions;
+    CREATE INDEX IF NOT EXISTS idx_push_event_endpoint ON push_subscriptions(event_id, endpoint);
+  `);
+}
+
+function migrateParticipantPushSubscriptionsSchema(database: Database.Database) {
+  if (indexExists(database, "idx_participant_push_participant_endpoint")) return;
+
+  database.exec(`
+    CREATE TABLE participant_push_subscriptions_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      participant_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      UNIQUE(participant_id, endpoint),
+      FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE
+    );
+    INSERT OR IGNORE INTO participant_push_subscriptions_new (id, participant_id, endpoint, p256dh, auth, created_at)
+      SELECT id, participant_id, endpoint, p256dh, auth, created_at FROM participant_push_subscriptions;
+    DROP TABLE participant_push_subscriptions;
+    ALTER TABLE participant_push_subscriptions_new RENAME TO participant_push_subscriptions;
+    CREATE INDEX IF NOT EXISTS idx_participant_push_participant_endpoint
+      ON participant_push_subscriptions(participant_id, endpoint);
+    CREATE INDEX IF NOT EXISTS idx_participant_push ON participant_push_subscriptions(participant_id);
+  `);
+}
+
 function initSchema(database: Database.Database) {
   database.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -149,7 +202,7 @@ function initSchema(database: Database.Database) {
     CREATE TABLE IF NOT EXISTS participant_push_subscriptions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       participant_id INTEGER NOT NULL,
-      endpoint TEXT NOT NULL UNIQUE,
+      endpoint TEXT NOT NULL,
       p256dh TEXT NOT NULL,
       auth TEXT NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
@@ -157,6 +210,16 @@ function initSchema(database: Database.Database) {
     );
     CREATE INDEX IF NOT EXISTS idx_participant_push ON participant_push_subscriptions(participant_id);
   `);
+
+  migratePushSubscriptionsSchema(database);
+  migrateParticipantPushSubscriptionsSchema(database);
+
+  if (!columnExists(database, "events", "expected_participant_count")) {
+    database.exec("ALTER TABLE events ADD COLUMN expected_participant_count INTEGER");
+  }
+  if (!columnExists(database, "events", "all_answered_notified_at")) {
+    database.exec("ALTER TABLE events ADD COLUMN all_answered_notified_at TEXT");
+  }
 
   database.exec(
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_participants_token ON participants(participant_token)`
@@ -193,6 +256,8 @@ function parseEvent(row: Record<string, unknown>): Event {
     date_options: JSON.parse(row.date_options_json as string),
     edit_token: row.edit_token as string,
     expires_at: (row.expires_at as string) ?? defaultExpiresAt(),
+    expected_participant_count: (row.expected_participant_count as number | null) ?? null,
+    all_answered_notified_at: (row.all_answered_notified_at as string | null) ?? null,
     created_at: row.created_at as string,
   };
 }
@@ -242,6 +307,13 @@ export function createUser(email: string, password: string, displayName: string)
     .prepare("SELECT * FROM users WHERE id = ?")
     .get(result.lastInsertRowid) as Record<string, unknown>;
   return parseUser(row);
+}
+
+export function isOAuthOnlyUser(email: string): boolean {
+  const row = getDb()
+    .prepare("SELECT password_hash FROM users WHERE email = ?")
+    .get(email.toLowerCase()) as { password_hash: string } | undefined;
+  return row?.password_hash === OAUTH_MARKER;
 }
 
 export function authenticateUser(email: string, password: string): User | null {
@@ -325,8 +397,8 @@ export function createEvent(input: CreateEventInput): Event {
 
   database
     .prepare(
-      `INSERT INTO events (id, slug, title, organizer_name, organizer_user_id, budget, mood, date_options_json, edit_token, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO events (id, slug, title, organizer_name, organizer_user_id, budget, mood, date_options_json, edit_token, expires_at, expected_participant_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       id,
@@ -338,7 +410,8 @@ export function createEvent(input: CreateEventInput): Event {
       input.mood,
       JSON.stringify(input.date_options),
       edit_token,
-      expires_at
+      expires_at,
+      input.expected_participant_count ?? null
     );
 
   return getEventBySlug(slug)!;
@@ -543,8 +616,7 @@ export function savePushSubscription(
     .prepare(
       `INSERT INTO push_subscriptions (event_id, endpoint, p256dh, auth)
        VALUES (?, ?, ?, ?)
-       ON CONFLICT(endpoint) DO UPDATE SET
-         event_id = excluded.event_id,
+       ON CONFLICT(event_id, endpoint) DO UPDATE SET
          p256dh = excluded.p256dh,
          auth = excluded.auth`
     )
@@ -585,8 +657,7 @@ export function saveParticipantPushSubscription(
     .prepare(
       `INSERT INTO participant_push_subscriptions (participant_id, endpoint, p256dh, auth)
        VALUES (?, ?, ?, ?)
-       ON CONFLICT(endpoint) DO UPDATE SET
-         participant_id = excluded.participant_id,
+       ON CONFLICT(participant_id, endpoint) DO UPDATE SET
          p256dh = excluded.p256dh,
          auth = excluded.auth`
     )
@@ -615,12 +686,21 @@ export function removeParticipantPushSubscription(participantId: number, endpoin
     .run(participantId, endpoint);
 }
 
-export function cloneEvent(slug: string, organizerUserId?: number | null): Event | null {
+export function cloneEvent(
+  slug: string,
+  auth: { editToken?: string; sessionUserId?: number }
+): Event | null {
   const source = getEventBySlug(slug);
   if (!source) return null;
 
-  if (organizerUserId != null && source.organizer_user_id != null) {
-    if (source.organizer_user_id !== organizerUserId) return null;
+  if (auth.editToken) {
+    if (source.edit_token !== auth.editToken) return null;
+  } else if (auth.sessionUserId != null) {
+    if (source.organizer_user_id == null || source.organizer_user_id !== auth.sessionUserId) {
+      return null;
+    }
+  } else {
+    return null;
   }
 
   const database = getDb();
@@ -634,23 +714,40 @@ export function cloneEvent(slug: string, organizerUserId?: number | null): Event
 
   database
     .prepare(
-      `INSERT INTO events (id, slug, title, organizer_name, organizer_user_id, budget, mood, date_options_json, edit_token, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO events (id, slug, title, organizer_name, organizer_user_id, budget, mood, date_options_json, edit_token, expires_at, expected_participant_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       id,
       newSlug,
       title,
       source.organizer_name,
-      organizerUserId ?? source.organizer_user_id,
+      source.organizer_user_id,
       source.budget,
       source.mood,
       JSON.stringify(source.date_options),
       edit_token,
-      expires_at
+      expires_at,
+      source.expected_participant_count
     );
 
   return getEventBySlug(newSlug);
+}
+
+export function markAllAnsweredNotified(eventId: string) {
+  getDb()
+    .prepare(
+      `UPDATE events SET all_answered_notified_at = datetime('now', 'localtime') WHERE id = ?`
+    )
+    .run(eventId);
+}
+
+export function shouldNotifyAllAnswered(event: Event, participantCount: number): boolean {
+  if (event.expected_participant_count == null || event.expected_participant_count <= 0) {
+    return false;
+  }
+  if (event.all_answered_notified_at != null) return false;
+  return participantCount >= event.expected_participant_count;
 }
 
 export { isEventExpired };

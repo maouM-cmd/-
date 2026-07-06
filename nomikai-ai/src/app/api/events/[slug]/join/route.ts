@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { absoluteAppUrl } from "@/lib/app-url";
 import { addParticipant, getEventBySlug, isEventExpired } from "@/lib/db";
+import { checkAndNotifyAllAnswered } from "@/lib/notification-service";
 import { sendPushToEvent } from "@/lib/push";
 import type { JoinEventInput } from "@/lib/types";
 
@@ -45,6 +46,7 @@ export async function POST(
         body: `${body.name.trim()}さんが参加登録しました`,
         url: absoluteAppUrl(`/e/${slug}?token=${event.edit_token}`),
       });
+      await checkAndNotifyAllAnswered(slug);
     }
 
     return NextResponse.json({

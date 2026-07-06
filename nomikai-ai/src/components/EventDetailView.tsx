@@ -28,12 +28,20 @@ export function EventDetailView({
   const [localPlan, setLocalPlan] = useState(plan);
   const [localParticipants, setLocalParticipants] = useState(participants);
   const [copied, setCopied] = useState(false);
+  const [copiedOrganizer, setCopiedOrganizer] = useState(false);
   const [cloning, setCloning] = useState(false);
 
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}/e/${event.slug}`
       : `/e/${event.slug}`;
+
+  const organizerUrl =
+    editToken && typeof window !== "undefined"
+      ? `${window.location.origin}/e/${event.slug}?token=${editToken}`
+      : editToken
+        ? `/e/${event.slug}?token=${editToken}`
+        : "";
 
   const moodLabel = MOOD_OPTIONS.find((m) => m.value === event.mood);
   const budgetLabel = BUDGET_OPTIONS.find((b) => b.value === event.budget)?.label;
@@ -69,6 +77,13 @@ export function EventDetailView({
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  async function copyOrganizerUrl() {
+    if (!organizerUrl) return;
+    await navigator.clipboard.writeText(organizerUrl);
+    setCopiedOrganizer(true);
+    setTimeout(() => setCopiedOrganizer(false), 2000);
   }
 
   async function generatePlan() {
@@ -134,7 +149,7 @@ export function EventDetailView({
         setError(data.error ?? "削除に失敗しました");
         return;
       }
-      router.push("/my");
+      router.push(event.organizer_user_id ? "/my" : "/");
       router.refresh();
     } catch {
       setError("通信エラーが発生しました");
@@ -175,13 +190,33 @@ export function EventDetailView({
           <div className="mt-2 flex gap-2">
             <input
               readOnly
-              value={shareUrl}
+              value={organizerUrl}
               className="flex-1 rounded-lg border border-amber-200 bg-white px-3 py-2 text-xs text-gray-600"
             />
             <button
               type="button"
-              onClick={copyShareUrl}
+              onClick={copyOrganizerUrl}
               className="min-h-[44px] shrink-0 rounded-lg bg-amber-500 px-4 text-sm font-medium text-white"
+            >
+              {copiedOrganizer ? "コピー済" : "コピー"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {editToken && (
+        <div className="rounded-2xl border border-gray-200 bg-gray-50/50 p-4">
+          <p className="text-sm font-medium text-gray-700">参加者に共有するリンク</p>
+          <div className="mt-2 flex gap-2">
+            <input
+              readOnly
+              value={shareUrl}
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-600"
+            />
+            <button
+              type="button"
+              onClick={copyShareUrl}
+              className="min-h-[44px] shrink-0 rounded-lg bg-gray-600 px-4 text-sm font-medium text-white"
             >
               {copied ? "コピー済" : "共有"}
             </button>

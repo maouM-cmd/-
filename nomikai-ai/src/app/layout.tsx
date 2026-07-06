@@ -13,6 +13,17 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: `${SITE_NAME} | ${SITE_TAGLINE}`,
   description: "幹事がリンクを共有するだけで、みんなの予定・中間地点・店・盛り上げプランがスマホで見られる",
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_TAGLINE,
+    type: "website",
+    locale: "ja_JP",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_TAGLINE,
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -22,6 +33,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/icons/icon-192.png",
     apple: "/icons/icon-192.png",
+    shortcut: "/favicon.ico",
   },
 };
 

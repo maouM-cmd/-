@@ -26,5 +26,9 @@ curl -sf -o /dev/null -w "%{http_code}" "${BASE}/privacy" | grep -q 200 && echo 
 
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/manifest.json" | grep -q 200 && echo "✓ manifest"
 
+curl -sf -o /dev/null -w "%{http_code}" "${BASE}/icons/icon-192.png" | grep -q 200 && echo "✓ pwa icon"
+
+curl -sf -o /dev/null -w "%{http_code}" "${BASE}/api/og/nonexistent-slug" | grep -q 200 && echo "✓ og image route"
+
 echo ""
 echo "All checks passed."
