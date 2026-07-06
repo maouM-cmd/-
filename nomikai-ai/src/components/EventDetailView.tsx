@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CopyList } from "@/components/CopyCard";
 import { MapView } from "@/components/MapView";
 import { OrganizerPushPrompt } from "@/components/OrganizerPushPrompt";
+import { loadParticipantSession } from "@/components/ParticipantEditForm";
 import { SourceBadge } from "@/components/SourceBadge";
 import { VenueCard } from "@/components/VenueCard";
 import { BUDGET_OPTIONS, MOOD_OPTIONS } from "@/lib/constants";
@@ -17,10 +19,13 @@ export function EventDetailView({
   detail: EventDetail;
   editToken?: string;
 }) {
-  const { event, participants, plan } = detail;
+  const router = useRouter();
+  const { event, participants, plan, expired } = detail;
   const [generating, setGenerating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
   const [localPlan, setLocalPlan] = useState(plan);
+  const [localParticipants, setLocalParticipants] = useState(participants);
   const [copied, setCopied] = useState(false);
 
   const shareUrl =
@@ -31,6 +36,9 @@ export function EventDetailView({
   const moodLabel = MOOD_OPTIONS.find((m) => m.value === event.mood);
   const budgetLabel = BUDGET_OPTIONS.find((b) => b.value === event.budget)?.label;
 
+  const participantSession =
+    typeof window !== "undefined" ? loadParticipantSession(event.slug) : null;
+
   async function copyShareUrl() {
     await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
@@ -38,7 +46,7 @@ export function EventDetailView({
   }
 
   async function generatePlan() {
-    if (!editToken) return;
+    if (!editToken || expired) return;
     setGenerating(true);
     setError("");
 
@@ -61,8 +69,63 @@ export function EventDetailView({
     }
   }
 
+  async function deleteParticipant(participantId: number) {
+    if (!editToken) return;
+    if (!confirm("この参加者を削除しますか？")) return;
+
+    try {
+      const res = await fetch(`/api/events/${event.slug}/participants/${participantId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ edit_token: editToken }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error ?? "削除に失敗しました");
+        return;
+      }
+      setLocalParticipants((prev) => prev.filter((p) => p.id !== participantId));
+    } catch {
+      setError("通信エラーが発生しました");
+    }
+  }
+
+  async function deleteEvent() {
+    if (!editToken) return;
+    if (!confirm("この飲み会を完全に削除しますか？この操作は取り消せません。")) return;
+
+    setDeleting(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/events/${event.slug}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ edit_token: editToken }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error ?? "削除に失敗しました");
+        return;
+      }
+      router.push("/my");
+      router.refresh();
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {expired && (
+        <div className="rounded-2xl border border-gray-300 bg-gray-100 p-4 text-center">
+          <p className="font-medium text-gray-700">この飲み会は終了しました</p>
+          <p className="mt-1 text-xs text-gray-500">閲覧のみ可能です（参加登録・プラン再生成は不可）</p>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
         <h1 className="text-xl font-bold text-gray-900">{event.title}</h1>
         <p className="mt-1 text-sm text-gray-500">幹事: {event.organizer_name}</p>
@@ -75,6 +138,10 @@ export function EventDetailView({
           </span>
         </div>
       </div>
+
+      {editToken && (
+        <OrganizerPushPrompt slug={event.slug} editToken={editToken} />
+      )}
 
       {editToken && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
@@ -96,45 +163,73 @@ export function EventDetailView({
         </div>
       )}
 
-      {editToken && (
-        <OrganizerPushPrompt slug={event.slug} editToken={editToken} />
-      )}
-
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="font-bold text-gray-900">参加者 ({participants.length}人)</h2>
-          <Link
-            href={`/e/${event.slug}/join`}
-            className="text-sm font-medium text-amber-600 hover:text-amber-700"
-          >
-            + 参加登録
-          </Link>
+          <h2 className="font-bold text-gray-900">参加者 ({localParticipants.length}人)</h2>
+          {!expired && (
+            <Link
+              href={`/e/${event.slug}/join`}
+              className="text-sm font-medium text-amber-600 hover:text-amber-700"
+            >
+              + 参加登録
+            </Link>
+          )}
         </div>
-        {participants.length === 0 ? (
+        {participantSession && !expired && (
+          <Link
+            href={`/e/${event.slug}/edit?token=${participantSession.participantToken}`}
+            className="mt-2 inline-block text-sm text-amber-600 hover:underline"
+          >
+            自分の回答を編集
+          </Link>
+        )}
+        {localParticipants.length === 0 ? (
           <p className="mt-3 text-sm text-gray-500">まだ参加者がいません。リンクを共有しましょう。</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {participants.map((p) => (
+            {localParticipants.map((p) => (
               <li
                 key={p.id}
                 className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-sm"
               >
-                <span className="font-medium">{p.name}</span>
-                <span className="text-gray-500">{p.station}</span>
+                <div>
+                  <span className="font-medium">{p.name}</span>
+                  <span className="ml-2 text-gray-500">{p.station}</span>
+                </div>
+                {editToken && !expired && (
+                  <button
+                    type="button"
+                    onClick={() => deleteParticipant(p.id)}
+                    className="text-xs text-red-500 hover:text-red-700"
+                  >
+                    削除
+                  </button>
+                )}
               </li>
             ))}
           </ul>
         )}
       </div>
 
-      {editToken && (
+      {editToken && !expired && (
         <button
           type="button"
           onClick={generatePlan}
-          disabled={generating || participants.length === 0}
+          disabled={generating || localParticipants.length === 0}
           className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 text-lg font-bold text-white hover:bg-amber-600 disabled:opacity-50"
         >
           {generating ? "プラン生成中..." : "プランを生成する"}
+        </button>
+      )}
+
+      {editToken && (
+        <button
+          type="button"
+          onClick={deleteEvent}
+          disabled={deleting}
+          className="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-red-200 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+        >
+          {deleting ? "削除中..." : "この飲み会を削除する"}
         </button>
       )}
 

@@ -10,15 +10,24 @@ export interface AvailabilitySlot {
   timeSlot: string;
 }
 
+export interface User {
+  id: number;
+  email: string;
+  display_name: string;
+  created_at: string;
+}
+
 export interface Event {
   id: string;
   slug: string;
   title: string;
   organizer_name: string;
+  organizer_user_id: number | null;
   budget: number;
   mood: Mood;
   date_options: DateOption[];
   edit_token: string;
+  expires_at: string;
   created_at: string;
 }
 
@@ -28,6 +37,7 @@ export interface Participant {
   name: string;
   station: string;
   availability: AvailabilitySlot[];
+  participant_token: string;
   created_at: string;
 }
 
@@ -90,9 +100,16 @@ export interface CreateEventInput {
   budget: number;
   mood: Mood;
   date_options: DateOption[];
+  organizer_user_id?: number | null;
 }
 
 export interface JoinEventInput {
+  name: string;
+  station: string;
+  availability: AvailabilitySlot[];
+}
+
+export interface UpdateParticipantInput {
   name: string;
   station: string;
   availability: AvailabilitySlot[];
@@ -102,4 +119,12 @@ export interface EventDetail {
   event: Event;
   participants: Participant[];
   plan: Plan | null;
+  expired: boolean;
+}
+
+export interface UserEventSummary {
+  event: Event;
+  participant_count: number;
+  has_plan: boolean;
+  expired: boolean;
 }

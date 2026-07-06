@@ -13,6 +13,10 @@ curl -sf -o /dev/null -w "%{http_code}" "${BASE}/" | grep -q 200 && echo "✓ ho
 
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/create" | grep -q 200 && echo "✓ create page"
 
+curl -sf -o /dev/null -w "%{http_code}" "${BASE}/login" | grep -q 200 && echo "✓ login"
+
+curl -sf -o /dev/null -w "%{http_code}" "${BASE}/signup" | grep -q 200 && echo "✓ signup"
+
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/terms" | grep -q 200 && echo "✓ terms"
 
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/privacy" | grep -q 200 && echo "✓ privacy"

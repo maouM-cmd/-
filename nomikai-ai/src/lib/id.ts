@@ -11,3 +11,7 @@ export function generateEditToken(): string {
 export function generateEventId(): string {
   return randomBytes(8).toString("hex");
 }
+
+export function generateParticipantToken(): string {
+  return randomBytes(16).toString("hex");
+}

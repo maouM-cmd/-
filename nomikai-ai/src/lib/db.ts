@@ -1,7 +1,19 @@
 import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
-import { generateEditToken, generateEventId, generateSlug } from "./id";
+import {
+  generateSessionToken,
+  hashPassword,
+  verifyPassword,
+} from "./auth";
+import { EVENT_TTL_DAYS } from "./constants";
+import { defaultExpiresAt, isEventExpired } from "./event-expiry";
+import {
+  generateEditToken,
+  generateEventId,
+  generateParticipantToken,
+  generateSlug,
+} from "./id";
 import type {
   CreateEventInput,
   Event,
@@ -10,10 +22,14 @@ import type {
   Participant,
   Plan,
   PlanMeta,
+  UpdateParticipantInput,
+  User,
+  UserEventSummary,
 } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "nomikai.db");
+const SESSION_DAYS = 7;
 
 let db: Database.Database | null = null;
 
@@ -36,6 +52,22 @@ function columnExists(database: Database.Database, table: string, column: string
 
 function initSchema(database: Database.Database) {
   database.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      expires_at TEXT NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS events (
       id TEXT PRIMARY KEY,
       slug TEXT NOT NULL UNIQUE,
@@ -90,6 +122,43 @@ function initSchema(database: Database.Database) {
   if (!columnExists(database, "plans", "meta_json")) {
     database.exec("ALTER TABLE plans ADD COLUMN meta_json TEXT");
   }
+  if (!columnExists(database, "events", "organizer_user_id")) {
+    database.exec("ALTER TABLE events ADD COLUMN organizer_user_id INTEGER");
+  }
+  if (!columnExists(database, "events", "expires_at")) {
+    database.exec("ALTER TABLE events ADD COLUMN expires_at TEXT");
+    database.exec(
+      `UPDATE events SET expires_at = datetime(created_at, '+${EVENT_TTL_DAYS} days') WHERE expires_at IS NULL`
+    );
+  }
+  if (!columnExists(database, "participants", "participant_token")) {
+    database.exec("ALTER TABLE participants ADD COLUMN participant_token TEXT");
+    database.exec(
+      `UPDATE participants SET participant_token = lower(hex(randomblob(16))) WHERE participant_token IS NULL`
+    );
+  }
+
+  database.exec(
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_participants_token ON participants(participant_token)`
+  );
+  database.exec(
+    `CREATE INDEX IF NOT EXISTS idx_events_organizer_user ON events(organizer_user_id)`
+  );
+
+  database
+    .prepare(
+      `UPDATE events SET expires_at = datetime(created_at, '+${EVENT_TTL_DAYS} days') WHERE expires_at IS NULL`
+    )
+    .run();
+}
+
+function parseUser(row: Record<string, unknown>): User {
+  return {
+    id: row.id as number,
+    email: row.email as string,
+    display_name: row.display_name as string,
+    created_at: row.created_at as string,
+  };
 }
 
 function parseEvent(row: Record<string, unknown>): Event {
@@ -98,10 +167,12 @@ function parseEvent(row: Record<string, unknown>): Event {
     slug: row.slug as string,
     title: row.title as string,
     organizer_name: row.organizer_name as string,
+    organizer_user_id: (row.organizer_user_id as number | null) ?? null,
     budget: row.budget as number,
     mood: row.mood as Event["mood"],
     date_options: JSON.parse(row.date_options_json as string),
     edit_token: row.edit_token as string,
+    expires_at: (row.expires_at as string) ?? defaultExpiresAt(),
     created_at: row.created_at as string,
   };
 }
@@ -113,6 +184,7 @@ function parseParticipant(row: Record<string, unknown>): Participant {
     name: row.name as string,
     station: row.station as string,
     availability: JSON.parse(row.availability_json as string),
+    participant_token: row.participant_token as string,
     created_at: row.created_at as string,
   };
 }
@@ -131,26 +203,89 @@ function parsePlan(row: Record<string, unknown>): Plan {
   };
 }
 
+// --- Users & Sessions ---
+
+export function createUser(email: string, password: string, displayName: string): User {
+  const database = getDb();
+  const existing = database
+    .prepare("SELECT id FROM users WHERE email = ?")
+    .get(email.toLowerCase());
+  if (existing) throw new Error("EMAIL_EXISTS");
+
+  const result = database
+    .prepare(
+      `INSERT INTO users (email, password_hash, display_name) VALUES (?, ?, ?)`
+    )
+    .run(email.toLowerCase(), hashPassword(password), displayName.trim());
+
+  const row = database
+    .prepare("SELECT * FROM users WHERE id = ?")
+    .get(result.lastInsertRowid) as Record<string, unknown>;
+  return parseUser(row);
+}
+
+export function authenticateUser(email: string, password: string): User | null {
+  const row = getDb()
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(email.toLowerCase()) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  if (!verifyPassword(password, row.password_hash as string)) return null;
+  return parseUser(row);
+}
+
+export function createSession(userId: number): string {
+  const database = getDb();
+  const token = generateSessionToken();
+  const expires = new Date();
+  expires.setDate(expires.getDate() + SESSION_DAYS);
+
+  database
+    .prepare(`INSERT INTO sessions (user_id, token, expires_at) VALUES (?, ?, ?)`)
+    .run(userId, token, expires.toISOString());
+
+  return token;
+}
+
+export function deleteSession(token: string): void {
+  getDb().prepare("DELETE FROM sessions WHERE token = ?").run(token);
+}
+
+export function getUserBySession(token: string): User | null {
+  const row = getDb()
+    .prepare(
+      `SELECT u.* FROM users u
+       JOIN sessions s ON s.user_id = u.id
+       WHERE s.token = ? AND datetime(s.expires_at) > datetime('now')`
+    )
+    .get(token) as Record<string, unknown> | undefined;
+  return row ? parseUser(row) : null;
+}
+
+// --- Events ---
+
 export function createEvent(input: CreateEventInput): Event {
   const database = getDb();
   const id = generateEventId();
   const slug = generateSlug();
   const edit_token = generateEditToken();
+  const expires_at = defaultExpiresAt();
 
   database
     .prepare(
-      `INSERT INTO events (id, slug, title, organizer_name, budget, mood, date_options_json, edit_token)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO events (id, slug, title, organizer_name, organizer_user_id, budget, mood, date_options_json, edit_token, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       id,
       slug,
       input.title.trim(),
       input.organizer_name.trim(),
+      input.organizer_user_id ?? null,
       input.budget,
       input.mood,
       JSON.stringify(input.date_options),
-      edit_token
+      edit_token,
+      expires_at
     );
 
   return getEventBySlug(slug)!;
@@ -163,11 +298,48 @@ export function getEventBySlug(slug: string): Event | null {
   return row ? parseEvent(row) : null;
 }
 
+export function getEventsByUserId(userId: number): UserEventSummary[] {
+  const rows = getDb()
+    .prepare(
+      `SELECT e.*,
+        (SELECT COUNT(*) FROM participants p WHERE p.event_id = e.id) AS participant_count,
+        (SELECT COUNT(*) FROM plans pl WHERE pl.event_id = e.id) AS plan_count
+       FROM events e
+       WHERE e.organizer_user_id = ?
+       ORDER BY e.created_at DESC`
+    )
+    .all(userId) as Record<string, unknown>[];
+
+  return rows.map((row) => {
+    const event = parseEvent(row);
+    return {
+      event,
+      participant_count: row.participant_count as number,
+      has_plan: (row.plan_count as number) > 0,
+      expired: isEventExpired(event.expires_at),
+    };
+  });
+}
+
+export function deleteEvent(slug: string): boolean {
+  const event = getEventBySlug(slug);
+  if (!event) return false;
+  getDb().prepare("DELETE FROM events WHERE id = ?").run(event.id);
+  return true;
+}
+
 export function getParticipantsByEventId(eventId: string): Participant[] {
   const rows = getDb()
     .prepare("SELECT * FROM participants WHERE event_id = ? ORDER BY created_at ASC")
     .all(eventId) as Record<string, unknown>[];
   return rows.map(parseParticipant);
+}
+
+export function getParticipantById(eventId: string, participantId: number): Participant | null {
+  const row = getDb()
+    .prepare("SELECT * FROM participants WHERE event_id = ? AND id = ?")
+    .get(eventId, participantId) as Record<string, unknown> | undefined;
+  return row ? parseParticipant(row) : null;
 }
 
 export function getPlanByEventId(eventId: string): Plan | null {
@@ -184,12 +356,13 @@ export function getEventDetail(slug: string): EventDetail | null {
     event,
     participants: getParticipantsByEventId(event.id),
     plan: getPlanByEventId(event.id),
+    expired: isEventExpired(event.expires_at),
   };
 }
 
 export function addParticipant(slug: string, input: JoinEventInput): Participant | null {
   const event = getEventBySlug(slug);
-  if (!event) return null;
+  if (!event || isEventExpired(event.expires_at)) return null;
 
   const duplicate = getDb()
     .prepare(
@@ -198,22 +371,71 @@ export function addParticipant(slug: string, input: JoinEventInput): Participant
     .get(event.id, input.name.trim(), input.station.trim());
   if (duplicate) return null;
 
+  const participant_token = generateParticipantToken();
   const result = getDb()
     .prepare(
-      `INSERT INTO participants (event_id, name, station, availability_json)
-       VALUES (?, ?, ?, ?)`
+      `INSERT INTO participants (event_id, name, station, availability_json, participant_token)
+       VALUES (?, ?, ?, ?, ?)`
     )
     .run(
       event.id,
       input.name.trim(),
       input.station.trim(),
-      JSON.stringify(input.availability)
+      JSON.stringify(input.availability),
+      participant_token
     );
 
   const row = getDb()
     .prepare("SELECT * FROM participants WHERE id = ?")
     .get(result.lastInsertRowid) as Record<string, unknown>;
   return parseParticipant(row);
+}
+
+export function updateParticipant(
+  slug: string,
+  participantId: number,
+  participantToken: string,
+  input: UpdateParticipantInput
+): Participant | null {
+  const event = getEventBySlug(slug);
+  if (!event || isEventExpired(event.expires_at)) return null;
+
+  const existing = getParticipantById(event.id, participantId);
+  if (!existing || existing.participant_token !== participantToken) return null;
+
+  getDb()
+    .prepare(
+      `UPDATE participants SET name = ?, station = ?, availability_json = ? WHERE id = ?`
+    )
+    .run(
+      input.name.trim(),
+      input.station.trim(),
+      JSON.stringify(input.availability),
+      participantId
+    );
+
+  return getParticipantById(event.id, participantId);
+}
+
+export function deleteParticipant(
+  slug: string,
+  participantId: number,
+  auth: { participant_token?: string; edit_token?: string }
+): boolean {
+  const event = getEventBySlug(slug);
+  if (!event) return false;
+
+  const participant = getParticipantById(event.id, participantId);
+  if (!participant) return false;
+
+  const byParticipant =
+    auth.participant_token && auth.participant_token === participant.participant_token;
+  const byOrganizer = auth.edit_token && auth.edit_token === event.edit_token;
+
+  if (!byParticipant && !byOrganizer) return false;
+
+  getDb().prepare("DELETE FROM participants WHERE id = ?").run(participantId);
+  return true;
 }
 
 export function savePlan(
@@ -287,3 +509,5 @@ export function removePushSubscription(eventId: string, endpoint: string) {
     .prepare("DELETE FROM push_subscriptions WHERE event_id = ? AND endpoint = ?")
     .run(eventId, endpoint);
 }
+
+export { isEventExpired };

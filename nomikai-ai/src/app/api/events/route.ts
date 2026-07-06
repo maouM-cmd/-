@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createEvent } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
 import type { CreateEventInput, Mood } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -23,7 +24,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "日時候補を1つ以上指定してください" }, { status: 400 });
     }
 
-    const event = createEvent(body);
+    const user = await getCurrentUser();
+    const event = createEvent({
+      ...body,
+      organizer_user_id: user?.id ?? null,
+    });
     return NextResponse.json({
       slug: event.slug,
       edit_token: event.edit_token,

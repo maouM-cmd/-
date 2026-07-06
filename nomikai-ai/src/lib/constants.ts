@@ -27,6 +27,8 @@ export const TIME_SLOTS = [
 
 export const VENUE_TYPES = ["居酒屋", "ダイニングバー", "焼き鳥", "立ち飲み", "ビアホール"] as const;
 
+export const EVENT_TTL_DAYS = 30;
+
 export const FALLBACK_STATIONS: Record<string, { lat: number; lng: number }> = {
   新宿: { lat: 35.6896, lng: 139.7006 },
   渋谷: { lat: 35.658, lng: 139.7016 },

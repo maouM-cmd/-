@@ -31,13 +31,18 @@ flowchart TB
 | `/create` | イベント作成フォーム |
 | `/e/[slug]` | イベント詳細・プラン表示・幹事操作 |
 | `/e/[slug]/join` | 参加者入力フォーム |
+| `/e/[slug]/edit` | 参加者の回答編集（participant_token） |
+| `/login` | 幹事ログイン |
+| `/signup` | 幹事新規登録 |
+| `/my` | マイページ（ログイン幹事のイベント一覧） |
 | `/terms` | 利用規約 |
 | `/privacy` | プライバシーポリシー |
 
 ## データモデル
 
-- **events**: イベント本体（slug, edit_token, 予算, 雰囲気, 日時候補）
-- **participants**: 参加者（名前, 最寄駅, 参加可能日時 JSON）
+- **users / sessions**: 幹事アカウント（任意ログイン）
+- **events**: イベント本体（slug, edit_token, organizer_user_id, expires_at）
+- **participants**: 参加者（名前, 最寄駅, participant_token）
 - **plans**: 生成プラン（中間駅, 店候補 JSON, 盛り上げ JSON）
 
 ## API

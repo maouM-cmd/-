@@ -12,6 +12,17 @@ export default async function JoinPage({
   const detail = getEventDetail(slug);
   if (!detail) notFound();
 
+  if (detail.expired) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-8">
+        <Link href={`/e/${slug}`} className="text-sm text-amber-600">
+          ← イベントに戻る
+        </Link>
+        <p className="mt-4 text-gray-600">この飲み会は終了しているため、新規の参加登録はできません。</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
       <Link href={`/e/${slug}`} className="text-sm text-amber-600 hover:text-amber-700">

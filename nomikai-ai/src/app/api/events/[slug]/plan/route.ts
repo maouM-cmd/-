@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isEventExpired, verifyEditToken } from "@/lib/db";
 import { generatePlan } from "@/lib/plan-service";
 
 export const runtime = "nodejs";
@@ -13,6 +14,14 @@ export async function POST(
     const body = (await request.json()) as { edit_token?: string };
     if (!body.edit_token) {
       return NextResponse.json({ error: "幹事トークンが必要です" }, { status: 401 });
+    }
+
+    const event = verifyEditToken(slug, body.edit_token);
+    if (!event) {
+      return NextResponse.json({ error: "プラン生成に失敗しました" }, { status: 403 });
+    }
+    if (isEventExpired(event.expires_at)) {
+      return NextResponse.json({ error: "この飲み会は終了しています" }, { status: 403 });
     }
 
     const plan = await generatePlan(slug, body.edit_token);

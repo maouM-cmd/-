@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { absoluteAppUrl } from "@/lib/app-url";
-import { addParticipant, getEventBySlug } from "@/lib/db";
+import { addParticipant, getEventBySlug, isEventExpired } from "@/lib/db";
 import { sendPushToEvent } from "@/lib/push";
 import type { JoinEventInput } from "@/lib/types";
 
@@ -13,6 +13,14 @@ export async function POST(
   const { slug } = await params;
 
   try {
+    const eventCheck = getEventBySlug(slug);
+    if (!eventCheck) {
+      return NextResponse.json({ error: "イベントが見つかりません" }, { status: 404 });
+    }
+    if (isEventExpired(eventCheck.expires_at)) {
+      return NextResponse.json({ error: "この飲み会は終了しています" }, { status: 403 });
+    }
+
     const body = (await request.json()) as JoinEventInput;
 
     if (!body.name?.trim() || !body.station?.trim()) {
@@ -39,7 +47,17 @@ export async function POST(
       });
     }
 
-    return NextResponse.json({ participant });
+    return NextResponse.json({
+      participant: {
+        id: participant.id,
+        name: participant.name,
+        station: participant.station,
+        availability: participant.availability,
+        created_at: participant.created_at,
+      },
+      participant_token: participant.participant_token,
+      edit_url: `/e/${slug}/edit?token=${participant.participant_token}`,
+    });
   } catch {
     return NextResponse.json({ error: "参加登録に失敗しました" }, { status: 500 });
   }
