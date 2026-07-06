@@ -3,7 +3,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 PORT="${PORT:-3000}"
-BASE="http://127.0.0.1:${PORT}"
+BASE="${APP_URL:-http://127.0.0.1:${PORT}}"
+BASE="${BASE%/}"
 
 echo "==> Production verify (${BASE})"
 
@@ -16,6 +17,8 @@ curl -sf -o /dev/null -w "%{http_code}" "${BASE}/create" | grep -q 200 && echo "
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/login" | grep -q 200 && echo "✓ login"
 
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/signup" | grep -q 200 && echo "✓ signup"
+
+curl -sf "${BASE}/api/auth/me" | grep -q '"user":null' && echo "✓ auth/me (unauthenticated)"
 
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/terms" | grep -q 200 && echo "✓ terms"
 

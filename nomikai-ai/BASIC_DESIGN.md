@@ -53,4 +53,9 @@ flowchart TB
 | GET | `/api/events/[slug]` | イベント取得 |
 | POST | `/api/events/[slug]/join` | 参加者追加 |
 | POST | `/api/events/[slug]/plan` | プラン生成（edit_token 必須） |
+| PUT | `/api/events/[slug]/participants/[id]` | 参加者更新（participant_token） |
+| DELETE | `/api/events/[slug]/participants/[id]` | 参加者削除 |
+| DELETE | `/api/events/[slug]` | イベント削除（edit_token） |
+| POST | `/api/auth/signup` | 幹事登録 |
+| POST | `/api/auth/login` | ログイン |
 | GET | `/api/health` | ヘルスチェック |

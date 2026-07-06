@@ -57,6 +57,10 @@ PORT=3000 bash scripts/verify-prod.sh
 | `VAPID_PRIVATE_KEY` | 任意 | Web Push 秘密鍵 |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | 任意 | クライアント用公開鍵 |
 | `VAPID_SUBJECT` | 任意 | `mailto:you@example.com` |
+| `GOOGLE_CLIENT_ID` | 任意 | Google OAuth |
+| `GOOGLE_CLIENT_SECRET` | 任意 | Google OAuth |
+
+初回セットアップの詳細は [RENDER_SETUP.md](./RENDER_SETUP.md) を参照。
 
 VAPID 生成:
 

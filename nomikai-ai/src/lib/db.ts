@@ -30,6 +30,7 @@ import type {
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "nomikai.db");
 const SESSION_DAYS = 7;
+const OAUTH_MARKER = "oauth:no-pass";
 
 let db: Database.Database | null = null;
 
@@ -137,6 +138,25 @@ function initSchema(database: Database.Database) {
       `UPDATE participants SET participant_token = lower(hex(randomblob(16))) WHERE participant_token IS NULL`
     );
   }
+  if (!columnExists(database, "users", "google_id")) {
+    database.exec("ALTER TABLE users ADD COLUMN google_id TEXT");
+    database.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL`
+    );
+  }
+
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS participant_push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      participant_id INTEGER NOT NULL,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (participant_id) REFERENCES participants(id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_participant_push ON participant_push_subscriptions(participant_id);
+  `);
 
   database.exec(
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_participants_token ON participants(participant_token)`
@@ -229,7 +249,40 @@ export function authenticateUser(email: string, password: string): User | null {
     .prepare("SELECT * FROM users WHERE email = ?")
     .get(email.toLowerCase()) as Record<string, unknown> | undefined;
   if (!row) return null;
+  if ((row.password_hash as string) === OAUTH_MARKER) return null;
   if (!verifyPassword(password, row.password_hash as string)) return null;
+  return parseUser(row);
+}
+
+export function findOrCreateGoogleUser(
+  googleId: string,
+  email: string,
+  displayName: string
+): User {
+  const database = getDb();
+  const byGoogle = database
+    .prepare("SELECT * FROM users WHERE google_id = ?")
+    .get(googleId) as Record<string, unknown> | undefined;
+  if (byGoogle) return parseUser(byGoogle);
+
+  const byEmail = database
+    .prepare("SELECT * FROM users WHERE email = ?")
+    .get(email.toLowerCase()) as Record<string, unknown> | undefined;
+
+  if (byEmail) {
+    database.prepare("UPDATE users SET google_id = ? WHERE id = ?").run(googleId, byEmail.id);
+    return parseUser({ ...byEmail, google_id: googleId });
+  }
+
+  const result = database
+    .prepare(
+      `INSERT INTO users (email, password_hash, display_name, google_id) VALUES (?, ?, ?, ?)`
+    )
+    .run(email.toLowerCase(), OAUTH_MARKER, displayName.trim(), googleId);
+
+  const row = database
+    .prepare("SELECT * FROM users WHERE id = ?")
+    .get(result.lastInsertRowid) as Record<string, unknown>;
   return parseUser(row);
 }
 
@@ -508,6 +561,96 @@ export function removePushSubscription(eventId: string, endpoint: string) {
   getDb()
     .prepare("DELETE FROM push_subscriptions WHERE event_id = ? AND endpoint = ?")
     .run(eventId, endpoint);
+}
+
+export function verifyParticipantToken(
+  slug: string,
+  participantId: number,
+  participantToken: string
+): Participant | null {
+  const event = getEventBySlug(slug);
+  if (!event) return null;
+  const participant = getParticipantById(event.id, participantId);
+  if (!participant || participant.participant_token !== participantToken) return null;
+  return participant;
+}
+
+export function saveParticipantPushSubscription(
+  participantId: number,
+  endpoint: string,
+  p256dh: string,
+  auth: string
+) {
+  getDb()
+    .prepare(
+      `INSERT INTO participant_push_subscriptions (participant_id, endpoint, p256dh, auth)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET
+         participant_id = excluded.participant_id,
+         p256dh = excluded.p256dh,
+         auth = excluded.auth`
+    )
+    .run(participantId, endpoint, p256dh, auth);
+}
+
+export function getParticipantPushSubscriptions(eventId: string) {
+  return getDb()
+    .prepare(
+      `SELECT pps.participant_id, pps.endpoint, pps.p256dh, pps.auth
+       FROM participant_push_subscriptions pps
+       JOIN participants p ON p.id = pps.participant_id
+       WHERE p.event_id = ?`
+    )
+    .all(eventId) as {
+    participant_id: number;
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+  }[];
+}
+
+export function removeParticipantPushSubscription(participantId: number, endpoint: string) {
+  getDb()
+    .prepare("DELETE FROM participant_push_subscriptions WHERE participant_id = ? AND endpoint = ?")
+    .run(participantId, endpoint);
+}
+
+export function cloneEvent(slug: string, organizerUserId?: number | null): Event | null {
+  const source = getEventBySlug(slug);
+  if (!source) return null;
+
+  if (organizerUserId != null && source.organizer_user_id != null) {
+    if (source.organizer_user_id !== organizerUserId) return null;
+  }
+
+  const database = getDb();
+  const id = generateEventId();
+  const newSlug = generateSlug();
+  const edit_token = generateEditToken();
+  const expires_at = defaultExpiresAt();
+  const title = source.title.endsWith("（コピー）")
+    ? source.title
+    : `${source.title}（コピー）`;
+
+  database
+    .prepare(
+      `INSERT INTO events (id, slug, title, organizer_name, organizer_user_id, budget, mood, date_options_json, edit_token, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(
+      id,
+      newSlug,
+      title,
+      source.organizer_name,
+      organizerUserId ?? source.organizer_user_id,
+      source.budget,
+      source.mood,
+      JSON.stringify(source.date_options),
+      edit_token,
+      expires_at
+    );
+
+  return getEventBySlug(newSlug);
 }
 
 export { isEventExpired };

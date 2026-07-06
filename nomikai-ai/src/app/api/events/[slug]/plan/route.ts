@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { isEventExpired, verifyEditToken } from "@/lib/db";
+import { absoluteAppUrl } from "@/lib/app-url";
 import { generatePlan } from "@/lib/plan-service";
+import { sendPushToParticipants } from "@/lib/push";
 
 export const runtime = "nodejs";
 
@@ -28,6 +30,12 @@ export async function POST(
     if (!plan) {
       return NextResponse.json({ error: "プラン生成に失敗しました" }, { status: 403 });
     }
+
+    void sendPushToParticipants(event.id, {
+      title: `${event.title} — プラン確定`,
+      body: `集合: ${plan.middle_station}`,
+      url: absoluteAppUrl(`/e/${slug}`),
+    });
 
     return NextResponse.json({ plan });
   } catch {

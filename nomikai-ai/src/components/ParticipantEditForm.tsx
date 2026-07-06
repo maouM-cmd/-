@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ParticipantPushPrompt } from "@/components/ParticipantPushPrompt";
 import { TIME_SLOTS } from "@/lib/constants";
 import type { AvailabilitySlot, DateOption, Participant } from "@/lib/types";
 
@@ -205,16 +206,23 @@ export function JoinSuccessBanner({
   }
 
   return (
-    <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-      <p className="text-sm font-medium text-green-800">参加登録が完了しました</p>
-      <p className="mt-1 text-xs text-green-700">あとから回答を変更する場合は、このリンクを保存してください。</p>
-      <button
-        type="button"
-        onClick={copyEditUrl}
-        className="mt-3 min-h-[44px] rounded-lg bg-green-600 px-4 text-sm font-medium text-white"
-      >
-        {copied ? "コピー済" : "編集用リンクをコピー"}
-      </button>
+    <div className="space-y-4">
+      <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
+        <p className="text-sm font-medium text-green-800">参加登録が完了しました</p>
+        <p className="mt-1 text-xs text-green-700">あとから回答を変更する場合は、このリンクを保存してください。</p>
+        <button
+          type="button"
+          onClick={copyEditUrl}
+          className="mt-3 min-h-[44px] rounded-lg bg-green-600 px-4 text-sm font-medium text-white"
+        >
+          {copied ? "コピー済" : "編集用リンクをコピー"}
+        </button>
+      </div>
+      <ParticipantPushPrompt
+        slug={slug}
+        participantId={participantId}
+        participantToken={participantToken}
+      />
     </div>
   );
 }

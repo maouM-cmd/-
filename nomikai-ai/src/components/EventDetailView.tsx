@@ -7,6 +7,7 @@ import { CopyList } from "@/components/CopyCard";
 import { MapView } from "@/components/MapView";
 import { OrganizerPushPrompt } from "@/components/OrganizerPushPrompt";
 import { loadParticipantSession } from "@/components/ParticipantEditForm";
+import { ParticipantPushPrompt } from "@/components/ParticipantPushPrompt";
 import { SourceBadge } from "@/components/SourceBadge";
 import { VenueCard } from "@/components/VenueCard";
 import { BUDGET_OPTIONS, MOOD_OPTIONS } from "@/lib/constants";
@@ -27,6 +28,7 @@ export function EventDetailView({
   const [localPlan, setLocalPlan] = useState(plan);
   const [localParticipants, setLocalParticipants] = useState(participants);
   const [copied, setCopied] = useState(false);
+  const [cloning, setCloning] = useState(false);
 
   const shareUrl =
     typeof window !== "undefined"
@@ -38,6 +40,30 @@ export function EventDetailView({
 
   const participantSession =
     typeof window !== "undefined" ? loadParticipantSession(event.slug) : null;
+
+  async function cloneEvent() {
+    if (!editToken) return;
+    setCloning(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/events/${event.slug}/clone`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ edit_token: editToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "複製に失敗しました");
+        return;
+      }
+      router.push(`/e/${data.slug}?token=${data.edit_token}`);
+    } catch {
+      setError("通信エラーが発生しました");
+    } finally {
+      setCloning(false);
+    }
+  }
 
   async function copyShareUrl() {
     await navigator.clipboard.writeText(shareUrl);
@@ -176,13 +202,22 @@ export function EventDetailView({
           )}
         </div>
         {participantSession && !expired && (
+        <>
           <Link
             href={`/e/${event.slug}/edit?token=${participantSession.participantToken}`}
             className="mt-2 inline-block text-sm text-amber-600 hover:underline"
           >
             自分の回答を編集
           </Link>
-        )}
+          <div className="mt-3">
+            <ParticipantPushPrompt
+              slug={event.slug}
+              participantId={participantSession.participantId}
+              participantToken={participantSession.participantToken}
+            />
+          </div>
+        </>
+      )}
         {localParticipants.length === 0 ? (
           <p className="mt-3 text-sm text-gray-500">まだ参加者がいません。リンクを共有しましょう。</p>
         ) : (
@@ -219,6 +254,17 @@ export function EventDetailView({
           className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 text-lg font-bold text-white hover:bg-amber-600 disabled:opacity-50"
         >
           {generating ? "プラン生成中..." : "プランを生成する"}
+        </button>
+      )}
+
+      {editToken && (
+        <button
+          type="button"
+          onClick={cloneEvent}
+          disabled={cloning}
+          className="flex min-h-[44px] w-full items-center justify-center rounded-xl border border-amber-200 text-sm font-medium text-amber-700 hover:bg-amber-50 disabled:opacity-50"
+        >
+          {cloning ? "複製中..." : "テンプレートから複製"}
         </button>
       )}
 

@@ -1,5 +1,10 @@
 import webpush from "web-push";
-import { getPushSubscriptions, removePushSubscription } from "./db";
+import {
+  getParticipantPushSubscriptions,
+  getPushSubscriptions,
+  removeParticipantPushSubscription,
+  removePushSubscription,
+} from "./db";
 
 let vapidReady = false;
 
@@ -46,6 +51,33 @@ export async function sendPushToEvent(
         const status = (err as { statusCode?: number }).statusCode;
         if (status === 404 || status === 410) {
           removePushSubscription(eventId, sub.endpoint);
+        }
+      }
+    })
+  );
+}
+
+export async function sendPushToParticipants(
+  eventId: string,
+  payload: { title: string; body: string; url?: string }
+) {
+  if (!ensureVapid()) return;
+
+  const subs = getParticipantPushSubscriptions(eventId);
+  await Promise.all(
+    subs.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+          },
+          JSON.stringify(payload)
+        );
+      } catch (err) {
+        const status = (err as { statusCode?: number }).statusCode;
+        if (status === 404 || status === 410) {
+          removeParticipantPushSubscription(sub.participant_id, sub.endpoint);
         }
       }
     })

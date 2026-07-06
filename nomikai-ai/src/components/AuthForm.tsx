@@ -2,12 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
-export function AuthForm({ mode }: { mode: "login" | "signup" }) {
+export function AuthForm({
+  mode,
+  googleOAuthEnabled,
+  oauthError,
+}: {
+  mode: "login" | "signup";
+  googleOAuthEnabled: boolean;
+  oauthError?: string | null;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(oauthError ?? "");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -38,67 +47,82 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {mode === "signup" && (
+    <div className="space-y-4">
+      {googleOAuthEnabled && (
+        <>
+          <GoogleSignInButton enabled={googleOAuthEnabled} />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-amber-50/30 px-2 text-gray-500">または</span>
+            </div>
+          </div>
+        </>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {mode === "signup" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">表示名</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="たろう"
+              required
+            />
+          </div>
+        )}
         <div>
-          <label className="block text-sm font-medium text-gray-700">表示名</label>
+          <label className="block text-sm font-medium text-gray-700">メールアドレス</label>
           <input
+            type="email"
             className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="たろう"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
             required
           />
         </div>
-      )}
-      <div>
-        <label className="block text-sm font-medium text-gray-700">メールアドレス</label>
-        <input
-          type="email"
-          className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">パスワード</label>
-        <input
-          type="password"
-          className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={mode === "signup" ? "8文字以上" : "••••••••"}
-          minLength={mode === "signup" ? 8 : 1}
-          required
-        />
-      </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 font-bold text-white hover:bg-amber-600 disabled:opacity-50"
-      >
-        {loading ? "処理中..." : mode === "login" ? "ログイン" : "アカウント作成"}
-      </button>
-      <p className="text-center text-sm text-gray-500">
-        {mode === "login" ? (
-          <>
-            アカウントがない？{" "}
-            <Link href="/signup" className="font-medium text-amber-600 hover:underline">
-              新規登録
-            </Link>
-          </>
-        ) : (
-          <>
-            既にアカウントがある？{" "}
-            <Link href="/login" className="font-medium text-amber-600 hover:underline">
-              ログイン
-            </Link>
-          </>
-        )}
-      </p>
-    </form>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">パスワード</label>
+          <input
+            type="password"
+            className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={mode === "signup" ? "8文字以上" : "••••••••"}
+            minLength={mode === "signup" ? 8 : 1}
+            required
+          />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 font-bold text-white hover:bg-amber-600 disabled:opacity-50"
+        >
+          {loading ? "処理中..." : mode === "login" ? "ログイン" : "アカウント作成"}
+        </button>
+        <p className="text-center text-sm text-gray-500">
+          {mode === "login" ? (
+            <>
+              アカウントがない？{" "}
+              <Link href="/signup" className="font-medium text-amber-600 hover:underline">
+                新規登録
+              </Link>
+            </>
+          ) : (
+            <>
+              既にアカウントがある？{" "}
+              <Link href="/login" className="font-medium text-amber-600 hover:underline">
+                ログイン
+              </Link>
+            </>
+          )}
+        </p>
+      </form>
+    </div>
   );
 }
