@@ -1,0 +1,29 @@
+# dependencies
+node_modules
+npm-debug.log*
+
+# build
+.next
+out
+
+# git
+.git
+.gitignore
+
+# env (inject at runtime)
+.env*
+!.env.example
+
+# data (mount as volume)
+data
+
+# docs / dev
+README.md
+*.md
+.claude
+AGENTS.md
+
+# docker
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -1,46 +1,33 @@
-# 飲み会盛り上げAI 要件定義 v1.1
+# 飲み会盛り上げAI 要件定義 v1.2
 
-> 技術設計: [BASIC_DESIGN.md](./BASIC_DESIGN.md)
+> 技術設計: [BASIC_DESIGN.md](./BASIC_DESIGN.md) / デプロイ: [DEPLOY.md](./DEPLOY.md)
 
 ## 概要
 
 幹事が共有リンクを1本送るだけで、全員の予定・場所の真ん中・店の指定・盛り上げプランがスマホで見られる Web アプリ。
 
-## 確定事項
+## Phase 1〜2（完了）
 
-| 項目 | 内容 |
-|------|------|
-| サイト名 | **飲み会盛り上げAI** |
-| 参加方式 | **共有リンク（ログイン不要）** |
-| 幹事権限 | `edit_token` 付き URL でプラン生成・再生成 |
-| 中間地点 | HeartRails Express API（無料）で駅座標→中間点算出 |
-| 店舗候補 | API キー設定時: Google Places / 未設定時: テンプレート |
-| 盛り上げ | API キー設定時: OpenAI / 未設定時: テンプレート |
-| 地図 | OpenStreetMap（デフォルト）/ Google Maps Embed（キー設定時） |
-| 通知 | VAPID 設定時: 幹事へ参加登録プッシュ通知 |
-| 法的ページ | 利用規約（/terms）・プライバシーポリシー（/privacy） |
+- [x] イベント作成・共有リンク・参加登録
+- [x] 中間地点・店候補・盛り上げプラン自動生成
+- [x] OpenAI / Google Places / 地図 / 幹事プッシュ通知
 
-## MVP機能（Phase 1）
+## Phase 3 機能
 
-- [x] イベント作成（幹事: 名前・タイトル・予算・雰囲気・日時候補）
-- [x] 共有 URL 発行（`/e/[slug]`）
-- [x] 参加者入力（名前・最寄駅・参加可能日時）
-- [x] 回答状況一覧（幹事ダッシュボード）
-- [x] プラン生成（中間駅・店候補3件・盛り上げセット）
-- [x] コピーボタン付き盛り上げカード
-- [x] モバイルファースト UI
-- [x] ヘルスチェック `/api/health`
+- [x] Docker + Render 本番デプロイ基盤（`Dockerfile`, `render.yaml`, `DEPLOY.md`）
+- [x] GitHub Actions 自動デプロイ workflow（Secrets 設定時）
+- [x] `APP_URL` による本番絶対 URL（プッシュ通知）
+- [x] PWA（manifest + ホーム画面追加対応）
+- [x] Anthropic Claude 盛り上げアダプター
+- [x] 本番 smoke test（`scripts/verify-prod.sh`）
 
-## Phase 2 機能
+## スコープ外（Phase 4）
 
-- [x] OpenAI による LLM 盛り上げ（`OPENAI_API_KEY` 設定時、未設定はテンプレート）
-- [x] Google Places によるリアルタイム店舗検索（`GOOGLE_MAPS_API_KEY` 設定時）
-- [x] 地図表示（中間地点 + 店舗ピン）
-- [x] 幹事向けプッシュ通知（参加者登録時、VAPID 設定時）
-- [x] 生成ソースバッジ（AI/Places or テンプレート）
+- 会員登録・ログイン（幹事アカウント）
+- 参加者の編集・削除
+- イベント期限・自動アーカイブ
 
-## スコープ外（Phase 3）
+## 人間承認が必要な作業
 
-- 会員登録・ログイン
-- Anthropic / 複数 LLM プロバイダ対応
-- 本番デプロイ（Render/Vercel）
+- Render Starter プランでの本番デプロイ（課金）
+- 環境変数・API キーの Render Dashboard 設定

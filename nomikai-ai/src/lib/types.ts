@@ -31,7 +31,7 @@ export interface Participant {
   created_at: string;
 }
 
-export type ContentSource = "llm" | "template";
+export type ContentSource = "llm" | "anthropic" | "template";
 export type VenueSource = "places" | "template";
 
 export interface VenueCandidate {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { absoluteAppUrl } from "@/lib/app-url";
 import { addParticipant, getEventBySlug } from "@/lib/db";
 import { sendPushToEvent } from "@/lib/push";
 import type { JoinEventInput } from "@/lib/types";
@@ -34,7 +35,7 @@ export async function POST(
       await sendPushToEvent(event.id, {
         title: `${event.title} — 参加登録`,
         body: `${body.name.trim()}さんが参加登録しました`,
-        url: `/e/${slug}?token=${event.edit_token}`,
+        url: absoluteAppUrl(`/e/${slug}?token=${event.edit_token}`),
       });
     }
 

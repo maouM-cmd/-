@@ -13,6 +13,20 @@ const notoSansJP = Noto_Sans_JP({
 export const metadata: Metadata = {
   title: `${SITE_NAME} | ${SITE_TAGLINE}`,
   description: "幹事がリンクを共有するだけで、みんなの予定・中間地点・店・盛り上げプランがスマホで見られる",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: SITE_NAME,
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
+  },
+};
+
+export const viewport = {
+  themeColor: "#d97706",
 };
 
 export default function RootLayout({

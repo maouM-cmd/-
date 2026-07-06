@@ -1,10 +1,16 @@
 import type { PlanMeta } from "@/lib/types";
 
+const BOOST_LABELS: Record<PlanMeta["boost_source"], string> = {
+  llm: "OpenAI",
+  anthropic: "Claude",
+  template: "テンプレート",
+};
+
 export function SourceBadge({ meta }: { meta?: PlanMeta }) {
   if (!meta) return null;
 
   const venuesLabel = meta.venues_source === "places" ? "Google Places" : "テンプレート";
-  const boostLabel = meta.boost_source === "llm" ? "AI生成" : "テンプレート";
+  const boostLabel = BOOST_LABELS[meta.boost_source];
 
   return (
     <div className="flex flex-wrap gap-2">
