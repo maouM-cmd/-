@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { addParticipant } from "@/lib/db";
+import { addParticipant, getEventBySlug } from "@/lib/db";
+import { sendPushToEvent } from "@/lib/push";
 import type { JoinEventInput } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -26,6 +27,15 @@ export async function POST(
         { error: "同じ名前と駅の参加者が既に登録されています" },
         { status: 409 }
       );
+    }
+
+    const event = getEventBySlug(slug);
+    if (event) {
+      await sendPushToEvent(event.id, {
+        title: `${event.title} — 参加登録`,
+        body: `${body.name.trim()}さんが参加登録しました`,
+        url: `/e/${slug}?token=${event.edit_token}`,
+      });
     }
 
     return NextResponse.json({ participant });

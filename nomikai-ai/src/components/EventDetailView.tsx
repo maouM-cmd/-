@@ -3,6 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { CopyList } from "@/components/CopyCard";
+import { MapView } from "@/components/MapView";
+import { OrganizerPushPrompt } from "@/components/OrganizerPushPrompt";
+import { SourceBadge } from "@/components/SourceBadge";
 import { VenueCard } from "@/components/VenueCard";
 import { BUDGET_OPTIONS, MOOD_OPTIONS } from "@/lib/constants";
 import type { EventDetail } from "@/lib/types";
@@ -93,6 +96,10 @@ export function EventDetailView({
         </div>
       )}
 
+      {editToken && (
+        <OrganizerPushPrompt slug={event.slug} editToken={editToken} />
+      )}
+
       <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <h2 className="font-bold text-gray-900">参加者 ({participants.length}人)</h2>
@@ -135,6 +142,8 @@ export function EventDetailView({
 
       {localPlan && (
         <div className="space-y-6">
+          <SourceBadge meta={localPlan.meta} />
+
           <div className="rounded-2xl border border-green-100 bg-green-50/50 p-5">
             <h2 className="font-bold text-green-800">おすすめ日時</h2>
             <p className="mt-2 text-lg font-medium text-gray-900">
@@ -146,6 +155,16 @@ export function EventDetailView({
             <h2 className="font-bold text-blue-800">集合場所（中間地点）</h2>
             <p className="mt-2 text-2xl font-bold text-gray-900">{localPlan.middle_station}</p>
             <p className="mt-1 text-sm text-gray-500">全員の最寄駅から算出した中間地点です</p>
+            {localPlan.middle_lat != null && localPlan.middle_lng != null && (
+              <div className="mt-4">
+                <MapView
+                  lat={localPlan.middle_lat}
+                  lng={localPlan.middle_lng}
+                  station={localPlan.middle_station}
+                  venues={localPlan.venues}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">

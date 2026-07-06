@@ -1,8 +1,7 @@
-import { findMiddleStation } from "./geo";
-import { generateBoostContent } from "./boost";
-import { generateVenueCandidates } from "./venue";
+import { generateBoostContent } from "./boost-service";
+import { findMiddlePoint } from "./geo";
+import { generateVenueCandidates } from "./venue-service";
 import {
-  getEventDetail,
   getParticipantsByEventId,
   savePlan,
   verifyEditToken,
@@ -19,19 +18,30 @@ export async function generatePlan(slug: string, editToken: string): Promise<Pla
     stations.push("新宿");
   }
 
-  const middleStation = await findMiddleStation(stations);
-  const venues = generateVenueCandidates(middleStation, event.budget, event.mood);
-  const boostContent = generateBoostContent(
+  const middle = await findMiddlePoint(stations);
+  const { venues, source: venuesSource } = await generateVenueCandidates(
+    middle.station,
+    event.budget,
+    event.mood,
+    middle.lat,
+    middle.lng
+  );
+  const { content: boostContent, source: boostSource } = await generateBoostContent(
+    event,
     participants,
     event.date_options,
     event.mood,
-    middleStation
+    middle.station
   );
 
-  return savePlan(event.id, middleStation, venues, boostContent);
+  return savePlan(event.id, middle.station, middle.lat, middle.lng, venues, boostContent, {
+    venues_source: venuesSource,
+    boost_source: boostSource,
+  });
 }
 
 export async function getPlanOrNull(slug: string): Promise<Plan | null> {
+  const { getEventDetail } = await import("./db");
   const detail = getEventDetail(slug);
   return detail?.plan ?? null;
 }

@@ -1,4 +1,4 @@
-# 飲み会盛り上げAI 要件定義 v1.0
+# 飲み会盛り上げAI 要件定義 v1.1
 
 > 技術設計: [BASIC_DESIGN.md](./BASIC_DESIGN.md)
 
@@ -14,11 +14,13 @@
 | 参加方式 | **共有リンク（ログイン不要）** |
 | 幹事権限 | `edit_token` 付き URL でプラン生成・再生成 |
 | 中間地点 | HeartRails Express API（無料）で駅座標→中間点算出 |
-| 店舗候補 | Phase 1: ルールベーステンプレ（駅名+予算+雰囲気） |
-| 盛り上げ | Phase 1: ルールベース（乾杯・ゲーム・話題・2次会） |
+| 店舗候補 | API キー設定時: Google Places / 未設定時: テンプレート |
+| 盛り上げ | API キー設定時: OpenAI / 未設定時: テンプレート |
+| 地図 | OpenStreetMap（デフォルト）/ Google Maps Embed（キー設定時） |
+| 通知 | VAPID 設定時: 幹事へ参加登録プッシュ通知 |
 | 法的ページ | 利用規約（/terms）・プライバシーポリシー（/privacy） |
 
-## MVP機能
+## MVP機能（Phase 1）
 
 - [x] イベント作成（幹事: 名前・タイトル・予算・雰囲気・日時候補）
 - [x] 共有 URL 発行（`/e/[slug]`）
@@ -29,9 +31,16 @@
 - [x] モバイルファースト UI
 - [x] ヘルスチェック `/api/health`
 
-## スコープ外（Phase 2）
+## Phase 2 機能
 
-- OpenAI / Anthropic による LLM 盛り上げ
-- Google Places / Maps API によるリアルタイム店舗検索
-- プッシュ通知
+- [x] OpenAI による LLM 盛り上げ（`OPENAI_API_KEY` 設定時、未設定はテンプレート）
+- [x] Google Places によるリアルタイム店舗検索（`GOOGLE_MAPS_API_KEY` 設定時）
+- [x] 地図表示（中間地点 + 店舗ピン）
+- [x] 幹事向けプッシュ通知（参加者登録時、VAPID 設定時）
+- [x] 生成ソースバッジ（AI/Places or テンプレート）
+
+## スコープ外（Phase 3）
+
 - 会員登録・ログイン
+- Anthropic / 複数 LLM プロバイダ対応
+- 本番デプロイ（Render/Vercel）

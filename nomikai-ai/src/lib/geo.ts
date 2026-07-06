@@ -58,8 +58,12 @@ export async function stationToCoords(stationName: string): Promise<Coordinates 
   return fallbackCoords(normalized);
 }
 
-export async function findMiddleStation(stations: string[]): Promise<string> {
-  if (stations.length === 0) return "新宿駅";
+import type { MiddlePoint } from "./types";
+
+export async function findMiddlePoint(stations: string[]): Promise<MiddlePoint> {
+  if (stations.length === 0) {
+    return { station: "新宿駅", lat: 35.6896, lng: 139.7006 };
+  }
 
   const coordsList: Coordinates[] = [];
   for (const station of stations) {
@@ -67,7 +71,9 @@ export async function findMiddleStation(stations: string[]): Promise<string> {
     if (coords) coordsList.push(coords);
   }
 
-  if (coordsList.length === 0) return "新宿駅";
+  if (coordsList.length === 0) {
+    return { station: "新宿駅", lat: 35.6896, lng: 139.7006 };
+  }
 
   const avgLat = coordsList.reduce((sum, c) => sum + c.lat, 0) / coordsList.length;
   const avgLng = coordsList.reduce((sum, c) => sum + c.lng, 0) / coordsList.length;
@@ -81,7 +87,8 @@ export async function findMiddleStation(stations: string[]): Promise<string> {
       const list = nearest ? (Array.isArray(nearest) ? nearest : [nearest]) : [];
       if (list.length > 0) {
         const name = list[0].name;
-        return name.includes("駅") ? name : `${name}駅`;
+        const station = name.includes("駅") ? name : `${name}駅`;
+        return { station, lat: avgLat, lng: avgLng };
       }
     }
   } catch {
@@ -97,5 +104,10 @@ export async function findMiddleStation(stations: string[]): Promise<string> {
       closest = c;
     }
   }
-  return closest.station;
+  return { station: closest.station, lat: avgLat, lng: avgLng };
+}
+
+export async function findMiddleStation(stations: string[]): Promise<string> {
+  const point = await findMiddlePoint(stations);
+  return point.station;
 }

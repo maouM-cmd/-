@@ -10,7 +10,17 @@ export function VenueCard({ venue, index }: { venue: VenueCandidate; index: numb
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <span className="text-xs font-medium text-orange-500">候補 {index + 1}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-orange-500">候補 {index + 1}</span>
+            {venue.source === "places" && (
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">
+                リアル店舗
+              </span>
+            )}
+            {venue.rating != null && (
+              <span className="text-xs text-amber-600">★ {venue.rating}</span>
+            )}
+          </div>
           <h4 className="mt-1 font-bold text-gray-900">{venue.name}</h4>
           <p className="mt-1 text-sm text-gray-600">{venue.description}</p>
           <div className="mt-2 flex flex-wrap gap-2">

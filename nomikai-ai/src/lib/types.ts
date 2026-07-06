@@ -31,6 +31,9 @@ export interface Participant {
   created_at: string;
 }
 
+export type ContentSource = "llm" | "template";
+export type VenueSource = "places" | "template";
+
 export interface VenueCandidate {
   name: string;
   type: string;
@@ -38,6 +41,22 @@ export interface VenueCandidate {
   moodLabel: string;
   description: string;
   mapsUrl: string;
+  lat?: number;
+  lng?: number;
+  rating?: number;
+  address?: string;
+  source?: VenueSource;
+}
+
+export interface PlanMeta {
+  venues_source: VenueSource;
+  boost_source: ContentSource;
+}
+
+export interface MiddlePoint {
+  station: string;
+  lat: number;
+  lng: number;
 }
 
 export interface BoostContent {
@@ -57,8 +76,11 @@ export interface BoostContent {
 export interface Plan {
   event_id: string;
   middle_station: string;
+  middle_lat?: number;
+  middle_lng?: number;
   venues: VenueCandidate[];
   boost_content: BoostContent;
+  meta?: PlanMeta;
   generated_at: string;
 }
 

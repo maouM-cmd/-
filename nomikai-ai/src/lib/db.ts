@@ -9,6 +9,7 @@ import type {
   JoinEventInput,
   Participant,
   Plan,
+  PlanMeta,
 } from "./types";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -24,6 +25,13 @@ function getDb(): Database.Database {
     initSchema(db);
   }
   return db;
+}
+
+function columnExists(database: Database.Database, table: string, column: string) {
+  const columns = database
+    .prepare(`PRAGMA table_info(${table})`)
+    .all() as { name: string }[];
+  return columns.some((c) => c.name === column);
 }
 
 function initSchema(database: Database.Database) {
@@ -61,7 +69,27 @@ function initSchema(database: Database.Database) {
 
     CREATE INDEX IF NOT EXISTS idx_participants_event ON participants(event_id);
     CREATE INDEX IF NOT EXISTS idx_events_slug ON events(slug);
+
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      event_id TEXT NOT NULL,
+      endpoint TEXT NOT NULL UNIQUE,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+      FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+    );
   `);
+
+  if (!columnExists(database, "plans", "middle_lat")) {
+    database.exec("ALTER TABLE plans ADD COLUMN middle_lat REAL");
+  }
+  if (!columnExists(database, "plans", "middle_lng")) {
+    database.exec("ALTER TABLE plans ADD COLUMN middle_lng REAL");
+  }
+  if (!columnExists(database, "plans", "meta_json")) {
+    database.exec("ALTER TABLE plans ADD COLUMN meta_json TEXT");
+  }
 }
 
 function parseEvent(row: Record<string, unknown>): Event {
@@ -90,11 +118,15 @@ function parseParticipant(row: Record<string, unknown>): Participant {
 }
 
 function parsePlan(row: Record<string, unknown>): Plan {
+  const metaRaw = row.meta_json as string | null | undefined;
   return {
     event_id: row.event_id as string,
     middle_station: row.middle_station as string,
+    middle_lat: row.middle_lat as number | undefined,
+    middle_lng: row.middle_lng as number | undefined,
     venues: JSON.parse(row.venues_json as string),
     boost_content: JSON.parse(row.boost_content_json as string),
+    meta: metaRaw ? (JSON.parse(metaRaw) as PlanMeta) : undefined,
     generated_at: row.generated_at as string,
   };
 }
@@ -187,21 +219,35 @@ export function addParticipant(slug: string, input: JoinEventInput): Participant
 export function savePlan(
   eventId: string,
   middleStation: string,
+  middleLat: number | undefined,
+  middleLng: number | undefined,
   venues: Plan["venues"],
-  boostContent: Plan["boost_content"]
+  boostContent: Plan["boost_content"],
+  meta?: PlanMeta
 ): Plan {
   const database = getDb();
   database
     .prepare(
-      `INSERT INTO plans (event_id, middle_station, venues_json, boost_content_json, generated_at)
-       VALUES (?, ?, ?, ?, datetime('now', 'localtime'))
+      `INSERT INTO plans (event_id, middle_station, middle_lat, middle_lng, venues_json, boost_content_json, meta_json, generated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
        ON CONFLICT(event_id) DO UPDATE SET
          middle_station = excluded.middle_station,
+         middle_lat = excluded.middle_lat,
+         middle_lng = excluded.middle_lng,
          venues_json = excluded.venues_json,
          boost_content_json = excluded.boost_content_json,
+         meta_json = excluded.meta_json,
          generated_at = datetime('now', 'localtime')`
     )
-    .run(eventId, middleStation, JSON.stringify(venues), JSON.stringify(boostContent));
+    .run(
+      eventId,
+      middleStation,
+      middleLat ?? null,
+      middleLng ?? null,
+      JSON.stringify(venues),
+      JSON.stringify(boostContent),
+      meta ? JSON.stringify(meta) : null
+    );
 
   return getPlanByEventId(eventId)!;
 }
@@ -210,4 +256,34 @@ export function verifyEditToken(slug: string, token: string): Event | null {
   const event = getEventBySlug(slug);
   if (!event || event.edit_token !== token) return null;
   return event;
+}
+
+export function savePushSubscription(
+  eventId: string,
+  endpoint: string,
+  p256dh: string,
+  auth: string
+) {
+  getDb()
+    .prepare(
+      `INSERT INTO push_subscriptions (event_id, endpoint, p256dh, auth)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(endpoint) DO UPDATE SET
+         event_id = excluded.event_id,
+         p256dh = excluded.p256dh,
+         auth = excluded.auth`
+    )
+    .run(eventId, endpoint, p256dh, auth);
+}
+
+export function getPushSubscriptions(eventId: string) {
+  return getDb()
+    .prepare("SELECT endpoint, p256dh, auth FROM push_subscriptions WHERE event_id = ?")
+    .all(eventId) as { endpoint: string; p256dh: string; auth: string }[];
+}
+
+export function removePushSubscription(eventId: string, endpoint: string) {
+  getDb()
+    .prepare("DELETE FROM push_subscriptions WHERE event_id = ? AND endpoint = ?")
+    .run(eventId, endpoint);
 }
