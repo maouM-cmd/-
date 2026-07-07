@@ -36,7 +36,7 @@ flowchart TB
 | `/e/[slug]` | イベント詳細・プラン表示・幹事操作 |
 | `/e/[slug]/join` | 参加者入力フォーム |
 | `/e/[slug]/edit` | 参加者の回答編集（participant_token） |
-| `/login` | 幹事ログイン（メール / Google） |
+| `/login` | 幹事ログイン（メール / Google / LINE / Apple） |
 | `/signup` | 幹事新規登録 |
 | `/my` | マイページ（ログイン幹事のイベント一覧） |
 | `/terms` | 利用規約 |
@@ -44,7 +44,7 @@ flowchart TB
 
 ## データモデル
 
-- **users / sessions**: 幹事アカウント（任意ログイン、google_id 対応）
+- **users / sessions**: 幹事アカウント（任意ログイン、google_id / line_id / apple_id 対応）
 - **events**: イベント本体（slug, edit_token, organizer_user_id, expires_at, expected_participant_count, all_answered_notified_at）
 - **participants**: 参加者（名前, 最寄駅, participant_token）
 - **plans**: 生成プラン（中間駅, 店候補 JSON, 盛り上げ JSON）
@@ -66,6 +66,10 @@ flowchart TB
 | GET/POST | `/api/push/subscribe` | Web Push 購読 |
 | GET | `/api/auth/google` | Google OAuth 開始 |
 | GET | `/api/auth/google/callback` | Google OAuth コールバック |
+| GET | `/api/auth/line` | LINE OAuth 開始 |
+| GET | `/api/auth/line/callback` | LINE OAuth コールバック |
+| GET | `/api/auth/apple` | Apple Sign In 開始 |
+| GET | `/api/auth/apple/callback` | Apple Sign In コールバック |
 | GET | `/api/og/[slug]` | OGP 画像生成 |
 | POST | `/api/auth/signup` | 幹事登録 |
 | POST | `/api/auth/login` | ログイン |

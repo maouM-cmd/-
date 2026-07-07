@@ -197,6 +197,18 @@ function initSchema(database: Database.Database) {
       `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL`
     );
   }
+  if (!columnExists(database, "users", "line_id")) {
+    database.exec("ALTER TABLE users ADD COLUMN line_id TEXT");
+    database.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_line_id ON users(line_id) WHERE line_id IS NOT NULL`
+    );
+  }
+  if (!columnExists(database, "users", "apple_id")) {
+    database.exec("ALTER TABLE users ADD COLUMN apple_id TEXT");
+    database.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_apple_id ON users(apple_id) WHERE apple_id IS NOT NULL`
+    );
+  }
 
   database.exec(`
     CREATE TABLE IF NOT EXISTS participant_push_subscriptions (
@@ -331,26 +343,52 @@ export function findOrCreateGoogleUser(
   email: string,
   displayName: string
 ): User {
-  const database = getDb();
-  const byGoogle = database
-    .prepare("SELECT * FROM users WHERE google_id = ?")
-    .get(googleId) as Record<string, unknown> | undefined;
-  if (byGoogle) return parseUser(byGoogle);
+  return findOrCreateOAuthUser("google_id", googleId, email, displayName);
+}
 
+export function findOrCreateLineUser(
+  lineId: string,
+  email: string,
+  displayName: string
+): User {
+  return findOrCreateOAuthUser("line_id", lineId, email, displayName);
+}
+
+export function findOrCreateAppleUser(
+  appleId: string,
+  email: string,
+  displayName: string
+): User {
+  return findOrCreateOAuthUser("apple_id", appleId, email, displayName);
+}
+
+function findOrCreateOAuthUser(
+  idColumn: "google_id" | "line_id" | "apple_id",
+  providerId: string,
+  email: string,
+  displayName: string
+): User {
+  const database = getDb();
+  const byProvider = database
+    .prepare(`SELECT * FROM users WHERE ${idColumn} = ?`)
+    .get(providerId) as Record<string, unknown> | undefined;
+  if (byProvider) return parseUser(byProvider);
+
+  const normalizedEmail = email.toLowerCase();
   const byEmail = database
     .prepare("SELECT * FROM users WHERE email = ?")
-    .get(email.toLowerCase()) as Record<string, unknown> | undefined;
+    .get(normalizedEmail) as Record<string, unknown> | undefined;
 
   if (byEmail) {
-    database.prepare("UPDATE users SET google_id = ? WHERE id = ?").run(googleId, byEmail.id);
-    return parseUser({ ...byEmail, google_id: googleId });
+    database.prepare(`UPDATE users SET ${idColumn} = ? WHERE id = ?`).run(providerId, byEmail.id);
+    return parseUser({ ...byEmail, [idColumn]: providerId });
   }
 
   const result = database
     .prepare(
-      `INSERT INTO users (email, password_hash, display_name, google_id) VALUES (?, ?, ?, ?)`
+      `INSERT INTO users (email, password_hash, display_name, ${idColumn}) VALUES (?, ?, ?, ?)`
     )
-    .run(email.toLowerCase(), OAUTH_MARKER, displayName.trim(), googleId);
+    .run(normalizedEmail, OAUTH_MARKER, displayName.trim(), providerId);
 
   const row = database
     .prepare("SELECT * FROM users WHERE id = ?")

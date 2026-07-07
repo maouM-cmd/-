@@ -2,15 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { GoogleSignInButton } from "@/components/GoogleSignInButton";
+import {
+  AppleSignInButton,
+  GoogleSignInButton,
+  LineSignInButton,
+} from "@/components/GoogleSignInButton";
 
 export function AuthForm({
   mode,
   googleOAuthEnabled,
+  lineOAuthEnabled,
+  appleOAuthEnabled,
   oauthError,
 }: {
   mode: "login" | "signup";
   googleOAuthEnabled: boolean;
+  lineOAuthEnabled: boolean;
+  appleOAuthEnabled: boolean;
   oauthError?: string | null;
 }) {
   const [email, setEmail] = useState("");
@@ -18,6 +26,8 @@ export function AuthForm({
   const [displayName, setDisplayName] = useState("");
   const [error, setError] = useState(oauthError ?? "");
   const [loading, setLoading] = useState(false);
+
+  const socialEnabled = googleOAuthEnabled || lineOAuthEnabled || appleOAuthEnabled;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,9 +58,13 @@ export function AuthForm({
 
   return (
     <div className="space-y-4">
-      {googleOAuthEnabled && (
+      {socialEnabled && (
         <>
-          <GoogleSignInButton enabled={googleOAuthEnabled} />
+          <div className="space-y-2">
+            {lineOAuthEnabled && <LineSignInButton enabled={lineOAuthEnabled} />}
+            {googleOAuthEnabled && <GoogleSignInButton enabled={googleOAuthEnabled} />}
+            {appleOAuthEnabled && <AppleSignInButton enabled={appleOAuthEnabled} />}
+          </div>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200" />

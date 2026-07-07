@@ -19,9 +19,19 @@ Render Dashboard → nomikai-ai → **Environment** に設定:
 # 必須（プッシュ通知・OAuth リダイレクト・絶対リンク）
 APP_URL=https://YOUR-SERVICE.onrender.com
 
-# Google OAuth（任意 — 未設定時はメール/パスワードのみ）
+# Google OAuth（任意）
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+
+# LINE Login（任意）
+LINE_CHANNEL_ID=
+LINE_CHANNEL_SECRET=
+
+# Apple Sign In（任意）
+APPLE_CLIENT_ID=
+APPLE_TEAM_ID=
+APPLE_KEY_ID=
+APPLE_PRIVATE_KEY=
 
 # AI 盛り上げ（任意）
 OPENAI_API_KEY=
@@ -62,7 +72,37 @@ http://localhost:3000/api/auth/google/callback
 
 4. Client ID / Secret を Render の `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` に設定
 
-## 4. VAPID 鍵の生成（任意）
+## 4. LINE Developers（LINE Login）
+
+1. [LINE Developers Console](https://developers.line.biz/) → チャネル作成（LINE Login）
+2. **Callback URL** に追加:
+
+```
+https://YOUR-SERVICE.onrender.com/api/auth/line/callback
+http://localhost:3000/api/auth/line/callback
+```
+
+3. Channel ID / Channel secret を `LINE_CHANNEL_ID` / `LINE_CHANNEL_SECRET` に設定
+4. OpenID Connect → email 権限を有効化（任意だが推奨）
+
+## 5. Apple Developer（Sign In with Apple）
+
+1. [Apple Developer](https://developer.apple.com/) → Identifiers → Services ID を作成
+2. Sign In with Apple を有効化し、Return URL に追加:
+
+```
+https://YOUR-SERVICE.onrender.com/api/auth/apple/callback
+http://localhost:3000/api/auth/apple/callback
+```
+
+3. Keys → Sign In with Apple 用の Key を作成（`.p8` をダウンロード）
+4. 環境変数を設定:
+   - `APPLE_CLIENT_ID` — Services ID（例: `com.example.nomikai.web`）
+   - `APPLE_TEAM_ID` — Team ID
+   - `APPLE_KEY_ID` — Key ID
+   - `APPLE_PRIVATE_KEY` — `.p8` の内容（改行は `\n` でエスケープ可）
+
+## 6. VAPID 鍵の生成（任意）
 
 ```bash
 npx web-push generate-vapid-keys
@@ -71,7 +111,7 @@ npx web-push generate-vapid-keys
 - 公開鍵 → `VAPID_PUBLIC_KEY` と `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
 - 秘密鍵 → `VAPID_PRIVATE_KEY`
 
-## 5. デプロイ後の確認
+## 7. デプロイ後の確認
 
 ```bash
 APP_URL=https://YOUR-SERVICE.onrender.com bash scripts/verify-prod.sh
@@ -79,7 +119,7 @@ APP_URL=https://YOUR-SERVICE.onrender.com bash scripts/verify-prod.sh
 
 手動確認:
 
-- [ ] `/login` で Google ログイン（OAuth 設定時）
+- [ ] `/login` で Google / LINE / Apple ログイン（各 OAuth 設定時）
 - [ ] 飲み会作成 → 参加登録 → プラン生成
 - [ ] 参加者が「通知を有効にする」→ プラン生成でプッシュ受信
 - [ ] 幹事画面・マイページから「複製」
@@ -88,10 +128,12 @@ APP_URL=https://YOUR-SERVICE.onrender.com bash scripts/verify-prod.sh
 - [ ] スマホでホーム画面に追加（PWA）
 - [ ] サービス再起動後もデータが残る（ディスクマウント）
 
-## 6. トラブルシューティング
+## 8. トラブルシューティング
 
 | 症状 | 対処 |
 |------|------|
 | Google ログイン `redirect_uri_mismatch` | `APP_URL` と Google Console の URI が完全一致しているか確認 |
+| LINE ログイン失敗 | Callback URL と Channel ID/Secret を確認 |
+| Apple ログイン失敗 | Services ID、Team ID、Key ID、`.p8` 秘密鍵を確認 |
 | プッシュが届かない | `APP_URL` 設定、VAPID 鍵、HTTPS、通知許可を確認 |
 | 再起動でデータ消失 | Render Disk が `/app/data` にマウントされているか確認 |

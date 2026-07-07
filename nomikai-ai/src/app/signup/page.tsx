@@ -1,6 +1,8 @@
 import { AuthForm } from "@/components/AuthForm";
-import { getOAuthErrorMessage } from "@/components/GoogleSignInButton";
+import { getOAuthErrorMessage } from "@/lib/oauth-errors";
+import { isAppleOAuthEnabled } from "@/lib/apple-oauth";
 import { isGoogleOAuthEnabled } from "@/lib/oauth";
+import { isLineOAuthEnabled } from "@/lib/line-oauth";
 
 export default async function SignupPage({
   searchParams,
@@ -20,6 +22,8 @@ export default async function SignupPage({
         <AuthForm
           mode="signup"
           googleOAuthEnabled={isGoogleOAuthEnabled()}
+          lineOAuthEnabled={isLineOAuthEnabled()}
+          appleOAuthEnabled={isAppleOAuthEnabled()}
           oauthError={oauthError}
         />
       </div>

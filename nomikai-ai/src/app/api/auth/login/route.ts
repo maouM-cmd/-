@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
   if (isOAuthOnlyUser(email)) {
     return NextResponse.json(
-      { error: "このアカウントはGoogleログインをご利用ください" },
+      { error: "このアカウントはGoogle / LINE / Appleログインをご利用ください" },
       { status: 401 }
     );
   }
