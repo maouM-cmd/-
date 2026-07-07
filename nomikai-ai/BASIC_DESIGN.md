@@ -1,4 +1,4 @@
-# 飲み会盛り上げAI 基本設計 v1.1
+# 飲み会盛り上げAI 基本設計 v1.2
 
 > 要件: [REQUIREMENTS.md](./REQUIREMENTS.md)
 
@@ -41,6 +41,13 @@ flowchart TB
 | `/my` | マイページ（ログイン幹事のイベント一覧） |
 | `/terms` | 利用規約 |
 | `/privacy` | プライバシーポリシー |
+
+## i18n 方針
+
+- locale: `ja` / `en`
+- `?lang=en` を付与すると middleware が `lang` cookie を保存
+- サーバーコンポーネントは cookie から locale を解決
+- 主要UIで `withLang()` を用いてリンクに言語を維持
 
 ## データモデル
 

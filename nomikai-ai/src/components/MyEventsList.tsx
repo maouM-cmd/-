@@ -3,12 +3,36 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { withLang, type Locale } from "@/lib/i18n";
 import type { UserEventSummary } from "@/lib/types";
 
-export function MyEventsList({ events }: { events: UserEventSummary[] }) {
+export function MyEventsList({ events, locale }: { events: UserEventSummary[]; locale: Locale }) {
   const router = useRouter();
   const [cloningSlug, setCloningSlug] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const t = locale === "en"
+    ? {
+        cloneFailed: "Failed to clone event",
+        networkError: "Network error occurred",
+        noEvents: "No events yet.",
+        createEvent: "Create event",
+        participants: "Participants",
+        planned: "Planned",
+        ended: "Ended",
+        cloning: "Cloning...",
+        clone: "Clone",
+      }
+    : {
+        cloneFailed: "複製に失敗しました",
+        networkError: "通信エラーが発生しました",
+        noEvents: "まだ飲み会がありません。",
+        createEvent: "飲み会を作る",
+        participants: "参加者",
+        planned: "プラン済",
+        ended: "終了",
+        cloning: "複製中...",
+        clone: "複製",
+      };
 
   async function cloneEvent(slug: string, editToken: string) {
     setCloningSlug(slug);
@@ -22,13 +46,13 @@ export function MyEventsList({ events }: { events: UserEventSummary[] }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "複製に失敗しました");
+        setError(data.error ?? t.cloneFailed);
         return;
       }
-      router.push(`/e/${data.slug}?token=${data.edit_token}`);
+      router.push(withLang(`/e/${data.slug}?token=${data.edit_token}`, locale));
       router.refresh();
     } catch {
-      setError("通信エラーが発生しました");
+      setError(t.networkError);
     } finally {
       setCloningSlug(null);
     }
@@ -37,12 +61,12 @@ export function MyEventsList({ events }: { events: UserEventSummary[] }) {
   if (events.length === 0) {
     return (
       <div className="rounded-2xl border border-amber-100 bg-white p-6 text-center">
-        <p className="text-gray-600">まだ飲み会がありません。</p>
+        <p className="text-gray-600">{t.noEvents}</p>
         <Link
-          href="/create"
+          href={withLang("/create", locale)}
           className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-amber-500 px-6 text-white hover:bg-amber-600"
         >
-          飲み会を作る
+          {t.createEvent}
         </Link>
       </div>
     );
@@ -62,16 +86,16 @@ export function MyEventsList({ events }: { events: UserEventSummary[] }) {
               }`}
             >
               <Link
-                href={`/e/${event.slug}?token=${event.edit_token}`}
+                href={withLang(`/e/${event.slug}?token=${event.edit_token}`, locale)}
                 className="block transition hover:opacity-80"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h2 className="font-bold text-gray-900">{event.title}</h2>
                     <p className="mt-1 text-sm text-gray-500">
-                      参加者 {participant_count}人
-                      {has_plan && " · プラン済"}
-                      {expired && " · 終了"}
+                      {t.participants} {participant_count}
+                      {has_plan && ` · ${t.planned}`}
+                      {expired && ` · ${t.ended}`}
                     </p>
                   </div>
                   <span className="text-amber-400">→</span>
@@ -83,7 +107,7 @@ export function MyEventsList({ events }: { events: UserEventSummary[] }) {
                 disabled={cloningSlug === event.slug}
                 className="mt-3 min-h-[40px] rounded-lg border border-amber-200 px-3 text-sm text-amber-700 hover:bg-amber-50 disabled:opacity-50"
               >
-                {cloningSlug === event.slug ? "複製中..." : "複製"}
+                {cloningSlug === event.slug ? t.cloning : t.clone}
               </button>
             </div>
           </li>

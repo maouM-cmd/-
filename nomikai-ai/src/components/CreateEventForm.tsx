@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BUDGET_OPTIONS, MOOD_OPTIONS, TIME_SLOTS } from "@/lib/constants";
+import { withLang, type Locale } from "@/lib/i18n";
 import type { DateOption, Mood } from "@/lib/types";
 
 function defaultDateOptions(): DateOption[] {
@@ -19,7 +20,7 @@ function defaultDateOptions(): DateOption[] {
   return dates;
 }
 
-export function CreateEventForm() {
+export function CreateEventForm({ locale }: { locale: Locale }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [organizerName, setOrganizerName] = useState("");
@@ -29,6 +30,37 @@ export function CreateEventForm() {
   const [expectedCount, setExpectedCount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const t = locale === "en"
+    ? {
+        title: "Event title",
+        organizer: "Organizer name",
+        budget: "Budget (per person)",
+        mood: "Mood",
+        dates: "Date options",
+        addDate: "+ Add date option",
+        expected: "Expected participants (optional)",
+        expectedHelp:
+          "When set, organizer receives a push once this count is reached.",
+        createFailed: "Failed to create event",
+        networkError: "Network error occurred",
+        creating: "Creating...",
+        submit: "Create event",
+      }
+    : {
+        title: "飲み会のタイトル",
+        organizer: "幹事の名前",
+        budget: "予算（1人あたり）",
+        mood: "雰囲気",
+        dates: "日時候補",
+        addDate: "+ 候補日を追加",
+        expected: "想定参加人数（任意）",
+        expectedHelp:
+          "設定すると、人数が揃ったとき幹事にプッシュ通知します（未設定時は通知なし）",
+        createFailed: "作成に失敗しました",
+        networkError: "通信エラーが発生しました",
+        creating: "作成中...",
+        submit: "飲み会を作成する",
+      };
 
   function updateDateOption(index: number, field: keyof DateOption, value: string) {
     setDateOptions((prev) =>
@@ -65,12 +97,12 @@ export function CreateEventForm() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "作成に失敗しました");
+        setError(data.error ?? t.createFailed);
         return;
       }
-      router.push(data.organizer_url);
+      router.push(withLang(data.organizer_url, locale));
     } catch {
-      setError("通信エラーが発生しました");
+      setError(t.networkError);
     } finally {
       setLoading(false);
     }
@@ -79,7 +111,7 @@ export function CreateEventForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">飲み会のタイトル</label>
+        <label className="block text-sm font-medium text-gray-700">{t.title}</label>
         <input
           type="text"
           required
@@ -91,7 +123,7 @@ export function CreateEventForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">幹事の名前</label>
+        <label className="block text-sm font-medium text-gray-700">{t.organizer}</label>
         <input
           type="text"
           required
@@ -103,7 +135,7 @@ export function CreateEventForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">予算（1人あたり）</label>
+        <label className="block text-sm font-medium text-gray-700">{t.budget}</label>
         <select
           value={budget}
           onChange={(e) => setBudget(Number(e.target.value))}
@@ -118,7 +150,7 @@ export function CreateEventForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">雰囲気</label>
+        <label className="block text-sm font-medium text-gray-700">{t.mood}</label>
         <div className="mt-2 grid grid-cols-2 gap-2">
           {MOOD_OPTIONS.map((opt) => (
             <button
@@ -138,7 +170,7 @@ export function CreateEventForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">日時候補</label>
+        <label className="block text-sm font-medium text-gray-700">{t.dates}</label>
         <div className="mt-2 space-y-3">
           {dateOptions.map((opt, i) => (
             <div key={i} className="flex gap-2">
@@ -168,13 +200,13 @@ export function CreateEventForm() {
           onClick={addDateOption}
           className="mt-2 text-sm text-amber-600 hover:text-amber-700"
         >
-          + 候補日を追加
+          {t.addDate}
         </button>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700">
-          想定参加人数（任意）
+          {t.expected}
         </label>
         <input
           type="number"
@@ -185,7 +217,7 @@ export function CreateEventForm() {
           className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
         />
         <p className="mt-1 text-xs text-gray-500">
-          設定すると、人数が揃ったとき幹事にプッシュ通知します（未設定時は通知なし）
+          {t.expectedHelp}
         </p>
       </div>
 
@@ -196,7 +228,7 @@ export function CreateEventForm() {
         disabled={loading}
         className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 text-lg font-bold text-white hover:bg-amber-600 disabled:opacity-50"
       >
-        {loading ? "作成中..." : "飲み会を作成する"}
+        {loading ? t.creating : t.submit}
       </button>
     </form>
   );

@@ -7,6 +7,7 @@ import {
   GoogleSignInButton,
   LineSignInButton,
 } from "@/components/GoogleSignInButton";
+import { withLang, type Locale } from "@/lib/i18n";
 
 export function AuthForm({
   mode,
@@ -14,12 +15,14 @@ export function AuthForm({
   lineOAuthEnabled,
   appleOAuthEnabled,
   oauthError,
+  locale,
 }: {
   mode: "login" | "signup";
   googleOAuthEnabled: boolean;
   lineOAuthEnabled: boolean;
   appleOAuthEnabled: boolean;
   oauthError?: string | null;
+  locale: Locale;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +31,39 @@ export function AuthForm({
   const [loading, setLoading] = useState(false);
 
   const socialEnabled = googleOAuthEnabled || lineOAuthEnabled || appleOAuthEnabled;
+  const t = locale === "en"
+    ? {
+        or: "or",
+        name: "Display name",
+        email: "Email",
+        password: "Password",
+        namePlaceholder: "Taro",
+        passwordPlaceholderSignup: "At least 8 characters",
+        error: "An error occurred",
+        processing: "Processing...",
+        login: "Log in",
+        signup: "Create account",
+        noAccount: "No account?",
+        toSignup: "Sign up",
+        hasAccount: "Already have an account?",
+        toLogin: "Log in",
+      }
+    : {
+        or: "または",
+        name: "表示名",
+        email: "メールアドレス",
+        password: "パスワード",
+        namePlaceholder: "たろう",
+        passwordPlaceholderSignup: "8文字以上",
+        error: "エラーが発生しました",
+        processing: "処理中...",
+        login: "ログイン",
+        signup: "アカウント作成",
+        noAccount: "アカウントがない？",
+        toSignup: "新規登録",
+        hasAccount: "既にアカウントがある？",
+        toLogin: "ログイン",
+      };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,11 +85,11 @@ export function AuthForm({
     setLoading(false);
 
     if (!res.ok) {
-      setError(data.error ?? "エラーが発生しました");
+      setError(data.error ?? t.error);
       return;
     }
 
-    window.location.href = "/my";
+    window.location.href = withLang("/my", locale);
   }
 
   return (
@@ -70,7 +106,7 @@ export function AuthForm({
               <div className="w-full border-t border-gray-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-amber-50/30 px-2 text-gray-500">または</span>
+              <span className="bg-amber-50/30 px-2 text-gray-500">{t.or}</span>
             </div>
           </div>
         </>
@@ -78,18 +114,18 @@ export function AuthForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         {mode === "signup" && (
           <div>
-            <label className="block text-sm font-medium text-gray-700">表示名</label>
+            <label className="block text-sm font-medium text-gray-700">{t.name}</label>
             <input
               className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="たろう"
+              placeholder={t.namePlaceholder}
               required
             />
           </div>
         )}
         <div>
-          <label className="block text-sm font-medium text-gray-700">メールアドレス</label>
+          <label className="block text-sm font-medium text-gray-700">{t.email}</label>
           <input
             type="email"
             className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
@@ -100,13 +136,13 @@ export function AuthForm({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">パスワード</label>
+          <label className="block text-sm font-medium text-gray-700">{t.password}</label>
           <input
             type="password"
             className="mt-1 w-full rounded-xl border border-amber-200 px-4 py-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={mode === "signup" ? "8文字以上" : "••••••••"}
+            placeholder={mode === "signup" ? t.passwordPlaceholderSignup : "••••••••"}
             minLength={mode === "signup" ? 8 : 1}
             required
           />
@@ -117,21 +153,21 @@ export function AuthForm({
           disabled={loading}
           className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 font-bold text-white hover:bg-amber-600 disabled:opacity-50"
         >
-          {loading ? "処理中..." : mode === "login" ? "ログイン" : "アカウント作成"}
+          {loading ? t.processing : mode === "login" ? t.login : t.signup}
         </button>
         <p className="text-center text-sm text-gray-500">
           {mode === "login" ? (
             <>
-              アカウントがない？{" "}
-              <Link href="/signup" className="font-medium text-amber-600 hover:underline">
-                新規登録
+              {t.noAccount}{" "}
+              <Link href={withLang("/signup", locale)} className="font-medium text-amber-600 hover:underline">
+                {t.toSignup}
               </Link>
             </>
           ) : (
             <>
-              既にアカウントがある？{" "}
-              <Link href="/login" className="font-medium text-amber-600 hover:underline">
-                ログイン
+              {t.hasAccount}{" "}
+              <Link href={withLang("/login", locale)} className="font-medium text-amber-600 hover:underline">
+                {t.toLogin}
               </Link>
             </>
           )}

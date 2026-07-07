@@ -1,4 +1,4 @@
-# 飲み会盛り上げAI 要件定義 v1.6
+# 飲み会盛り上げAI 要件定義 v1.7
 
 > 技術設計: [BASIC_DESIGN.md](./BASIC_DESIGN.md) / デプロイ: [DEPLOY.md](./DEPLOY.md) / Render初回: [RENDER_SETUP.md](./RENDER_SETUP.md)
 
@@ -14,7 +14,12 @@
 - [x] LINE ログイン（メール/パスワード・Googleと共存）
 - [x] Apple Sign In（同上）
 
-## スコープ外（Phase 8 候補）
+## Phase 8 機能
 
-- 多言語対応（i18n）
+- [x] 多言語対応（日本語 / 英語）
+  - `lang` クエリ + cookie で locale 切替
+  - 主要ページ（トップ / create / login / signup / my）と共通ナビを英語対応
+
+## スコープ外（Phase 9 候補）
+
 - Render 本番デプロイの実施（課金・人間承認）
