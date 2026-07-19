@@ -1,0 +1,24 @@
+{
+  "name": "prompt-dojo-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Capacitor native shell for Prompt Dojo",
+  "scripts": {
+    "cap:sync": "cap sync",
+    "cap:open:android": "cap open android",
+    "cap:open:ios": "cap open ios",
+    "cap:add:android": "cap add android",
+    "cap:add:ios": "cap add ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
+    "@capacitor/ios": "^7.2.0",
+    "@capacitor/splash-screen": "^7.0.1",
+    "@capacitor/status-bar": "^7.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.2.0",
+    "typescript": "^5"
+  }
+}
