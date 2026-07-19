@@ -1,0 +1,62 @@
+# Render Blueprint — 飲み会盛り上げAI
+#
+# デプロイ手順:
+# 1. https://dashboard.render.com → New → Blueprint
+# 2. このリポジトリを接続（Root Directory: nomikai-ai）
+# 3. 環境変数 APP_URL 等をダッシュボードで設定
+# 4. Deploy
+#
+# 月額: Starter + Disk 約 $7〜10（Render料金は変動します）
+
+services:
+  - type: web
+    name: nomikai-ai
+    runtime: docker
+    plan: starter
+    rootDir: nomikai-ai
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: LINE_CHANNEL_ID
+        sync: false
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: APPLE_CLIENT_ID
+        sync: false
+      - key: APPLE_TEAM_ID
+        sync: false
+      - key: APPLE_KEY_ID
+        sync: false
+      - key: APPLE_PRIVATE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_OPERATOR_NAME
+        value: 飲み会盛り上げAI運営
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
+    disk:
+      name: nomikai-ai-data
+      mountPath: /app/data
+      sizeGB: 1

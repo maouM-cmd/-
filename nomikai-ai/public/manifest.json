@@ -1,0 +1,25 @@
+{
+  "name": "飲み会盛り上げAI",
+  "short_name": "飲み会AI",
+  "description": "みんなの予定から、最高の飲み会を",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffbeb",
+  "theme_color": "#d97706",
+  "orientation": "portrait-primary",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
