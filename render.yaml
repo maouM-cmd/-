@@ -28,3 +28,37 @@ services:
       name: shotime-data
       mountPath: /app/data
       sizeGB: 1
+
+  - type: web
+    name: prompt-dojo
+    runtime: docker
+    plan: starter
+    rootDir: prompt-dojo
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NEXT_PUBLIC_SITE_NAME
+        value: プロンプ道場
+      - key: NEXT_PUBLIC_OPERATOR_NAME
+        value: プロンプ道場運営
+      - key: NEXT_PUBLIC_CONTACT_EMAIL
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_ADSENSE_CLIENT_ID
+        sync: false
+    disk:
+      name: prompt-dojo-data
+      mountPath: /app/data
+      sizeGB: 1
