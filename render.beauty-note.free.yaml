@@ -1,0 +1,25 @@
+# コスメノート — Render 無料デモ用
+#
+# ⚠️ 無料プランの注意:
+# - 15分アクセスなしでスリープ（起動に30〜60秒）
+# - 永続ディスクなし → 登録した商品データは再起動で消える
+# - 動作確認・彼女にURLで渡して試す用途向け
+#
+# デプロイ手順:
+# 1. https://dashboard.render.com → New → Blueprint
+# 2. このリポジトリを接続
+# 3. render.beauty-note.free.yaml を選択
+# 4. Deploy → 表示された URL を彼女に送る
+
+services:
+  - type: web
+    name: cosme-note
+    runtime: docker
+    plan: free
+    rootDir: beauty-note
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production

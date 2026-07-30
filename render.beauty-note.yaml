@@ -1,0 +1,22 @@
+# コスメノート — Render 本番用（データ永続化）
+#
+# 月額 約 $7〜10（Starter + ディスク）
+#
+# Dashboard → New → Blueprint → このファイルを選択
+
+services:
+  - type: web
+    name: cosme-note
+    runtime: docker
+    plan: starter
+    rootDir: beauty-note
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: cosme-note-data
+      mountPath: /app/data
+      sizeGB: 1
