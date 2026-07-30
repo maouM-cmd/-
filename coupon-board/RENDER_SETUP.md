@@ -6,7 +6,7 @@ GitHub にマージ済みです。Render にログイン済みなら、あと少
 
 1. https://dashboard.render.com/blueprints
 2. **New Blueprint Instance**
-3. リポジトリ `maouM-cmd/-` を選択
+3. リポジトリ `maouM-cmd/coupon-board` を選択（未作成の場合は [REPO_SETUP.md](../REPO_SETUP.md) を参照）
 4. `render.yaml`（リポジトリルート）が検出される
 5. 環境変数を設定:
    - `ADMIN_PASSWORD` = 強力なパスワード
