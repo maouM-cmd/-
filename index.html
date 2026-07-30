@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>T.N 恋愛シミュレーション</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-shell">
+    <header>
+      <h1>ツンデレT.Nとの放課後シミュレーション</h1>
+      <p class="subtitle">恋愛解説 × タイプ診断 × 隠しイベントで好感度を育てよう</p>
+    </header>
+
+    <section class="status-panel">
+      <div class="meter-block">
+        <label for="affectionMeter">好感度</label>
+        <progress id="affectionMeter" value="20" max="100"></progress>
+        <span id="affectionValue">20</span>
+      </div>
+      <div class="meter-block">
+        <label for="adviceMeter">恋愛解説ポイント</label>
+        <progress id="adviceMeter" value="0" max="100"></progress>
+        <span id="adviceValue">0</span>
+      </div>
+      <div class="meter-block">
+        <label for="temperatureMeter">T.N温度</label>
+        <progress id="temperatureMeter" value="35" max="100"></progress>
+        <span id="temperatureValue">35</span>
+      </div>
+    </section>
+
+    <section class="judge-panel">
+      <h3>ネガポジ判定カスタム（ユーザー視点）</h3>
+      <div class="judge-grid">
+        <label>ポジティブ感度
+          <input id="posSensitivity" type="range" min="0.7" max="1.8" step="0.1" value="1.1" />
+          <span id="posSensitivityValue">1.1</span>
+        </label>
+        <label>ネガティブ厳しさ
+          <input id="negSensitivity" type="range" min="0.7" max="1.8" step="0.1" value="1.0" />
+          <span id="negSensitivityValue">1.0</span>
+        </label>
+        <label>判定モード
+          <select id="judgeMode">
+            <option value="balanced">バランス</option>
+            <option value="strict">厳しめ（減点重視）</option>
+            <option value="romantic">恋愛重視（加点重視）</option>
+          </select>
+        </label>
+      </div>
+      <p id="judgeSummary" class="judge-summary">現在：バランス判定（標準）</p>
+    </section>
+
+    <section class="character-card">
+      <div class="model-wrap">
+        <div id="modelViewport" class="model-viewport" aria-label="T.N 3D character model"></div>
+        <p id="modelFallback" class="model-fallback" hidden>2Dモデルの表示に切り替えました。</p>
+      </div>
+      <div>
+        <h2>T.N（ツンデレ）</h2>
+        <p class="character-meta">黒髪ロング / ツンデレ</p>
+        <div class="model-controls">
+          <label>表情
+            <select id="expressionSelect">
+              <option value="normal">通常</option>
+              <option value="smile">笑顔</option>
+              <option value="shy">照れ</option>
+              <option value="angry">怒り</option>
+              <option value="surprised">驚き</option>
+              <option value="sleepy">眠い</option>
+            </select>
+          </label>
+          <label>衣装
+            <select id="outfitSelect">
+              <option value="sky">水色ニット</option>
+              <option value="brown">茶色ニット</option>
+              <option value="black">キラキラ黒服</option>
+            </select>
+          </label>
+        </div>
+        <p id="tnLine" class="line">べ、別にあんたのこと待ってたわけじゃないし…。</p>
+      </div>
+    </section>
+
+    <section class="analytics-panel">
+      <div class="diagnosis-panel">
+        <h3>恋愛タイプ診断（行動傾向）</h3>
+        <div class="trait-grid">
+          <div class="trait-card">
+            <p>ツンデレ耐性</p>
+            <strong id="traitTsundere">0</strong>
+          </div>
+          <div class="trait-card">
+            <p>共感力</p>
+            <strong id="traitEmpathy">0</strong>
+          </div>
+          <div class="trait-card">
+            <p>押し引きバランス</p>
+            <strong id="traitPushPull">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="unlock-panel">
+        <h3>解放イベント</h3>
+        <ul id="unlockList" class="unlock-list">
+          <li>未解放：特定の会話傾向で新イベントが出現</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="scene-panel">
+      <h3 id="sceneTitle">放課後、教室で二人きり</h3>
+      <p id="sceneDescription">T.Nちゃんに話しかけるチャンス。どうする？</p>
+      <div id="choices" class="choices"></div>
+    </section>
+
+    <section class="tips-panel">
+      <h3>恋愛解説（T.Nからの指摘）</h3>
+      <ul id="tipsList"></ul>
+    </section>
+
+    <button id="restartBtn" class="restart-btn" hidden>もう一度プレイする</button>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
