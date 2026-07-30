@@ -1,0 +1,23 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>本日の作業ダッシュボード</h2>
+<div class="card-grid">
+  <div class="card">
+    <h3>有効顧客数</h3>
+    <p>{{ active_customers }} 件</p>
+  </div>
+  <div class="card">
+    <h3>当月 未検針（目安）</h3>
+    <p>{{ unread_meter_count }} 件</p>
+  </div>
+  <div class="card">
+    <h3>未請求件数</h3>
+    <p>{{ unissued_invoice_count }} 件</p>
+  </div>
+  <div class="card">
+    <h3>未入金件数</h3>
+    <p>{{ unpaid_invoice_count }} 件</p>
+  </div>
+</div>
+<p class="muted">※MVP雛形のため詳細ロジックは今後追加</p>
+{% endblock %}

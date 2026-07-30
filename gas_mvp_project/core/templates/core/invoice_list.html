@@ -1,0 +1,25 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>請求一覧</h2>
+<table>
+  <thead>
+    <tr><th>請求番号</th><th>顧客</th><th>発行日</th><th>支払期限</th><th>税込合計</th><th>入金済</th><th>残額</th><th>状態</th></tr>
+  </thead>
+  <tbody>
+    {% for i in invoices %}
+    <tr>
+      <td>{{ i.invoice_no }}</td>
+      <td>{{ i.customer.name }}</td>
+      <td>{{ i.issue_date }}</td>
+      <td>{{ i.due_date }}</td>
+      <td>{{ i.total_amount }}</td>
+      <td>{{ i.paid_amount }}</td>
+      <td>{{ i.remaining_amount }}</td>
+      <td>{{ i.get_status_display }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8">データがありません</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
