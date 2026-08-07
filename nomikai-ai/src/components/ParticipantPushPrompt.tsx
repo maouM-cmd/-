@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Locale } from "@/lib/i18n";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -9,15 +10,34 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
+function pushMessages(locale: Locale) {
+  return locale === "en"
+    ? {
+        body: "Get push notifications when the plan is finalized",
+        enabling: "Enabling...",
+        enable: "Enable notifications",
+        later: "Later",
+      }
+    : {
+        body: "プランが確定したらプッシュ通知でお知らせします",
+        enabling: "設定中...",
+        enable: "通知を有効にする",
+        later: "あとで",
+      };
+}
+
 export function ParticipantPushPrompt({
   slug,
   participantId,
   participantToken,
+  locale,
 }: {
   slug: string;
   participantId: number;
   participantToken: string;
+  locale: Locale;
 }) {
+  const t = pushMessages(locale);
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -87,9 +107,7 @@ export function ParticipantPushPrompt({
 
   return (
     <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-4">
-      <p className="text-sm text-gray-700">
-        プランが確定したらプッシュ通知でお知らせします
-      </p>
+      <p className="text-sm text-gray-700">{t.body}</p>
       <div className="mt-3 flex gap-2">
         <button
           type="button"
@@ -97,14 +115,14 @@ export function ParticipantPushPrompt({
           disabled={loading}
           className="min-h-[44px] rounded-lg bg-blue-600 px-4 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? "設定中..." : "通知を有効にする"}
+          {loading ? t.enabling : t.enable}
         </button>
         <button
           type="button"
           onClick={dismiss}
           className="min-h-[44px] rounded-lg px-4 text-sm text-gray-500 hover:text-gray-700"
         >
-          あとで
+          {t.later}
         </button>
       </div>
     </div>

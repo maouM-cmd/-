@@ -6,16 +6,53 @@ import {
   OPERATOR_NAME,
 } from "@/components/LegalDocument";
 import { SITE_NAME } from "@/lib/constants";
+import { getLocaleFromCookie } from "@/lib/i18n-server";
 
-export const metadata: Metadata = {
-  title: `プライバシーポリシー | ${SITE_NAME}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocaleFromCookie();
+  return {
+    title:
+      locale === "en"
+        ? `Privacy Policy | ${SITE_NAME}`
+        : `プライバシーポリシー | ${SITE_NAME}`,
+  };
+}
 
-const LAST_UPDATED = "2026年7月6日";
+export default async function PrivacyPage() {
+  const locale = await getLocaleFromCookie();
 
-export default function PrivacyPage() {
+  if (locale === "en") {
+    return (
+      <LegalDocument title="Privacy Policy" lastUpdated="July 6, 2026">
+        <p>
+          {OPERATOR_NAME} (&quot;we&quot;) describes how personal information is handled
+          in the Service as follows.
+        </p>
+
+        <LegalSection title="1. Information We Collect">
+          <p>
+            We store names, nearest stations, and availability per event. Account
+            registration is not required.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="2. Purpose of Use">
+          <p>
+            Collected information is used only to generate and display party plans.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="3. Contact">
+          <p>
+            Contact: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          </p>
+        </LegalSection>
+      </LegalDocument>
+    );
+  }
+
   return (
-    <LegalDocument title="プライバシーポリシー" lastUpdated={LAST_UPDATED}>
+    <LegalDocument title="プライバシーポリシー" lastUpdated="2026年7月6日">
       <p>
         {OPERATOR_NAME}（以下「当運営」）は、本サービスにおける個人情報の取扱いについて、以下のとおり定めます。
       </p>

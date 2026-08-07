@@ -2,21 +2,54 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TIME_SLOTS } from "@/lib/constants";
 import {
   JoinSuccessBanner,
   saveParticipantSession,
 } from "@/components/ParticipantEditForm";
+import { formatDateLabel, timeSlots } from "@/lib/constants";
+import { withLang, type Locale } from "@/lib/i18n";
 import type { AvailabilitySlot, DateOption } from "@/lib/types";
+
+function joinMessages(locale: Locale) {
+  return locale === "en"
+    ? {
+        name: "Your name",
+        station: "Nearest station",
+        stationHelp: 'You can omit "Station". Used to calculate the meeting point.',
+        availability: "Available dates & times",
+        selectSlot: "Select at least one available time slot",
+        joinFailed: "Failed to register",
+        networkError: "Network error occurred",
+        submitting: "Submitting...",
+        submit: "Join event",
+        toEvent: "Go to event page",
+      }
+    : {
+        name: "お名前",
+        station: "最寄駅",
+        stationHelp: "「駅」は省略可。中間地点の計算に使います。",
+        availability: "参加可能な日時",
+        selectSlot: "参加可能な日時を1つ以上選んでください",
+        joinFailed: "登録に失敗しました",
+        networkError: "通信エラーが発生しました",
+        submitting: "送信中...",
+        submit: "参加登録する",
+        toEvent: "イベントページへ",
+      };
+}
 
 export function JoinEventForm({
   slug,
   dateOptions,
+  locale,
 }: {
   slug: string;
   dateOptions: DateOption[];
+  locale: Locale;
 }) {
   const router = useRouter();
+  const t = joinMessages(locale);
+  const slots = timeSlots(locale);
   const [name, setName] = useState("");
   const [station, setStation] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -43,13 +76,13 @@ export function JoinEventForm({
   }
 
   function timeLabel(timeSlot: string) {
-    return TIME_SLOTS.find((t) => t.value === timeSlot)?.label ?? timeSlot;
+    return slots.find((s) => s.value === timeSlot)?.label ?? timeSlot;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (selected.size === 0) {
-      setError("参加可能な日時を1つ以上選んでください");
+      setError(t.selectSlot);
       return;
     }
 
@@ -69,7 +102,7 @@ export function JoinEventForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "登録に失敗しました");
+        setError(data.error ?? t.joinFailed);
         return;
       }
       saveParticipantSession(slug, data.participant.id, data.participant_token);
@@ -79,7 +112,7 @@ export function JoinEventForm({
         editUrl: data.edit_url,
       });
     } catch {
-      setError("通信エラーが発生しました");
+      setError(t.networkError);
     } finally {
       setLoading(false);
     }
@@ -93,13 +126,14 @@ export function JoinEventForm({
           editUrl={success.editUrl}
           participantToken={success.participantToken}
           participantId={success.participantId}
+          locale={locale}
         />
         <button
           type="button"
-          onClick={() => router.push(`/e/${slug}`)}
+          onClick={() => router.push(withLang(`/e/${slug}`, locale))}
           className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 text-lg font-bold text-white"
         >
-          イベントページへ
+          {t.toEvent}
         </button>
       </div>
     );
@@ -108,39 +142,37 @@ export function JoinEventForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">お名前</label>
+        <label className="block text-sm font-medium text-gray-700">{t.name}</label>
         <input
           type="text"
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="例: 山田"
+          placeholder={locale === "en" ? "e.g. Alex" : "例: 山田"}
           className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">最寄駅</label>
+        <label className="block text-sm font-medium text-gray-700">{t.station}</label>
         <input
           type="text"
           required
           value={station}
           onChange={(e) => setStation(e.target.value)}
-          placeholder="例: 渋谷"
+          placeholder={locale === "en" ? "e.g. Shibuya" : "例: 渋谷"}
           className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100"
         />
-        <p className="mt-1 text-xs text-gray-500">「駅」は省略可。中間地点の計算に使います。</p>
+        <p className="mt-1 text-xs text-gray-500">{t.stationHelp}</p>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">参加可能な日時</label>
+        <label className="block text-sm font-medium text-gray-700">{t.availability}</label>
         <div className="mt-2 space-y-2">
           {dateOptions.map((opt) => {
             const key = slotKey(opt.date, opt.timeSlot);
             const checked = selected.has(key);
-            const d = new Date(opt.date + "T12:00:00");
-            const days = ["日", "月", "火", "水", "木", "金", "土"];
-            const dateLabel = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+            const dateLabel = formatDateLabel(opt.date, locale);
 
             return (
               <button
@@ -174,7 +206,7 @@ export function JoinEventForm({
         disabled={loading}
         className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 text-lg font-bold text-white hover:bg-amber-600 disabled:opacity-50"
       >
-        {loading ? "送信中..." : "参加登録する"}
+        {loading ? t.submitting : t.submit}
       </button>
     </form>
   );

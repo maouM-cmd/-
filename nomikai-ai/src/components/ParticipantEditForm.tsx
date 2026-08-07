@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ParticipantPushPrompt } from "@/components/ParticipantPushPrompt";
-import { TIME_SLOTS } from "@/lib/constants";
+import { formatDateLabel, timeSlots } from "@/lib/constants";
+import { withLang, type Locale } from "@/lib/i18n";
 import type { AvailabilitySlot, DateOption, Participant } from "@/lib/types";
 
 function storageKey(slug: string) {
@@ -35,18 +36,62 @@ export function loadParticipantSession(slug: string): {
   }
 }
 
+function editMessages(locale: Locale) {
+  return locale === "en"
+    ? {
+        name: "Your name",
+        station: "Nearest station",
+        availability: "Available dates & times",
+        selectSlot: "Select at least one available time slot",
+        updateFailed: "Failed to update",
+        networkError: "Network error occurred",
+        updating: "Updating...",
+        submit: "Update response",
+      }
+    : {
+        name: "お名前",
+        station: "最寄駅",
+        availability: "参加可能な日時",
+        selectSlot: "参加可能な日時を1つ以上選んでください",
+        updateFailed: "更新に失敗しました",
+        networkError: "通信エラーが発生しました",
+        updating: "更新中...",
+        submit: "回答を更新する",
+      };
+}
+
+function successMessages(locale: Locale) {
+  return locale === "en"
+    ? {
+        title: "Registration complete",
+        hint: "Save this link if you want to change your response later.",
+        copied: "Copied",
+        copyEditLink: "Copy edit link",
+      }
+    : {
+        title: "参加登録が完了しました",
+        hint: "あとから回答を変更する場合は、このリンクを保存してください。",
+        copied: "コピー済",
+        copyEditLink: "編集用リンクをコピー",
+      };
+}
+
 export function ParticipantEditForm({
   slug,
   dateOptions,
   participant,
   participantToken,
+  locale,
 }: {
   slug: string;
   dateOptions: DateOption[];
   participant: Participant;
   participantToken: string;
+  locale: Locale;
 }) {
   const router = useRouter();
+  const t = editMessages(locale);
+  const slots = timeSlots(locale);
   const [name, setName] = useState(participant.name);
   const [station, setStation] = useState(participant.station);
   const [selected, setSelected] = useState<Set<string>>(() => {
@@ -74,13 +119,13 @@ export function ParticipantEditForm({
   }
 
   function timeLabel(timeSlot: string) {
-    return TIME_SLOTS.find((t) => t.value === timeSlot)?.label ?? timeSlot;
+    return slots.find((s) => s.value === timeSlot)?.label ?? timeSlot;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (selected.size === 0) {
-      setError("参加可能な日時を1つ以上選んでください");
+      setError(t.selectSlot);
       return;
     }
 
@@ -100,14 +145,14 @@ export function ParticipantEditForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "更新に失敗しました");
+        setError(data.error ?? t.updateFailed);
         return;
       }
       saveParticipantSession(slug, participant.id, participantToken);
-      router.push(`/e/${slug}`);
+      router.push(withLang(`/e/${slug}`, locale));
       router.refresh();
     } catch {
-      setError("通信エラーが発生しました");
+      setError(t.networkError);
     } finally {
       setLoading(false);
     }
@@ -116,7 +161,7 @@ export function ParticipantEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700">お名前</label>
+        <label className="block text-sm font-medium text-gray-700">{t.name}</label>
         <input
           type="text"
           required
@@ -126,7 +171,7 @@ export function ParticipantEditForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">最寄駅</label>
+        <label className="block text-sm font-medium text-gray-700">{t.station}</label>
         <input
           type="text"
           required
@@ -136,14 +181,12 @@ export function ParticipantEditForm({
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700">参加可能な日時</label>
+        <label className="block text-sm font-medium text-gray-700">{t.availability}</label>
         <div className="mt-2 space-y-2">
           {dateOptions.map((opt) => {
             const key = slotKey(opt.date, opt.timeSlot);
             const checked = selected.has(key);
-            const d = new Date(opt.date + "T12:00:00");
-            const days = ["日", "月", "火", "水", "木", "金", "土"];
-            const dateLabel = `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+            const dateLabel = formatDateLabel(opt.date, locale);
 
             return (
               <button
@@ -175,7 +218,7 @@ export function ParticipantEditForm({
         disabled={loading}
         className="flex min-h-[48px] w-full items-center justify-center rounded-2xl bg-amber-500 text-lg font-bold text-white disabled:opacity-50"
       >
-        {loading ? "更新中..." : "回答を更新する"}
+        {loading ? t.updating : t.submit}
       </button>
     </form>
   );
@@ -186,12 +229,15 @@ export function JoinSuccessBanner({
   editUrl,
   participantToken,
   participantId,
+  locale,
 }: {
   slug: string;
   editUrl: string;
   participantToken: string;
   participantId: number;
+  locale: Locale;
 }) {
+  const t = successMessages(locale);
   const [copied, setCopied] = useState(false);
   const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${editUrl}` : editUrl;
 
@@ -208,20 +254,21 @@ export function JoinSuccessBanner({
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-green-200 bg-green-50 p-4">
-        <p className="text-sm font-medium text-green-800">参加登録が完了しました</p>
-        <p className="mt-1 text-xs text-green-700">あとから回答を変更する場合は、このリンクを保存してください。</p>
+        <p className="text-sm font-medium text-green-800">{t.title}</p>
+        <p className="mt-1 text-xs text-green-700">{t.hint}</p>
         <button
           type="button"
           onClick={copyEditUrl}
           className="mt-3 min-h-[44px] rounded-lg bg-green-600 px-4 text-sm font-medium text-white"
         >
-          {copied ? "コピー済" : "編集用リンクをコピー"}
+          {copied ? t.copied : t.copyEditLink}
         </button>
       </div>
       <ParticipantPushPrompt
         slug={slug}
         participantId={participantId}
         participantToken={participantToken}
+        locale={locale}
       />
     </div>
   );

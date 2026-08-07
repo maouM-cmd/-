@@ -20,6 +20,8 @@ curl -sf -o /dev/null -w "%{http_code}" "${BASE}/signup" | grep -q 200 && echo "
 
 curl -sf "${BASE}/api/auth/me" | grep -q '"user":null' && echo "✓ auth/me (unauthenticated)"
 
+curl -sf -o /dev/null -w "%{http_code}" "${BASE}/?lang=en" | grep -q 200 && echo "✓ home page (en)"
+
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/terms" | grep -q 200 && echo "✓ terms"
 
 curl -sf -o /dev/null -w "%{http_code}" "${BASE}/privacy" | grep -q 200 && echo "✓ privacy"

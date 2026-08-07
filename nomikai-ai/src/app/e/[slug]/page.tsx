@@ -2,23 +2,30 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { EventDetailView } from "@/components/EventDetailView";
 import { absoluteAppUrl } from "@/lib/app-url";
-import { MOOD_OPTIONS, SITE_NAME } from "@/lib/constants";
+import { moodOptions, SITE_NAME } from "@/lib/constants";
 import { getEventDetail } from "@/lib/db";
+import { getLocaleFromCookie } from "@/lib/i18n-server";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const locale = await getLocaleFromCookie();
   const { slug } = await params;
   const detail = getEventDetail(slug);
   if (!detail) {
-    return { title: `イベントが見つかりません | ${SITE_NAME}` };
+    const notFoundTitle =
+      locale === "en" ? `Event not found | ${SITE_NAME}` : `イベントが見つかりません | ${SITE_NAME}`;
+    return { title: notFoundTitle };
   }
 
   const { event, participants } = detail;
-  const mood = MOOD_OPTIONS.find((m) => m.value === event.mood);
-  const description = `幹事: ${event.organizer_name} / 参加者 ${participants.length}人 / ${mood?.emoji ?? ""} ${mood?.label ?? ""}`;
+  const mood = moodOptions(locale).find((m) => m.value === event.mood);
+  const description =
+    locale === "en"
+      ? `Organizer: ${event.organizer_name} / ${participants.length} participants / ${mood?.emoji ?? ""} ${mood?.label ?? ""}`
+      : `幹事: ${event.organizer_name} / 参加者 ${participants.length}人 / ${mood?.emoji ?? ""} ${mood?.label ?? ""}`;
   const ogImage = absoluteAppUrl(`/api/og/${slug}`);
 
   return {
@@ -46,6 +53,7 @@ export default async function EventPage({
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ token?: string }>;
 }) {
+  const locale = await getLocaleFromCookie();
   const { slug } = await params;
   const { token } = await searchParams;
   const detail = getEventDetail(slug);
@@ -53,7 +61,7 @@ export default async function EventPage({
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
-      <EventDetailView detail={detail} editToken={token} />
+      <EventDetailView detail={detail} editToken={token} locale={locale} />
     </div>
   );
 }

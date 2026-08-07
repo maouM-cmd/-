@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BUDGET_OPTIONS, MOOD_OPTIONS, TIME_SLOTS } from "@/lib/constants";
+import { budgetOptions, moodOptions, timeSlots } from "@/lib/constants";
 import { withLang, type Locale } from "@/lib/i18n";
 import type { DateOption, Mood } from "@/lib/types";
 
@@ -30,6 +30,9 @@ export function CreateEventForm({ locale }: { locale: Locale }) {
   const [expectedCount, setExpectedCount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const budgets = budgetOptions(locale);
+  const moods = moodOptions(locale);
+  const slots = timeSlots(locale);
   const t = locale === "en"
     ? {
         title: "Event title",
@@ -141,7 +144,7 @@ export function CreateEventForm({ locale }: { locale: Locale }) {
           onChange={(e) => setBudget(Number(e.target.value))}
           className="mt-1 w-full rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-amber-400 focus:outline-none"
         >
-          {BUDGET_OPTIONS.map((opt) => (
+          {budgets.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -152,7 +155,7 @@ export function CreateEventForm({ locale }: { locale: Locale }) {
       <div>
         <label className="block text-sm font-medium text-gray-700">{t.mood}</label>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          {MOOD_OPTIONS.map((opt) => (
+          {moods.map((opt) => (
             <button
               key={opt.value}
               type="button"
@@ -186,7 +189,7 @@ export function CreateEventForm({ locale }: { locale: Locale }) {
                 onChange={(e) => updateDateOption(i, "timeSlot", e.target.value)}
                 className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm"
               >
-                {TIME_SLOTS.map((slot) => (
+                {slots.map((slot) => (
                   <option key={slot.value} value={slot.value}>
                     {slot.label}
                   </option>

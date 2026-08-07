@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Locale } from "@/lib/i18n";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -9,13 +10,32 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
 }
 
+function pushMessages(locale: Locale) {
+  return locale === "en"
+    ? {
+        body: "Get push notifications when participants register (organizer)",
+        enabling: "Enabling...",
+        enable: "Enable notifications",
+        later: "Later",
+      }
+    : {
+        body: "参加者が登録したらプッシュ通知でお知らせします（幹事向け）",
+        enabling: "設定中...",
+        enable: "通知を有効にする",
+        later: "あとで",
+      };
+}
+
 export function OrganizerPushPrompt({
   slug,
   editToken,
+  locale,
 }: {
   slug: string;
   editToken: string;
+  locale: Locale;
 }) {
+  const t = pushMessages(locale);
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -84,9 +104,7 @@ export function OrganizerPushPrompt({
 
   return (
     <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-      <p className="text-sm text-gray-700">
-        参加者が登録したらプッシュ通知でお知らせします（幹事向け）
-      </p>
+      <p className="text-sm text-gray-700">{t.body}</p>
       <div className="mt-3 flex gap-2">
         <button
           type="button"
@@ -94,14 +112,14 @@ export function OrganizerPushPrompt({
           disabled={loading}
           className="min-h-[44px] rounded-lg bg-amber-500 px-4 text-sm font-medium text-white hover:bg-amber-600 disabled:opacity-50"
         >
-          {loading ? "設定中..." : "通知を有効にする"}
+          {loading ? t.enabling : t.enable}
         </button>
         <button
           type="button"
           onClick={dismiss}
           className="min-h-[44px] rounded-lg px-4 text-sm text-gray-500 hover:text-gray-700"
         >
-          あとで
+          {t.later}
         </button>
       </div>
     </div>

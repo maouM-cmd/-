@@ -6,16 +6,55 @@ import {
   OPERATOR_NAME,
 } from "@/components/LegalDocument";
 import { SITE_NAME } from "@/lib/constants";
+import { getLocaleFromCookie } from "@/lib/i18n-server";
 
-export const metadata: Metadata = {
-  title: `利用規約 | ${SITE_NAME}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocaleFromCookie();
+  return {
+    title:
+      locale === "en"
+        ? `Terms of Service | ${SITE_NAME}`
+        : `利用規約 | ${SITE_NAME}`,
+  };
+}
 
-const LAST_UPDATED = "2026年7月6日";
+export default async function TermsPage() {
+  const locale = await getLocaleFromCookie();
 
-export default function TermsPage() {
+  if (locale === "en") {
+    return (
+      <LegalDocument title="Terms of Service" lastUpdated="July 6, 2026">
+        <p>
+          These Terms of Service govern your use of &quot;{SITE_NAME}&quot; (the
+          &quot;Service&quot;) provided by {OPERATOR_NAME}.
+        </p>
+
+        <LegalSection title="Article 1 (Service Description)">
+          <p>
+            The Service helps organize drinking parties by coordinating schedules,
+            calculating meeting points, suggesting venues, and generating party content.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="Article 2 (Important Notes)">
+          <p>
+            Venue suggestions and party content are for reference only. Reservations
+            and actual use are at your own responsibility. Alcohol consumption is
+            limited to persons aged 20 and over in Japan.
+          </p>
+        </LegalSection>
+
+        <LegalSection title="Article 3 (Contact)">
+          <p>
+            Contact: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+          </p>
+        </LegalSection>
+      </LegalDocument>
+    );
+  }
+
   return (
-    <LegalDocument title="利用規約" lastUpdated={LAST_UPDATED}>
+    <LegalDocument title="利用規約" lastUpdated="2026年7月6日">
       <p>
         本利用規約は、{OPERATOR_NAME}が提供する「{SITE_NAME}」（以下「本サービス」）の利用条件を定めるものです。
       </p>
