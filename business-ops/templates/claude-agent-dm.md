@@ -5,7 +5,7 @@ Claude Code のホームが `ai_company` のとき、Cursor との会話はこ�
 ```
 ## Agent DM（Cursor との会話）
 
-先に分類（`.claude/skills/agent-router`）。製品の相互DMは無い。
+先に分類（`.claude/skills/agent-router`）。製品の相互DMは無い。相手の会話・思考・画面は読めない。Agent Mail は入れない。
 
 - 同じ PC: Cursor 仕事なら `agent -p`。Cursor から呼ばれる実装はそのままやる
 - Cloud: このリポに cd → inbox または `gh issue list --label agent-dm`

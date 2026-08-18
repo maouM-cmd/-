@@ -7,7 +7,7 @@ description: 依頼を実装する前に Cursor / Claude Code / 人間へ分類�
 
 どのツールに話しかけられても、**コードを書く前に分類する。** 自分の仕事でなければ実装しない。
 
-判定の正: `business-ops/CURSOR_VS_CLAUDE.md`。配達の詳細: `business-ops/agent-dm/CATALOG.md` と `PROTOCOL.md`。
+判定の正: `business-ops/CURSOR_VS_CLAUDE.md`。配達の詳細: `business-ops/agent-dm/CATALOG.md` と `PROTOCOL.md`。相手の会話・思考・画面は読めない。渡すか、同じ git を読むかだけ。
 
 ## 判定表
 

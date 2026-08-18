@@ -2,7 +2,7 @@
 
 **実装の前に分類する。** 判定は `@agent-router`（`.cursor/skills/agent-router` と `.claude/skills/agent-router`）。このファイルは配達とフォールバック。
 
-製品としての相互DMはない。会話口は既存の MCP / GitHub / スレッドから選ぶ。一覧: [`CATALOG.md`](CATALOG.md)
+製品としての相互DMはない。相手の会話・思考・画面を呼ばれずに覗く口もない。会話口は既存の MCP / GitHub / スレッドから選ぶ。一覧: [`CATALOG.md`](CATALOG.md)
 
 ## チャネルを先に決める
 

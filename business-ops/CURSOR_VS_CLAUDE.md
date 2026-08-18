@@ -125,7 +125,7 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 
 ### 7. Cursor と Claude Code で会話する
 
-製品の相互DMは無い。**先に `@agent-router`。** 同じ PC なら公式 `claude mcp serve` / `agent -p`（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅はスレッド or GitHub Issue。
+製品の相互DMは無い。相手の会話・思考・画面を勝手に読むこともできない。**先に `@agent-router`。** 同じ PC なら公式 `claude mcp serve` / `agent -p`（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅はスレッド or GitHub Issue。Agent Mail は入れない。
 
 ```
 @agent-router
@@ -143,7 +143,7 @@ lint 修正なら Claude に渡す。余白なら Design Mode。デプロイな�
 - Autopilot L2 は「作って draft PR まで」。レビュー・マージ・捨てる判断が無い → draft の墓場。
 - セキュリティの教訓が実装フロー（Bugbot / preflight）に繋がっていない。
 - Issue がゼロなので、Issue → 実装の Automation を繋ぐ先が無い。
-- Cursor と Claude Code の公式相互DMは無い（ルーター + MCP/`agent -p` + Agent DM で代替）。
+- Cursor と Claude Code の公式相互DMは無い（ルーター + MCP/`agent -p` + Agent DM で代替）。相手のセッションを勝手に読む口も無い。
 
 ## これから必要になること（L4 に行くなら）
 

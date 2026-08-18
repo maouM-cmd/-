@@ -7,7 +7,7 @@ description: 実装前に Cursor / Claude Code / 人間へ分類する。実装�
 
 どのツールに話しかけられても、**コードを書く前に分類する。** 自分の仕事でなければ実装しない。
 
-判定の正: `business-ops/CURSOR_VS_CLAUDE.md`。配達: `business-ops/agent-dm/CATALOG.md` と `PROTOCOL.md`。ホーム直下では起動しない。このモノレポに `cd` してから分類する。
+判定の正: `business-ops/CURSOR_VS_CLAUDE.md`。配達: `business-ops/agent-dm/CATALOG.md` と `PROTOCOL.md`。ホーム直下では起動しない。このモノレポに `cd` してから分類する。相手の会話・思考・画面は読めない。渡すか、同じ git を読むかだけ。
 
 ## 判定表
 
