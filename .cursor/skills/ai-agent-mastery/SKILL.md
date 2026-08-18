@@ -35,6 +35,7 @@ Cursor を Claude Code の代わりにしない。手元実装は Claude Code、
 ### 2. 入力フォームを必ず挟む
 - 口頭の曖昧な指示より `project-brief.md` / `article-brief.md`
 - **入力が足りないときは推測で進め、仮定を明示**
+- UI / 余白でプロジェクト名が無いときは `coupon-board` の一覧カードを既定にする。聞いて止まらない
 
 ### 3. 委任の粒度を決める
 

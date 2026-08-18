@@ -130,6 +130,7 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 ```
 @agent-router
 lint 修正なら Claude に渡す。余白なら Design Mode。デプロイなら人間。
+プロジェクト名が無い余白は coupon-board の DealCard。聞いて止まらない。
 ```
 
 ## 足りないこと

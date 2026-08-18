@@ -36,6 +36,7 @@ irm 'https://cursor.com/install?win32=true' | iex
 | 依頼 | 判定 | 動き |
 |------|------|------|
 | coupon-board の lint を直して | claude-code | 実装。Cursor なら MCP かスレッド |
+| 余白を直して（プロジェクト名なし） | cursor | 既定 coupon-board の DealCard。Claude は聞かずに `agent -p` |
 | 一覧カードの余白を揃えて | cursor | Design Mode。Claude なら `agent -p` かスレッド |
 | Next.js 16 の params を複数モデルで当てて | cursor | `/best-of-n` |
 | 本番にデプロイして | human | どちらも実装しない |

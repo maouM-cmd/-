@@ -52,11 +52,11 @@ node business-ops/scripts/enable-local-mcp.mjs
 
 Cursor CLI は `agent`（[docs](https://cursor.com/docs/cli/using.md)）。ルーターが `cursor` と判定したら:
 
-```bash
-agent -p "Design Mode で一覧カードの余白を揃えて。完了条件: 他カードと同じ。リファクタ禁止。"
+```powershell
+agent -p "coupon-board の一覧カード（DealCard）の余白を他カードと揃えて。触ってよい: coupon-board/src/components/DealCard.tsx と一覧グリッド。完了条件: 同じ行のカードの高さと内部余白が揃う。リファクタ禁止。聞かないで進めて。"
 ```
 
-`agent` が PATH に無い / ログイン前なら agent-dm か `gh issue`。コミュニティの cursor-mcp-bridge は入れない（yolo になりがち）。
+プロジェクト名が無くても「どれですか？」と聞かない。UI / 余白の既定は coupon-board。`agent` が PATH に無い / ログイン前なら agent-dm か `gh issue`。コミュニティの cursor-mcp-bridge は入れない（yolo になりがち）。
 
 参考（入れない）: [JaimeJunr/cursor-mcp-bridge](https://github.com/JaimeJunr/cursor-mcp-bridge)、[jonaspauleta/cursor-bridge](https://github.com/jonaspauleta/cursor-bridge)
 
