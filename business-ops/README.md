@@ -78,10 +78,12 @@ business-ops/
 ├── ai-agent-mastery/SKILL.md
 ├── article-production/SKILL.md
 ├── coupon-board-dev/SKILL.md
-└── agent-dm/SKILL.md
+├── agent-dm/SKILL.md
+└── agent-router/SKILL.md
 
 .claude/skills/
-└── agent-dm/SKILL.md
+├── agent-dm/SKILL.md
+└── agent-router/SKILL.md
 
 .github/
 ├── pull_request_template.md
@@ -90,7 +92,7 @@ business-ops/
 
 ## Cursor と Claude Code
 
-手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。互いの依頼は同じPCなら `claude mcp serve`、Cloudなら `agent-dm/`。カタログは `agent-dm/CATALOG.md`。
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。依頼は先に `@agent-router`。同じPCなら `claude mcp serve` / `agent -p`、Cloudなら `agent-dm/`。
 
 ## Cursor Skill の呼び方
 
@@ -101,6 +103,7 @@ business-ops/
 | **エージェントマスター** | `@ai-agent-mastery` |
 | 記事制作 | `@article-production` |
 | 掲示板開発 | `@coupon-board-dev` |
+| 先に分類 | `@agent-router` |
 | Cursor と Claude の会話 | `@agent-dm` / Claude 側は「inbox 見て」 |
 
 ## 安全ルール

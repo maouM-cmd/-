@@ -22,7 +22,7 @@ Cursor を Claude Code の代わりにしない。手元実装は Claude Code、
 | PR 監査・CI 失敗修正 | Bugbot / Automations |
 | モデル比較（Next.js 16 など） | Cursor `/best-of-n` |
 | 日次 SOP（朝チェック・1時間） | Claude Code skills |
-| 相手エージェントへ依頼 | Agent DM（`@agent-dm`） |
+| 相手エージェントへ依頼 | 先に `@agent-router`。配達は Agent DM |
 
 詳細: `business-ops/CURSOR_VS_CLAUDE.md`
 
@@ -90,9 +90,15 @@ Step 3: QAスクリプト → 人間確認
 
 ### パターンE: Cursor → Claude Code（Agent DM）
 ```
-@agent-dm
-Claude Code に渡す。実装は向こう。こちらはレビューだけ。
-完了条件と触ってよいパスを --body に書く。
+@agent-router
+Claude の仕事なら渡す。実装は向こう。こちらはレビューだけ。
+```
+
+### パターンF: 分類してから動く
+```
+@agent-router
+実装する前に claude-code / cursor / human のどれかだけを出す。
+自分の仕事でなければ実装しない。
 ```
 
 ## Skillの組み合わせ
@@ -104,7 +110,8 @@ Claude Code に渡す。実装は向こう。こちらはレビューだけ。
 | 記事執筆 | `@article-production` |
 | エージェント設計 | `@ai-agent-mastery`（本Skill） |
 | 全自動 ship | `@autopilot` |
-| Cursor と Claude の会話 | `@agent-dm` |
+| 先に分類 | `@agent-router` |
+| Cursor と Claude の会話 | `@agent-dm`（配達） |
 | ツール分担の確認 | `business-ops/CURSOR_VS_CLAUDE.md` |
 
 ## 週次振り返りテンプレート
@@ -125,4 +132,5 @@ Claude Code に渡す。実装は向こう。こちらはレビューだけ。
 
 - `business-ops/AI_AGENT_MASTERY.md`
 - `business-ops/CURSOR_VS_CLAUDE.md` — Cursor の存在意義と、Claude Code との使い分け
-- `business-ops/agent-dm/PROTOCOL.md` — エージェント同士の会話
+- `business-ops/agent-dm/PROTOCOL.md` — 配達
+- `.cursor/skills/agent-router/SKILL.md` — 分類

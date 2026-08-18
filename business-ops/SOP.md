@@ -2,7 +2,13 @@
 
 > 主業務: Web開発 / くり返し: GitHub投稿 / ゴール: 最強AIエージェントマスター
 
-## どのツールでやるか（先に決める）
+## エージェントが先に分類する
+
+依頼を受けたツールは、実装の前に `@agent-router` で判定する。自分の仕事ならやる。相手の仕事なら渡す。merge / デプロイは人間。
+
+同じ実装を Cursor と Claude Code の両方でやらない。根拠: `CURSOR_VS_CLAUDE.md`
+
+## どのツールでやるか（判定の目安）
 
 | 今日の作業 | ツール | 呼び出し |
 |------------|--------|----------|
@@ -11,10 +17,8 @@
 | 新規Webをゼロから、または全自動 ship | Cursor | `@autopilot` / `@web-dev-github` |
 | coupon-board の見た目 | Cursor | Design Mode + `@coupon-board-dev` |
 | 外出中・並列で直す | Cursor Cloud Agent | cursor.com/agents またはモバイル |
-| 相手エージェントに仕事を渡す | Agent DM | `@agent-dm` / 「inbox 見て」 |
+| 相手エージェントに仕事を渡す | Agent DM / MCP / `agent -p` | 先に `@agent-router` |
 | 朝のチェック / 今日の1時間 / 週報 | Claude Code | 「今日の状況は」「今日の1時間」 |
-
-同じ実装を Cursor Agent と Claude Code の両方に投げない。根拠: `CURSOR_VS_CLAUDE.md`
 
 ## 日次: 全自動モード（推奨）
 
@@ -98,4 +102,4 @@ node business-ops/scripts/autopilot.mjs ship --yes
 | エージェントの使い方 | `@ai-agent-mastery` |
 | Next.jsエラー | `@coupon-board-dev` + AGENTS.md |
 | Cursor の意義が分からない | `CURSOR_VS_CLAUDE.md` |
-| 相手エージェントに渡したい | `@agent-dm` + `PROTOCOL.md` |
+| 相手エージェントに渡したい | 先に `@agent-router`。配達は `@agent-dm` |

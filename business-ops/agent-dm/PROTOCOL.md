@@ -1,18 +1,33 @@
 # Agent DM プロトコル
 
-Cursor と Claude Code に **製品としての相互DMはない。** 会話口は既存の MCP / GitHub / このリポのスレッドから選ぶ。
+**実装の前に分類する。** 判定は `@agent-router`（`.cursor/skills/agent-router` と `.claude/skills/agent-router`）。このファイルは配達とフォールバック。
 
-**先に読む:** [`CATALOG.md`](CATALOG.md)（公式 `claude mcp serve`、Cursor CLI bridge、Agent Mail、GitHub Issue）
+製品としての相互DMはない。会話口は既存の MCP / GitHub / スレッドから選ぶ。一覧: [`CATALOG.md`](CATALOG.md)
 
 ## チャネルを先に決める
 
 | 今どこにいるか | チャネル |
 |----------------|----------|
-| 同じ Windows（日常） | Cursor の MCP に `claude mcp serve`。例: [`.cursor/mcp.json.example`](../../.cursor/mcp.json.example) を `mcp.json` にコピー（PATH は自分の `claude`） |
+| 同じ Windows（日常） | 下記「同じ Windows」。Cursor は `claude mcp serve`、Claude は `agent -p` |
 | Cloud Agent ↔ 自宅 Claude | GitHub Issue（`gh`）または下のスレッドファイル |
-| エージェントを常時複数 | [MCP Agent Mail](https://github.com/Dicklesworthstone/mcp_agent_mail) |
+| エージェントを常時複数 | [MCP Agent Mail](https://github.com/Dicklesworthstone/mcp_agent_mail)（まだ入れない） |
 
 同じ PC なら自前 CLI を使わない。Cloud のときだけスレッドファイル。
+
+### 同じ Windows（3 行）
+
+1. `.cursor/mcp.json.example` を `.cursor/mcp.json` にコピーする（リポジトリにはコミットしない）
+2. `where.exe claude` の結果が PATH でなければ、そのフルパスを `command` に書く
+3. Cursor で MCP を承認する。Claude 側は `agent` が PATH にあれば `agent -p` で返す
+
+## 判定例（ルーター）
+
+| 依頼 | 判定 | 動き |
+|------|------|------|
+| coupon-board の lint を直して | claude-code | 実装。Cursor なら MCP かスレッド |
+| 一覧カードの余白を揃えて | cursor | Design Mode。Claude なら `agent -p` かスレッド |
+| Next.js 16 の params を複数モデルで当てて | cursor | `/best-of-n` |
+| 本番にデプロイして | human | どちらも実装しない |
 
 ---
 

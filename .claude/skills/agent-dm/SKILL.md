@@ -1,21 +1,20 @@
 ---
 name: agent-dm
-description: Cursor と会話する。トリガー: 「inbox見て」「Cursorに頼んで」「agent-dm」「claude mcp serve」
+description: ルーター判定のあと Cursor へ配達する。トリガー: inbox見て、Cursorに頼んで、agent-dm。同じPCで agent -p が使えるときは使わない。
 ---
 
-# Agent DM Skill（Claude Code）
+# Agent DM Skill（Claude Code）— 配達
 
-## チャネル（先に選ぶ）
+**先に `@agent-router`（または `.claude/skills/agent-router`）。** 分類が自分（claude-code）なら実装する。Cursor へ渡すチャネルだけがこの Skill。
 
-1. **同じ Windows で Cursor から呼ばれる** — Cursor 側の `claude mcp serve` MCP。こちらは通常どおり実装する。スレッド CLI は不要。
-2. **Cloud Agent からの依頼** — このモノレポに `cd` して inbox（下記）または `gh issue list --label agent-dm`。
-3. カタログ: `business-ops/agent-dm/CATALOG.md`。yolo 系 bridge は使わない。
+ホーム直下では起動しない。このモノレポに `cd` する。
 
-ホーム直下では起動しない。
+## チャネル
 
-## フォールバック（Cloud / 非同期）
+1. 同じ Windows で `agent` がある → `agent -p "..."` 。この CLI は使わない。
+2. Cloud Agent からの依頼 / `agent` 無し → inbox（下記）または `gh issue list --label agent-dm`。
 
-`business-ops/agent-dm/threads/`。先に `PROTOCOL.md`。
+カタログ: `business-ops/agent-dm/CATALOG.md`。yolo は使わない。
 
 ## 自分
 
@@ -26,15 +25,10 @@ description: Cursor と会話する。トリガー: 「inbox見て」「Cursor�
 ```powershell
 git pull --ff-only
 node business-ops/scripts/agent-dm.mjs inbox --from claude-code
-```
-
-自分宛があれば:
-
-```powershell
 node business-ops/scripts/agent-dm.mjs show --id <id>
 ```
 
-依頼どおり実装・テストする。終わったら結果だけ返す（Cursor に実装をやり返さない）。
+渡された実装はやって結果だけ返す。Cursor に実装をやり返さない。
 
 ```powershell
 node business-ops/scripts/agent-dm.mjs reply --id <id> --from claude-code --body @"
@@ -45,7 +39,7 @@ node business-ops/scripts/agent-dm.mjs reply --id <id> --from claude-code --body
 "@
 ```
 
-新規に Cursor へ渡すとき:
+新規に Cursor へ（`agent` が使えないとき）:
 
 ```powershell
 node business-ops/scripts/agent-dm.mjs send `
@@ -59,11 +53,10 @@ git add business-ops/agent-dm/threads/
 git commit -m "chore(agent-dm): <id> claude-code → cursor"
 ```
 
-`main` へは push しない。作業ブランチだけ。相手は `git pull` するまで読めない。
+`main` へは push しない。
 
 ## 禁止
 
+- ルーターを飛ばす
 - 最後の投稿者が claude-code なら返信しない
-- Cursor と同じ実装を二重にやらない
-- 秘密情報・本番デプロイ・main push
-- 8 ターンを超えて勝手に続ける
+- 秘密情報・本番デプロイ・8 ターン超過

@@ -1,15 +1,18 @@
-# 既存の MCP / Skill / GitHub（先にこれを見る）
+# 既存の MCP / Skill / GitHub
 
-自前の `agent-dm.mjs` は **Cloud Agent と Windows の Claude がプロセスを共有できないとき** のフォールバック。同じ PC なら公式・既存の方が会話になる。
+**依頼が来たら先に `@agent-router`。** このカタログは引き渡し手段。判定表はルーター Skill にある。
 
-コミュニティ MCP の `--yolo` / `--dangerously-skip-permissions` は使わない。
+自前の `agent-dm.mjs` は **Cloud Agent と Windows の Claude がプロセスを共有できないとき** のフォールバック。同じ PC なら公式 MCP / `agent -p`。
+
+コミュニティ MCP の `--yolo` / `--dangerously-skip-permissions` は使わない。`.cursor/mcp.json` はコミットしない（Cloud に `claude` が無い）。
 
 ## どれを使うか
 
 | 状況 | 使うもの | リアルタイムか |
 |------|----------|----------------|
 | 同じ Windows で Cursor が Claude に作業を渡す | **公式 `claude mcp serve`** | 同じマシンのツール呼び出し |
-| 同じ Windows で Claude が Cursor CLI をワーカーにする | **Cursor CLI + 薄い bridge**（任意） | サブエージェント |
+| 同じ Windows で Claude が Cursor に UI / best-of-n を渡す | **公式 Cursor CLI `agent -p`** | サブエージェント |
+| 任意で GitHub inbox | 公式 GitHub MCP または `gh`（[`.claude/mcp.json.example`](../../.claude/mcp.json.example)） | Issue |
 | 複数エージェントの inbox が欲しい（同じマシン） | **MCP Agent Mail**（実績あり） | 非同期メール |
 | スマホの Cloud Agent ↔ 自宅の Claude | **このリポの Agent DM** または GitHub Issue | git / Issue |
 | スキルやルールを Claude にも読ませたい | **cursor-bridge-mcp**（コンテキスト同期。会話ではない） | 読み取り |
@@ -39,19 +42,17 @@ Windows で `claude` が PATH に無いときは、`where.exe claude` のフル�
 
 使い方: Cursor に「claude-code MCP でこのファイルを直して」と明示する。Cursor が Claude のツールを呼ぶ。**Cloud Agent の VM には `claude` が無いので、これは自宅 PC 専用。**
 
-## 2. 公式に近い: Claude から Cursor CLI を呼ぶ
+## 2. 公式: Claude から Cursor CLI を呼ぶ
 
-Cursor 側の会話相手は CLI `agent`（旧 `cursor-agent`）。[CLI MCP](https://cursor.com/docs/cli/mcp.md)
+Cursor CLI は `agent`（[docs](https://cursor.com/docs/cli/using.md)）。ルーターが `cursor` と判定したら:
 
-Claude Code が「安いワーカーとして Cursor を使う」パターンの実装例:
+```bash
+agent -p "Design Mode で一覧カードの余白を揃えて。完了条件: 他カードと同じ。リファクタ禁止。"
+```
 
-| リポジトリ | 向き |
-|------------|------|
-| [JaimeJunr/cursor-mcp-bridge](https://github.com/JaimeJunr/cursor-mcp-bridge) | Claude / Codex から `agent -p` に委譲。model / effort 付き |
-| [jonaspauleta/cursor-bridge](https://github.com/jonaspauleta/cursor-bridge) | `run_cursor_agent`。Composer をワーカーに |
-| [thsunkid/orchestrate-cursor-agent-mcp](https://github.com/thsunkid/orchestrate-cursor-agent-mcp) | 多ターン IPC。重い |
+`agent` が PATH に無い / ログイン前なら agent-dm か `gh issue`。コミュニティの cursor-mcp-bridge は入れない（yolo になりがち）。
 
-入れるなら **cursor-mcp-bridge** が薄い。権限スキップ系は拒否。自宅 PC で `agent` がログイン済みのときだけ。
+参考（入れない）: [JaimeJunr/cursor-mcp-bridge](https://github.com/JaimeJunr/cursor-mcp-bridge)、[jonaspauleta/cursor-bridge](https://github.com/jonaspauleta/cursor-bridge)
 
 ## 3. 本格 inbox: MCP Agent Mail
 
@@ -73,7 +74,7 @@ inbox、スレッド、ファイル予約（同時編集防止）、Git 監査�
 
 ## 5. GitHub 上でやる（Cloud でも使える）
 
-Issue / PR コメントが公共の inbox。公式 [GitHub MCP](https://github.com/github/github-mcp-server) か、すでにある `gh`。
+Issue / PR コメントが公共の inbox。公式 [GitHub MCP](https://github.com/github/github-mcp-server)（例: [`.claude/mcp.json.example`](../../.claude/mcp.json.example)、トークンは環境変数）か、すでにある `gh`。MCP は任意。トークンをファイルに書かない。
 
 ```bash
 gh issue create --title "agent-dm: lint 直して" --body "from: cursor → claude-code\n..."
@@ -97,8 +98,8 @@ Cursor ↔ Claude の DM の代わりにはならない。日次 SOP を厚く�
 Cursor Cloud は隔離 VM。`claude mcp serve` も Agent Mail も、自宅の Claude プロセスに届かない。git のスレッド（または GitHub Issue）だけが Cloud → 自宅の配達になる。
 
 ```
-同じ PC:     1 → 足りなければ 2
-常時複数:    3
-Cloud↔自宅:  5 または agent-dm.mjs
+同じ PC:     ルーター → 1（Cursor→Claude）または 2（Claude→Cursor）
+Cloud↔自宅:  ルーター → 5 または agent-dm.mjs
+常時複数:    3（まだ入れない）
 スキル共有:  4
 ```

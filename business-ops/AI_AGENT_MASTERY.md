@@ -12,7 +12,7 @@
 
 ## ツール分担（Cursor vs Claude Code）
 
-手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations・モデル比較。同じ「対話実装」を二重にやらない。
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations・モデル比較。**依頼が来たら `@agent-router` が先に分類する。** 同じ「対話実装」を二重にやらない。
 
 | 作業 | 使うもの |
 |------|----------|
@@ -66,7 +66,8 @@
 | `@article-production` | 記事（副業） |
 | `@ai-agent-mastery` | 委任設計・振り返り |
 | `@autopilot` | 全自動 ship（Cursor） |
-| `@agent-dm` | Cursor と Claude Code の会話 |
+| `@agent-router` | 実装前の分類（必須） |
+| `@agent-dm` | 分類後の配達 |
 | `CURSOR_VS_CLAUDE.md` | Cursor と Claude Code の分担 |
 
 ## スクリプト一覧

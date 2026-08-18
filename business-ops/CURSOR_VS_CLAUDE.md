@@ -29,9 +29,9 @@ Claude Code が「実装・テスト・提出」で勝っているなら、Curso
 | CI 失敗 → 修正 PR | **Cursor Automations** | Claude Routines よりトリガーが広い |
 | Next.js 16 など判断が割れる実装 | **Cursor `/best-of-n`** | Composer / GPT / Grok を並列比較。Claude 族だけではできない |
 | 朝のチェック・今日の 1 時間・週報 | **Claude Code skills** | `ai_company` 側に既にある。移さない |
-| 相手エージェントへ仕事を渡す | **Agent DM**（スレッドファイル） | 公式の相互DMはない。`@agent-dm` |
+| 相手エージェントへ仕事を渡す | **先に `@agent-router`** | 同じPCは MCP / `agent -p`。Cloud は Agent DM |
 
-**やらない方がいい使い方:** Claude Code と同じ「手元で対話して実装」を Cursor Agent でもう一度やる。ここは重複なので意義は出ない。相手に渡すときは Agent DM を使い、両方で実装しない。
+**やらない方がいい使い方:** Claude Code と同じ「手元で対話して実装」を Cursor Agent でもう一度やる。ルーターが相手の仕事と判定したら渡して、自分では実装しない。
 
 ## 現状（GitHub と設定から）
 
@@ -125,12 +125,11 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 
 ### 7. Cursor と Claude Code で会話する
 
-製品の相互DMは無い。**同じ PC なら公式 `claude mcp serve`**（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅だけスレッド or GitHub Issue。
+製品の相互DMは無い。**先に `@agent-router`。** 同じ PC なら公式 `claude mcp serve` / `agent -p`（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅はスレッド or GitHub Issue。
 
 ```
-@agent-dm
-同じPCなら claude-code MCP で lint を直して。
-Cloud なら Claude Code にスレッドで「リファクタ禁止」と送って。
+@agent-router
+lint 修正なら Claude に渡す。余白なら Design Mode。デプロイなら人間。
 ```
 
 ## 足りないこと
@@ -143,13 +142,13 @@ Cloud なら Claude Code にスレッドで「リファクタ禁止」と送っ�
 - Autopilot L2 は「作って draft PR まで」。レビュー・マージ・捨てる判断が無い → draft の墓場。
 - セキュリティの教訓が実装フロー（Bugbot / preflight）に繋がっていない。
 - Issue がゼロなので、Issue → 実装の Automation を繋ぐ先が無い。
-- Cursor と Claude Code の公式相互DMは無い（リポジトリ内 Agent DM で代替）。
+- Cursor と Claude Code の公式相互DMは無い（ルーター + MCP/`agent -p` + Agent DM で代替）。
 
 ## これから必要になること（L4 に行くなら）
 
 目標は「brief 以外はエージェント、人間は承認のみ」。そのための次の層:
 
-1. **役割固定** — 上の表を週次振り返りで確認する。Cursor Agent で手元実装を始めない。
+1. **役割固定** — `@agent-router` の表を週次で確認する。Cursor Agent で手元実装を始めない。
 2. **共通の短いルート `AGENTS.md`** — 両方に読ませるスタックと禁止事項。詳細 SOP は各ツールの skills に残す。
 3. **Cloud Environment** — coupon-board の `npm install` を Build に載せ、エージェントがすぐ `next dev` できるようにする。`.cursor/environment.json` は別タスク。
 4. **Bugbot + CI 失敗 Automation** — PR Approver は止めるか絞る。
@@ -164,12 +163,13 @@ Cloud なら Claude Code にスレッドで「リファクタ禁止」と送っ�
 - [ ] Cloud Agent Environment を作り、coupon-board 用 Build を載せる
 - [ ] オープン draft PR 10 本を「残す / 閉じる / 仕上げる」に仕分ける
 - [ ] 必要ならルート `AGENTS.md` と `.cursor/BUGBOT.md` を次のタスクで追加する
-- [ ] 同じ PC で会話するなら `.cursor/mcp.json.example` を `mcp.json` にコピーし、`claude` の PATH を直す
+- [ ] 同じ PC で会話するなら `.cursor/mcp.json.example` を **ローカルの** `mcp.json` にコピーし、`claude` と `agent` が PATH にあることを確認して Cursor で MCP を承認する（`mcp.json` はコミットしない）
 
 ## 関連
 
 - プレイブック: `business-ops/AI_AGENT_MASTERY.md`
 - SOP: `business-ops/SOP.md`
 - Skill: `.cursor/skills/ai-agent-mastery/SKILL.md`
-- Agent DM: `business-ops/agent-dm/CATALOG.md`（既存 MCP / GitHub）と `PROTOCOL.md`
+- Agent DM: `business-ops/agent-dm/CATALOG.md` と `PROTOCOL.md`
+- ルーター: `.cursor/skills/agent-router/SKILL.md`
 - 自動化候補（古い一覧）: `business-ops/AUTOMATION_CANDIDATES.md`
