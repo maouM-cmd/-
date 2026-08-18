@@ -20,38 +20,47 @@ const HOME = homedir();
 const LOCAL = process.env.LOCALAPPDATA || join(HOME, "AppData", "Local");
 const ROAMING = process.env.APPDATA || join(HOME, "AppData", "Roaming");
 
-function which(cmd) {
+function whichAll(cmd) {
   const isWin = process.platform === "win32";
   try {
     const out = execSync(isWin ? `where.exe ${cmd}` : `command -v ${cmd}`, {
       encoding: "utf-8",
       stdio: ["ignore", "pipe", "pipe"],
     });
-    const line = out
+    return out
       .split(/\r?\n/)
       .map((s) => s.trim())
-      .find((s) => s && !s.toLowerCase().includes("info:"));
-    return line || "";
+      .filter((s) => s && !s.toLowerCase().includes("info:"));
   } catch {
-    return "";
+    return [];
   }
+}
+
+function pickClaude(candidates) {
+  const exe = candidates.find((p) => /\.exe$/i.test(p));
+  if (exe) return exe;
+  const cmd = candidates.find((p) => /\.cmd$/i.test(p));
+  if (cmd) return cmd;
+  return candidates.find((p) => !/\.ps1$/i.test(p)) || "";
+}
+
+function findClaude() {
+  const known = firstExisting([
+    join(ROAMING, "npm", "node_modules", "@anthropic-ai", "claude-code", "bin", "claude.exe"),
+    join(HOME, ".local", "bin", "claude.exe"),
+    join(HOME, ".local", "bin", "claude"),
+    join(LOCAL, "Programs", "Claude", "claude.exe"),
+    join(ROAMING, "npm", "claude.cmd"),
+  ]);
+  return known || pickClaude(whichAll("claude"));
+}
+
+function which(cmd) {
+  return whichAll(cmd)[0] || "";
 }
 
 function firstExisting(paths) {
   return paths.find((p) => p && existsSync(p)) || "";
-}
-
-function findClaude() {
-  return (
-    which("claude") ||
-    firstExisting([
-      join(HOME, ".local", "bin", "claude.exe"),
-      join(HOME, ".local", "bin", "claude"),
-      join(LOCAL, "Programs", "Claude", "claude.exe"),
-      join(ROAMING, "npm", "claude.cmd"),
-      join(ROAMING, "npm", "claude"),
-    ])
-  );
 }
 
 function findAgent() {
@@ -84,10 +93,10 @@ function main() {
     console.log(`claude: ${claude}`);
   } else {
     console.log(`wrote ${TARGET} (command は "claude" のまま)`);
-    console.log("claude: 見つからない。PowerShell で入れてから、このスクリプトを再実行:");
+    console.log("claude: 見つからない。npm 版なら次の exe があるか確認:");
+    console.log('  & "$env:APPDATA\\npm\\node_modules\\@anthropic-ai\\claude-code\\bin\\claude.exe" --version');
+    console.log("  公式ネイティブ入れ直しは、動いている Claude を止めてから:");
     console.log('  irm https://claude.ai/install.ps1 | iex');
-    console.log("  入れたら PowerShell を開き直し、claude でログイン。");
-    console.log("  公式: https://code.claude.com/docs/en/installation");
   }
 
   if (agent) {
