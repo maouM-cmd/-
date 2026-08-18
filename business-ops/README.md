@@ -49,6 +49,7 @@ business-ops/
 ├── SOP.md
 ├── AI_AGENT_MASTERY.md       # マスターへの道筋
 ├── CURSOR_VS_CLAUDE.md       # Cursor の存在意義と Claude Code との分担
+├── agent-dm/                 # Cursor と Claude Code の非同期会話
 ├── BUSINESS_MAP.md
 ├── AUTOMATION_CANDIDATES.md
 ├── scripts/
@@ -58,11 +59,13 @@ business-ops/
 │   ├── new-article.mjs
 │   ├── article-qa.mjs
 │   ├── topic-dedup.mjs
+│   ├── agent-dm.mjs          # Cursor ↔ Claude Code のスレッド
 │   └── pre-deploy-check.sh
 ├── templates/
 │   ├── project-brief.md      # 新規開発入力フォーム
 │   ├── article-brief.md
 │   ├── agent-retrospective.md
+│   ├── claude-agent-dm.md    # ai_company の CLAUDE.md へ貼る断片
 │   └── prompts/
 ├── checklists/
 │   ├── github-ship.md
@@ -74,7 +77,11 @@ business-ops/
 ├── web-dev-github/SKILL.md
 ├── ai-agent-mastery/SKILL.md
 ├── article-production/SKILL.md
-└── coupon-board-dev/SKILL.md
+├── coupon-board-dev/SKILL.md
+└── agent-dm/SKILL.md
+
+.claude/skills/
+└── agent-dm/SKILL.md
 
 .github/
 ├── pull_request_template.md
@@ -83,7 +90,7 @@ business-ops/
 
 ## Cursor と Claude Code
 
-手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。詳細は `CURSOR_VS_CLAUDE.md`。
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。互いの依頼は `agent-dm/`。詳細は `CURSOR_VS_CLAUDE.md`。
 
 ## Cursor Skill の呼び方
 
@@ -94,6 +101,7 @@ business-ops/
 | **エージェントマスター** | `@ai-agent-mastery` |
 | 記事制作 | `@article-production` |
 | 掲示板開発 | `@coupon-board-dev` |
+| Cursor と Claude の会話 | `@agent-dm` / Claude 側は「inbox 見て」 |
 
 ## 安全ルール
 

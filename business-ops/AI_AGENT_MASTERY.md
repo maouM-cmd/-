@@ -66,6 +66,7 @@
 | `@article-production` | 記事（副業） |
 | `@ai-agent-mastery` | 委任設計・振り返り |
 | `@autopilot` | 全自動 ship（Cursor） |
+| `@agent-dm` | Cursor と Claude Code の会話 |
 | `CURSOR_VS_CLAUDE.md` | Cursor と Claude Code の分担 |
 
 ## スクリプト一覧

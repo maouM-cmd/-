@@ -29,8 +29,9 @@ Claude Code が「実装・テスト・提出」で勝っているなら、Curso
 | CI 失敗 → 修正 PR | **Cursor Automations** | Claude Routines よりトリガーが広い |
 | Next.js 16 など判断が割れる実装 | **Cursor `/best-of-n`** | Composer / GPT / Grok を並列比較。Claude 族だけではできない |
 | 朝のチェック・今日の 1 時間・週報 | **Claude Code skills** | `ai_company` 側に既にある。移さない |
+| 相手エージェントへ仕事を渡す | **Agent DM**（スレッドファイル） | 公式の相互DMはない。`@agent-dm` |
 
-**やらない方がいい使い方:** Claude Code と同じ「手元で対話して実装」を Cursor Agent でもう一度やる。ここは重複なので意義は出ない。
+**やらない方がいい使い方:** Claude Code と同じ「手元で対話して実装」を Cursor Agent でもう一度やる。ここは重複なので意義は出ない。相手に渡すときは Agent DM を使い、両方で実装しない。
 
 ## 現状（GitHub と設定から）
 
@@ -69,7 +70,7 @@ Cloud Agent・Plan・Skills・モバイル起動は両方にある。差別化�
 | PR レビュー | **Bugbot**（個人でも製品として載る） | マネージドは Team 向けで単価が高い | セキュリティ監査の穴を塞ぐ |
 | モデル | Composer / Grok / GPT / Gemini / Claude | Claude 族のみ | 量は Composer/Grok、詰まりは Claude/GPT |
 | `/best-of-n` | 複数モデルを worktree で比較 | 同族の並列セッションのみ | Next.js 16 の破壊的変更 |
-| Skills | `.cursor/skills` + `.claude/skills` も読む | `.claude/skills` | モノレポは Cursor 側だけ |
+| Skills | `.cursor/skills` + `.claude/skills` | `.claude/skills` | モノレポに両方ある。Agent DM は共通 |
 
 ## このときだけ Cursor（コピペ用）
 
@@ -122,6 +123,23 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 
 ダッシュボード操作は人間のみ。
 
+### 7. Cursor と Claude Code で会話する（Agent DM）
+
+公式の相互DMは無い。スレッドファイルが会話口。
+
+```
+@agent-dm
+Claude Code に「coupon-board の lint を直して。リファクタ禁止」と送って。
+```
+
+```bash
+git pull --ff-only
+node business-ops/scripts/agent-dm.mjs inbox --from cursor
+node business-ops/scripts/agent-dm.mjs send --from cursor --to claude-code --title "..." --body "..."
+```
+
+プロトコル: `business-ops/agent-dm/PROTOCOL.md`。最後に書いた側は返信しない。実装は片方だけ。
+
 ## 足りないこと
 
 設定・運用の穴。コードを増やせば埋まるものではない。
@@ -132,6 +150,7 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 - Autopilot L2 は「作って draft PR まで」。レビュー・マージ・捨てる判断が無い → draft の墓場。
 - セキュリティの教訓が実装フロー（Bugbot / preflight）に繋がっていない。
 - Issue がゼロなので、Issue → 実装の Automation を繋ぐ先が無い。
+- Cursor と Claude Code の公式相互DMは無い（リポジトリ内 Agent DM で代替）。
 
 ## これから必要になること（L4 に行くなら）
 
@@ -158,4 +177,5 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 - プレイブック: `business-ops/AI_AGENT_MASTERY.md`
 - SOP: `business-ops/SOP.md`
 - Skill: `.cursor/skills/ai-agent-mastery/SKILL.md`
+- Agent DM: `business-ops/agent-dm/PROTOCOL.md`
 - 自動化候補（古い一覧）: `business-ops/AUTOMATION_CANDIDATES.md`

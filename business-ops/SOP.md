@@ -11,6 +11,7 @@
 | 新規Webをゼロから、または全自動 ship | Cursor | `@autopilot` / `@web-dev-github` |
 | coupon-board の見た目 | Cursor | Design Mode + `@coupon-board-dev` |
 | 外出中・並列で直す | Cursor Cloud Agent | cursor.com/agents またはモバイル |
+| 相手エージェントに仕事を渡す | Agent DM | `@agent-dm` / 「inbox 見て」 |
 | 朝のチェック / 今日の1時間 / 週報 | Claude Code | 「今日の状況は」「今日の1時間」 |
 
 同じ実装を Cursor Agent と Claude Code の両方に投げない。根拠: `CURSOR_VS_CLAUDE.md`
@@ -97,3 +98,4 @@ node business-ops/scripts/autopilot.mjs ship --yes
 | エージェントの使い方 | `@ai-agent-mastery` |
 | Next.jsエラー | `@coupon-board-dev` + AGENTS.md |
 | Cursor の意義が分からない | `CURSOR_VS_CLAUDE.md` |
+| 相手エージェントに渡したい | `@agent-dm` + `PROTOCOL.md` |
