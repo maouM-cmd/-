@@ -163,7 +163,7 @@ lint 修正なら Claude に渡す。余白なら Design Mode。デプロイな�
 - [ ] Cloud Agent Environment を作り、coupon-board 用 Build を載せる
 - [ ] オープン draft PR 10 本を「残す / 閉じる / 仕上げる」に仕分ける
 - [ ] 必要ならルート `AGENTS.md` と `.cursor/BUGBOT.md` を次のタスクで追加する
-- [ ] 同じ PC で会話するなら `.cursor/mcp.json.example` を **ローカルの** `mcp.json` にコピーし、`claude` と `agent` が PATH にあることを確認して Cursor で MCP を承認する（`mcp.json` はコミットしない）
+- [ ] 同じ PC: `node business-ops/scripts/enable-local-mcp.mjs` のあと、Cursor で MCP `claude-code` を承認（`mcp.json` はコミットしない）
 
 ## 関連
 

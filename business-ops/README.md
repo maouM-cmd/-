@@ -60,6 +60,7 @@ business-ops/
 │   ├── article-qa.mjs
 │   ├── topic-dedup.mjs
 │   ├── agent-dm.mjs          # Cloud用フォールバック・スレッド
+│   ├── enable-local-mcp.mjs  # 自宅PCで mcp.json を作る
 │   └── pre-deploy-check.sh
 ├── templates/
 │   ├── project-brief.md      # 新規開発入力フォーム

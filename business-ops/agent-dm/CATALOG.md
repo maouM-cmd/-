@@ -38,7 +38,13 @@ Cursor の `~/.cursor/mcp.json`（またはプロジェクトの `.cursor/mcp.js
 }
 ```
 
-Windows で `claude` が PATH に無いときは、`where.exe claude` のフルパスを `command` に書く。例は [`mcp.json.example`](../../.cursor/mcp.json.example)。
+Windows で `claude` が PATH に無いときは、`where.exe claude` のフルパスを `command` に書く。自宅では次で自動:
+
+```powershell
+node business-ops/scripts/enable-local-mcp.mjs
+```
+
+例の手書きは [`mcp.json.example`](../../.cursor/mcp.json.example)。**Cloud Agent の VM には `claude` が無い。**
 
 使い方: Cursor に「claude-code MCP でこのファイルを直して」と明示する。Cursor が Claude のツールを呼ぶ。**Cloud Agent の VM には `claude` が無いので、これは自宅 PC 専用。**
 

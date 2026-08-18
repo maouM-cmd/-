@@ -14,11 +14,13 @@
 
 同じ PC なら自前 CLI を使わない。Cloud のときだけスレッドファイル。
 
-### 同じ Windows（3 行）
+### 同じ Windows（自宅で1コマンド）
 
-1. `.cursor/mcp.json.example` を `.cursor/mcp.json` にコピーする（リポジトリにはコミットしない）
-2. `where.exe claude` の結果が PATH でなければ、そのフルパスを `command` に書く
-3. Cursor で MCP を承認する。Claude 側は `agent` が PATH にあれば `agent -p` で返す
+```powershell
+node business-ops/scripts/enable-local-mcp.mjs
+```
+
+スクリプトが `.cursor/mcp.json` を作り、`claude` があればフルパスを書く。そのあと Cursor を開き直して **Settings → MCP → claude-code を承認**する（画面操作だけ人間）。`mcp.json` はコミットしない。
 
 ## 判定例（ルーター）
 
