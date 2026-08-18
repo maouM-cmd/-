@@ -60,7 +60,7 @@ export default async function Home({ searchParams }: HomeProps) {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid items-stretch gap-5 sm:grid-cols-2">
             {deals.map((deal) => (
               <DealCard key={deal.id} deal={deal} />
             ))}

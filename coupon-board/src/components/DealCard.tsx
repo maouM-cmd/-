@@ -24,10 +24,10 @@ export function DealCard({ deal }: { deal: Deal }) {
   return (
     <Link
       href={`/deal/${deal.id}`}
-      className="group block overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition hover:border-violet-200 hover:shadow-md"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-violet-100 bg-white shadow-sm transition hover:border-violet-200 hover:shadow-md"
     >
       {screenshotUrl && (
-        <div className="relative h-36 w-full bg-gray-50">
+        <div className="relative h-36 w-full shrink-0 bg-gray-50">
           <Image
             src={screenshotUrl}
             alt={`${deal.service_name}のスクリーンショット`}
@@ -37,44 +37,48 @@ export function DealCard({ deal }: { deal: Deal }) {
           />
         </div>
       )}
-      <div className="p-5">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">{getCategoryEmoji(deal.category)}</span>
-          <div>
-            <p className="text-xs font-medium text-violet-600">
-              {getCategoryLabel(deal.category)}
+      <div className="flex flex-1 flex-col p-5">
+        <div className="mb-3 flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="text-xl">{getCategoryEmoji(deal.category)}</span>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-violet-600">
+                {getCategoryLabel(deal.category)}
+              </p>
+              <h2 className="line-clamp-2 font-bold text-gray-900 group-hover:text-violet-600">
+                {deal.service_name}
+              </h2>
+            </div>
+          </div>
+          {expired && (
+            <span className="shrink-0 rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-500">
+              期限切れ?
+            </span>
+          )}
+        </div>
+
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-violet-50 px-3 py-2">
+            <p className="text-[10px] font-medium text-violet-500">紹介する側</p>
+            <p className="line-clamp-2 text-sm font-bold text-violet-700">
+              {deal.referrer_reward}
             </p>
-            <h2 className="font-bold text-gray-900 group-hover:text-violet-600">
-              {deal.service_name}
-            </h2>
+          </div>
+          <div className="rounded-xl bg-fuchsia-50 px-3 py-2">
+            <p className="text-[10px] font-medium text-fuchsia-500">登録する側</p>
+            <p className="line-clamp-2 text-sm font-bold text-fuchsia-700">
+              {deal.referee_reward}
+            </p>
           </div>
         </div>
-        {expired && (
-          <span className="shrink-0 rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-500">
-            期限切れ?
-          </span>
-        )}
-      </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2">
-        <div className="rounded-xl bg-violet-50 px-3 py-2">
-          <p className="text-[10px] font-medium text-violet-500">紹介する側</p>
-          <p className="text-sm font-bold text-violet-700">{deal.referrer_reward}</p>
+        <div className="mt-auto flex items-center justify-between pt-1 text-xs text-gray-500">
+          <span className="truncate">投稿: {deal.author_name}</span>
+          <div className="flex shrink-0 items-center gap-3">
+            <span>👍 {deal.helpful_count}</span>
+            <span>{formatDate(deal.created_at)}</span>
+          </div>
         </div>
-        <div className="rounded-xl bg-fuchsia-50 px-3 py-2">
-          <p className="text-[10px] font-medium text-fuchsia-500">登録する側</p>
-          <p className="text-sm font-bold text-fuchsia-700">{deal.referee_reward}</p>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between text-xs text-gray-500">
-        <span>投稿: {deal.author_name}</span>
-        <div className="flex items-center gap-3">
-          <span>👍 {deal.helpful_count}</span>
-          <span>{formatDate(deal.created_at)}</span>
-        </div>
-      </div>
       </div>
     </Link>
   );
