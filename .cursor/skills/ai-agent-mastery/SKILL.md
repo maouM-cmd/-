@@ -9,6 +9,22 @@ description: Cursor/Fableエージェントを最大限活用し「最強AIエ�
 
 > 人間は**判断**だけ。実装・文案・調査・定型作業はエージェントに任せる。
 
+## ツール分担（Cursor vs Claude Code）
+
+Cursor を Claude Code の代わりにしない。手元実装は Claude Code、Cursor は Tab / Cloud Agent / Bugbot / Automations / `/best-of-n`。
+
+| 任せる作業 | ツール |
+|------------|--------|
+| 手元の実装・テスト・提出 | Claude Code |
+| 小さな修正（エージェント起動なし） | Cursor Tab / Cmd+K |
+| UI クリック修正 | Cursor Design Mode |
+| 非同期・スマホ・並列 | Cursor Cloud Agent |
+| PR 監査・CI 失敗修正 | Bugbot / Automations |
+| モデル比較（Next.js 16 など） | Cursor `/best-of-n` |
+| 日次 SOP（朝チェック・1時間） | Claude Code skills |
+
+詳細: `business-ops/CURSOR_VS_CLAUDE.md`
+
 ## 5つの原則
 
 ### 1. 型を先に作る（再発明を禁止する）
@@ -79,6 +95,8 @@ Step 3: QAスクリプト → 人間確認
 | coupon-board | `@coupon-board-dev` |
 | 記事執筆 | `@article-production` |
 | エージェント設計 | `@ai-agent-mastery`（本Skill） |
+| 全自動 ship | `@autopilot` |
+| ツール分担の確認 | `business-ops/CURSOR_VS_CLAUDE.md` |
 
 ## 週次振り返りテンプレート
 
@@ -96,4 +114,5 @@ Step 3: QAスクリプト → 人間確認
 
 ## 詳細プレイブック
 
-`business-ops/AI_AGENT_MASTERY.md`
+- `business-ops/AI_AGENT_MASTERY.md`
+- `business-ops/CURSOR_VS_CLAUDE.md` — Cursor の存在意義と、Claude Code との使い分け

@@ -48,6 +48,7 @@ business-ops/
 ├── README.md
 ├── SOP.md
 ├── AI_AGENT_MASTERY.md       # マスターへの道筋
+├── CURSOR_VS_CLAUDE.md       # Cursor の存在意義と Claude Code との分担
 ├── BUSINESS_MAP.md
 ├── AUTOMATION_CANDIDATES.md
 ├── scripts/
@@ -79,6 +80,10 @@ business-ops/
 ├── pull_request_template.md
 └── ISSUE_TEMPLATE/
 ```
+
+## Cursor と Claude Code
+
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。詳細は `CURSOR_VS_CLAUDE.md`。
 
 ## Cursor Skill の呼び方
 

@@ -2,6 +2,19 @@
 
 > 主業務: Web開発 / くり返し: GitHub投稿 / ゴール: 最強AIエージェントマスター
 
+## どのツールでやるか（先に決める）
+
+| 今日の作業 | ツール | 呼び出し |
+|------------|--------|----------|
+| 手元で実装・テストして出す | Claude Code | `ai_company` の skills / プロジェクト直下で起動 |
+| 小さな修正、記事の穴埋め | Cursor | Tab / Cmd+K（エージェント不要） |
+| 新規Webをゼロから、または全自動 ship | Cursor | `@autopilot` / `@web-dev-github` |
+| coupon-board の見た目 | Cursor | Design Mode + `@coupon-board-dev` |
+| 外出中・並列で直す | Cursor Cloud Agent | cursor.com/agents またはモバイル |
+| 朝のチェック / 今日の1時間 / 週報 | Claude Code | 「今日の状況は」「今日の1時間」 |
+
+同じ実装を Cursor Agent と Claude Code の両方に投げない。根拠: `CURSOR_VS_CLAUDE.md`
+
 ## 日次: 全自動モード（推奨）
 
 ```bash
@@ -83,3 +96,4 @@ node business-ops/scripts/autopilot.mjs ship --yes
 | シークレットが不安 | `github-preflight.sh` |
 | エージェントの使い方 | `@ai-agent-mastery` |
 | Next.jsエラー | `@coupon-board-dev` + AGENTS.md |
+| Cursor の意義が分からない | `CURSOR_VS_CLAUDE.md` |

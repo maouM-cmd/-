@@ -10,6 +10,22 @@
 | ゴール | 最強AIエージェントマスター |
 | レベル | **L3（autopilot 全自動投稿）** |
 
+## ツール分担（Cursor vs Claude Code）
+
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations・モデル比較。同じ「対話実装」を二重にやらない。
+
+| 作業 | 使うもの |
+|------|----------|
+| 手元の実装・テスト・提出 | Claude Code |
+| 小さな修正・記事の穴埋め | Cursor Tab / Cmd+K |
+| UI の見た目修正 | Cursor Design Mode |
+| スマホ・裏での修正 | Cursor Cloud Agent |
+| PR 監査 / CI 失敗の自動修正 | Bugbot / Automations |
+| Next.js 16 など判断が割れる実装 | Cursor `/best-of-n` |
+| 朝のチェック・今日の1時間 | Claude Code skills（`ai_company`） |
+
+詳細・調査根拠: `business-ops/CURSOR_VS_CLAUDE.md`
+
 ## マスターの定義
 
 > **判断だけ人間。あとはエージェント。**
@@ -49,6 +65,8 @@
 | `@coupon-board-dev` | 掲示板の修正 |
 | `@article-production` | 記事（副業） |
 | `@ai-agent-mastery` | 委任設計・振り返り |
+| `@autopilot` | 全自動 ship（Cursor） |
+| `CURSOR_VS_CLAUDE.md` | Cursor と Claude Code の分担 |
 
 ## スクリプト一覧
 
@@ -64,7 +82,9 @@
 1. **今日:** `autopilot check` → `autopilot new` → `@autopilot` で1本通す
 2. **今週:** 毎回 `ship --yes` をエージェント完了時に自動実行
 3. **来週:** brief 以外は一切触らず PR まで完走を確認
-4. **L4:** 実装も含め完全自律（brief のみ人間）
+4. **L4:** 実装も含め完全自律（brief のみ人間）。Cursor は非同期・監査、Claude Code は手元実装、という分担を崩さない
+
+L4 で必要になる設定（Environment / Bugbot / draft PR 仕分け）は `CURSOR_VS_CLAUDE.md` の「人間がやること」。
 
 ## 委任の境界線（絶対に守る）
 
