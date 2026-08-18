@@ -11,7 +11,7 @@ description: Cursor/Fableエージェントを最大限活用し「最強AIエ�
 
 ## ツール分担（Cursor vs Claude Code）
 
-Cursor を Claude Code の代わりにしない。手元実装は Claude Code、Cursor は Tab / Cloud Agent / Bugbot / Automations / `/best-of-n`。相手の会話・思考・画面は読めない。Agent Mail は入れない。
+Cursor を Claude Code の代わりにしない。手元実装は Claude Code、Cursor は Tab / Cloud Agent / Bugbot / Automations / `/best-of-n`。相手の会話・思考・画面は読めない。Agent Mail デーモンは入れない。エージェント起動時は inbox を見る。
 
 | 任せる作業 | ツール |
 |------------|--------|

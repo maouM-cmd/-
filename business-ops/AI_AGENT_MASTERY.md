@@ -12,7 +12,7 @@
 
 ## ツール分担（Cursor vs Claude Code）
 
-手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations・モデル比較。**依頼が来たら `@agent-router` が先に分類する。** 同じ「対話実装」を二重にやらない。相手の会話・思考・画面を勝手に読む口は無い。Agent Mail は入れない。
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations・モデル比較。**依頼が来たら `@agent-router` が先に分類する。** 同じ「対話実装」を二重にやらない。相手の会話・思考・画面を勝手に読む口は無い。Agent Mail デーモンは入れない。エージェント起動時は inbox を見る。
 
 | 作業 | 使うもの |
 |------|----------|

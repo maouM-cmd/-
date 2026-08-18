@@ -8,7 +8,7 @@
 
 同じ実装を Cursor と Claude Code の両方でやらない。根拠: `CURSOR_VS_CLAUDE.md`
 
-相手の会話・思考・画面を勝手に読むことはできない。Agent Mail は入れない。届いた仕事は渡すか、同じ git を読む。
+相手の会話・思考・画面を勝手に読むことはできない。Agent Mail デーモンは入れない。エージェント起動時は inbox を見る（`agent-dm.mjs inbox` と `gh issue list --label agent-dm`）。MCP に `fetch_inbox` があるときだけ呼ぶ。空なら今の依頼を続ける。
 
 ## どのツールでやるか（判定の目安）
 

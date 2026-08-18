@@ -1,6 +1,6 @@
 ---
 name: agent-router
-description: 実装前に Cursor / Claude Code / 人間へ分類する。実装・テスト・日次SOPは自分（Claude）。UI・best-of-n・Cloud・レビューは Cursor へ渡す。merge・デプロイは人間。相手の仕事は実装しない。プロジェクト名が無くても UI/余白は coupon-board を既定にして agent -p する。トリガー: 分類して、渡して、これはCursor、これはClaude。
+description: 実装前に Cursor / Claude Code / 人間へ分類する。起動したら inbox を見る。実装・テスト・日次SOPは自分（Claude）。UI・best-of-n・Cloud・レビューは Cursor へ渡す。merge・デプロイは人間。相手の仕事は実装しない。プロジェクト名が無くても UI/余白は coupon-board を既定にして agent -p する。トリガー: 分類して、渡して、inbox見て、これはCursor、これはClaude。
 ---
 
 # Agent Router（共通）
@@ -32,6 +32,18 @@ description: 実装前に Cursor / Claude Code / 人間へ分類する。実装�
 Claude Code のセッション → 自分は `claude-code`。
 
 相手から Agent DM / Issue で渡された仕事は、**判定をやり直して役割を入れ替えない。** やって結果を返す。
+
+## 起動時 inbox
+
+エージェントとして起動したら、このモノレポに `cd` したあと、分類のあと・実装の前に:
+
+```powershell
+git pull --ff-only
+node business-ops/scripts/agent-dm.mjs inbox --from claude-code
+gh issue list --label agent-dm --state open
+```
+
+`gh` が無い・ラベルが無い・失敗したら無視して先へ。ラベル作成は人間。MCP ツールに `fetch_inbox` があるときだけ 1 回呼ぶ。無ければ入れない。聞かない。inbox があればルーターどおり処理。空なら今の依頼を続ける。
 
 ## 引き渡し
 

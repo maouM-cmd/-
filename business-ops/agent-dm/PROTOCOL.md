@@ -14,6 +14,18 @@
 
 同じ PC なら自前 CLI を使わない。Cloud のときだけスレッドファイル。
 
+## 起動時 inbox
+
+エージェント起動時（Tab / Cmd+K ではやらない）。自分の id は `cursor` または `claude-code`。
+
+```bash
+git pull --ff-only
+node business-ops/scripts/agent-dm.mjs inbox --from <自分>
+gh issue list --label agent-dm --state open
+```
+
+`gh` が無い・ラベルが無い・失敗したら無視。ラベル作成は人間。[MCP Agent Mail](https://github.com/Dicklesworthstone/mcp_agent_mail) は未導入。ツールに `fetch_inbox` があるときだけ 1 回呼ぶ。無ければ入れない。聞かない。inbox があればルーターどおり処理。空なら今の依頼を続ける。
+
 ### 同じ Windows（自宅で1コマンド）
 
 ```powershell

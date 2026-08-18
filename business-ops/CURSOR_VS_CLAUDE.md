@@ -125,7 +125,7 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 
 ### 7. Cursor と Claude Code で会話する
 
-製品の相互DMは無い。相手の会話・思考・画面を勝手に読むこともできない。**先に `@agent-router`。** 同じ PC なら公式 `claude mcp serve` / `agent -p`（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅はスレッド or GitHub Issue。Agent Mail は入れない。
+製品の相互DMは無い。相手の会話・思考・画面を勝手に読むこともできない。**先に `@agent-router`。** エージェント起動時は inbox を見る（`agent-dm.mjs inbox` と `gh issue list --label agent-dm`。`fetch_inbox` があるときだけ呼ぶ）。同じ PC なら公式 `claude mcp serve` / `agent -p`（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅はスレッド or GitHub Issue。Agent Mail デーモンは入れない。
 
 ```
 @agent-router

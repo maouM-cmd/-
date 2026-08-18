@@ -1,6 +1,6 @@
 ---
 name: agent-dm
-description: ルーター判定のあと Cursor へ配達する。トリガー: inbox見て、Cursorに頼んで、agent-dm。同じPCで agent -p が使えるときは使わない。
+description: ルーター判定のあと Cursor へ配達する。起動したら inbox を見る。トリガー: inbox見て、Cursorに頼んで、agent-dm。同じPCで agent -p が使えるときは配達に使わない。
 ---
 
 # Agent DM Skill（Claude Code）— 配達
@@ -22,13 +22,15 @@ description: ルーター判定のあと Cursor へ配達する。トリガー: 
 
 ## 手順
 
+エージェント起動時（分類のあと・実装の前）:
+
 ```powershell
 git pull --ff-only
 node business-ops/scripts/agent-dm.mjs inbox --from claude-code
-node business-ops/scripts/agent-dm.mjs show --id <id>
+gh issue list --label agent-dm --state open
 ```
 
-渡された実装はやって結果だけ返す。Cursor に実装をやり返さない。
+`gh` 失敗は無視。MCP に `fetch_inbox` があるときだけ 1 回呼ぶ。無ければ入れない。聞かない。inbox があれば `show --id <id>` → 渡された実装はやって結果だけ返す。Cursor に実装をやり返さない。空なら今の依頼を続ける。
 
 ```powershell
 node business-ops/scripts/agent-dm.mjs reply --id <id> --from claude-code --body @"

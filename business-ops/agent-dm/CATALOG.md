@@ -15,10 +15,18 @@
 | 思考・チャットの中身 | 不可。セッションは各アプリに閉じる |
 | 仕事の受け渡し | 可。MCP / `agent -p`。呼ばれた側だけが文を見る |
 | 成果物 | 可。同じ git。相手の頭ではなくディスク上の結果 |
-| 共有メール箱 | 近似のみ。inbox を取りに行ったときだけ分かる。一人運用では入れない |
+| 共有メール箱 | 起動時に agent-dm / gh を見る。Agent Mail デーモンは入れない |
 | Cloud Agent ↔ 自宅 Claude | MCP も Agent Mail も届かない。Issue か agent-dm のみ |
 
-「起動したら inbox を見る」ルールは、見逃しを減らす近似であり、相手の中身は増えない。必要になったら人間が足す。
+### 起動時 inbox（エージェント起動時のみ。Tab ではやらない）
+
+```bash
+git pull --ff-only
+node business-ops/scripts/agent-dm.mjs inbox --from <自分>
+gh issue list --label agent-dm --state open
+```
+
+`gh` 失敗は無視。ラベル作成は人間。MCP に `fetch_inbox` があるときだけ 1 回呼ぶ。無ければ入れない。聞かない。inbox があれば処理。空なら今の依頼を続ける。相手の中身は増えない。見逃しが減るだけ。
 
 ## どれを使うか
 
@@ -81,7 +89,7 @@ agent -p "coupon-board の一覧カード（DealCard）の余白を他カード�
 - Python 元祖: [Dicklesworthstone/mcp_agent_mail](https://github.com/Dicklesworthstone/mcp_agent_mail)（2000 星前後）
 - サイト: [mcpagentmail.com](https://mcpagentmail.com/)
 
-inbox、スレッド、ファイル予約（同時編集防止）、Git 監査。ツール数が多く、デーモンが要る。**一人で Cursor と Claude を繋ぐだけなら過剰。** エージェントを常時複数動かすようになったら検討。
+inbox、スレッド、ファイル予約（同時編集防止）、Git 監査。ツール数が多く、デーモンが要る。**未導入。** 一人で Cursor と Claude を繋ぐだけなら過剰。デーモンは入れない。`mcp.json` に足さない。ツール一覧に `fetch_inbox` があるときだけ起動時に 1 回呼ぶ。無ければ入れようとしない。
 
 より小さい同じ系統:
 
