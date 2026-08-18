@@ -49,7 +49,7 @@ business-ops/
 ├── SOP.md
 ├── AI_AGENT_MASTERY.md       # マスターへの道筋
 ├── CURSOR_VS_CLAUDE.md       # Cursor の存在意義と Claude Code との分担
-├── agent-dm/                 # Cursor と Claude Code の非同期会話
+├── agent-dm/                 # 会話口のカタログ + Cloud用スレッド
 ├── BUSINESS_MAP.md
 ├── AUTOMATION_CANDIDATES.md
 ├── scripts/
@@ -59,7 +59,7 @@ business-ops/
 │   ├── new-article.mjs
 │   ├── article-qa.mjs
 │   ├── topic-dedup.mjs
-│   ├── agent-dm.mjs          # Cursor ↔ Claude Code のスレッド
+│   ├── agent-dm.mjs          # Cloud用フォールバック・スレッド
 │   └── pre-deploy-check.sh
 ├── templates/
 │   ├── project-brief.md      # 新規開発入力フォーム
@@ -90,7 +90,7 @@ business-ops/
 
 ## Cursor と Claude Code
 
-手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。互いの依頼は `agent-dm/`。詳細は `CURSOR_VS_CLAUDE.md`。
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。互いの依頼は同じPCなら `claude mcp serve`、Cloudなら `agent-dm/`。カタログは `agent-dm/CATALOG.md`。
 
 ## Cursor Skill の呼び方
 

@@ -5,10 +5,12 @@ Claude Code のホームが `ai_company` のとき、Cursor との会話はこ�
 ```
 ## Agent DM（Cursor との会話）
 
-公式の相互DMは無い。会話口はリポジトリ `maouM-cmd/-` の `business-ops/agent-dm/`。
+製品の相互DMは無い。先に `maouM-cmd/-` の `business-ops/agent-dm/CATALOG.md`。
 
-「inbox 見て」「Cursor に頼んで」と言われたら:
+- 同じ PC: Cursor が `claude mcp serve` でこちらを呼ぶ。inbox CLI は不要
+- Cloud から: このリポに cd → `PROTOCOL.md` → inbox または `gh issue list --label agent-dm`
+
+「inbox 見て」と言われたら:
 1. ホーム直下では起動しない。`maouM-cmd/-` に cd する
-2. `business-ops/agent-dm/PROTOCOL.md` と `.claude/skills/agent-dm/SKILL.md` に従う
-3. `node business-ops/scripts/agent-dm.mjs inbox --from claude-code`
+2. `.claude/skills/agent-dm/SKILL.md` に従う
 ```

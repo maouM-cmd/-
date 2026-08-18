@@ -1,6 +1,24 @@
 # Agent DM プロトコル
 
-Cursor と Claude Code に公式の相互DMはない。このリポジトリのスレッドファイルが会話口になる。
+Cursor と Claude Code に **製品としての相互DMはない。** 会話口は既存の MCP / GitHub / このリポのスレッドから選ぶ。
+
+**先に読む:** [`CATALOG.md`](CATALOG.md)（公式 `claude mcp serve`、Cursor CLI bridge、Agent Mail、GitHub Issue）
+
+## チャネルを先に決める
+
+| 今どこにいるか | チャネル |
+|----------------|----------|
+| 同じ Windows（日常） | Cursor の MCP に `claude mcp serve`。例: [`.cursor/mcp.json.example`](../../.cursor/mcp.json.example) を `mcp.json` にコピー（PATH は自分の `claude`） |
+| Cloud Agent ↔ 自宅 Claude | GitHub Issue（`gh`）または下のスレッドファイル |
+| エージェントを常時複数 | [MCP Agent Mail](https://github.com/Dicklesworthstone/mcp_agent_mail) |
+
+同じ PC なら自前 CLI を使わない。Cloud のときだけスレッドファイル。
+
+---
+
+## フォールバック: スレッドファイル
+
+Cloud Agent と Windows の Claude がプロセスを共有できないときの配達。
 
 ```
 Cursor Cloud / IDE          Claude Code (Windows)

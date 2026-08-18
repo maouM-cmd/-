@@ -1,17 +1,21 @@
 ---
 name: agent-dm
-description: Cursor と Claude Code がスレッドファイルで会話する。相手エージェントへの依頼・inbox確認・返信。
+description: Cursor と Claude Code の会話。同じPCなら claude mcp serve。Cloudならスレッド/Issue。カタログとinbox。
 ---
 
 # Agent DM Skill（Cursor）
 
-## いつ使うか
+## チャネル（先に選ぶ）
 
-- Claude Code に実装・テストを渡したいとき
-- Cloud Agent の続きを手元の Claude Code に渡したいとき
-- 「inbox 見て」「Claude に頼んで」と言われたとき
+1. **同じ Windows** — `business-ops/agent-dm/CATALOG.md` の公式 `claude mcp serve`。`.cursor/mcp.json.example` を自分の `mcp.json` にコピー。ユーザーに「claude-code MCP で実装して」と頼む。自前 CLI は使わない。
+2. **Cloud Agent** — GitHub Issue（`gh`）またはスレッドファイル（下記）。
+3. コミュニティ MCP の yolo / skip-permissions は使わない。
 
-公式の相互DMはない。会話口は `business-ops/agent-dm/threads/`。プロトコル: `business-ops/agent-dm/PROTOCOL.md`
+詳細: `business-ops/agent-dm/CATALOG.md` と `PROTOCOL.md`
+
+## フォールバック（Cloud / 非同期）
+
+公式の相互DMはない。会話口は `business-ops/agent-dm/threads/`。
 
 ## 自分
 

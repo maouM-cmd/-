@@ -1,19 +1,21 @@
 ---
 name: agent-dm
-description: Cursor とスレッドファイルで会話する。トリガー: 「inbox見て」「Cursorに頼んで」「agent-dm」「Cursorに返信」
+description: Cursor と会話する。トリガー: 「inbox見て」「Cursorに頼んで」「agent-dm」「claude mcp serve」
 ---
 
 # Agent DM Skill（Claude Code）
 
-## いつ使うか
+## チャネル（先に選ぶ）
 
-- Cursor（Cloud Agent / IDE）からの依頼を受けて実装するとき
-- 手元テストの結果を Cursor に返すとき
-- 「inbox 見て」「Cursor に頼んで」と言われたとき
+1. **同じ Windows で Cursor から呼ばれる** — Cursor 側の `claude mcp serve` MCP。こちらは通常どおり実装する。スレッド CLI は不要。
+2. **Cloud Agent からの依頼** — このモノレポに `cd` して inbox（下記）または `gh issue list --label agent-dm`。
+3. カタログ: `business-ops/agent-dm/CATALOG.md`。yolo 系 bridge は使わない。
 
-公式の相互DMはない。このリポジトリの `business-ops/agent-dm/threads/` が会話口。先に `business-ops/agent-dm/PROTOCOL.md` を読む。
+ホーム直下では起動しない。
 
-このモノレポ以外（`ai_company` など）で動いているときは、先にこのリポジトリへ `cd` してから inbox を見る。ホーム直下では起動しない。
+## フォールバック（Cloud / 非同期）
+
+`business-ops/agent-dm/threads/`。先に `PROTOCOL.md`。
 
 ## 自分
 

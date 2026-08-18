@@ -123,22 +123,15 @@ node_modules/next/dist/docs/ を読んでから API を使うこと。
 
 ダッシュボード操作は人間のみ。
 
-### 7. Cursor と Claude Code で会話する（Agent DM）
+### 7. Cursor と Claude Code で会話する
 
-公式の相互DMは無い。スレッドファイルが会話口。
+製品の相互DMは無い。**同じ PC なら公式 `claude mcp serve`**（[`CATALOG.md`](agent-dm/CATALOG.md)）。Cloud ↔ 自宅だけスレッド or GitHub Issue。
 
 ```
 @agent-dm
-Claude Code に「coupon-board の lint を直して。リファクタ禁止」と送って。
+同じPCなら claude-code MCP で lint を直して。
+Cloud なら Claude Code にスレッドで「リファクタ禁止」と送って。
 ```
-
-```bash
-git pull --ff-only
-node business-ops/scripts/agent-dm.mjs inbox --from cursor
-node business-ops/scripts/agent-dm.mjs send --from cursor --to claude-code --title "..." --body "..."
-```
-
-プロトコル: `business-ops/agent-dm/PROTOCOL.md`。最後に書いた側は返信しない。実装は片方だけ。
 
 ## 足りないこと
 
@@ -171,11 +164,12 @@ node business-ops/scripts/agent-dm.mjs send --from cursor --to claude-code --tit
 - [ ] Cloud Agent Environment を作り、coupon-board 用 Build を載せる
 - [ ] オープン draft PR 10 本を「残す / 閉じる / 仕上げる」に仕分ける
 - [ ] 必要ならルート `AGENTS.md` と `.cursor/BUGBOT.md` を次のタスクで追加する
+- [ ] 同じ PC で会話するなら `.cursor/mcp.json.example` を `mcp.json` にコピーし、`claude` の PATH を直す
 
 ## 関連
 
 - プレイブック: `business-ops/AI_AGENT_MASTERY.md`
 - SOP: `business-ops/SOP.md`
 - Skill: `.cursor/skills/ai-agent-mastery/SKILL.md`
-- Agent DM: `business-ops/agent-dm/PROTOCOL.md`
+- Agent DM: `business-ops/agent-dm/CATALOG.md`（既存 MCP / GitHub）と `PROTOCOL.md`
 - 自動化候補（古い一覧）: `business-ops/AUTOMATION_CANDIDATES.md`
