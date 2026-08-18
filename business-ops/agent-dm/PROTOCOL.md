@@ -22,6 +22,15 @@ node business-ops/scripts/enable-local-mcp.mjs
 
 スクリプトが `.cursor/mcp.json` を作り、`claude` があればフルパスを書く。そのあと Cursor を開き直して **Settings → MCP → claude-code を承認**する（画面操作だけ人間）。`mcp.json` はコミットしない。
 
+`claude` / `agent` が見つからないときは、**PowerShell**（Git Bash ではない）で入れてからスクリプトを再実行する。
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+irm 'https://cursor.com/install?win32=true' | iex
+```
+
+入れたら PowerShell を開き直す。`claude` と `agent login` を一度実行する。
+
 ## 判定例（ルーター）
 
 | 依頼 | 判定 | 動き |
