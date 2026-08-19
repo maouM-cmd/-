@@ -1,0 +1,50 @@
+[
+  {
+    "id": "hikari",
+    "name": "ひかりさん",
+    "title": "ひとり親・4歳",
+    "blurb": "区の賃貸。保育と医療費が毎月の不安。",
+    "household": {
+      "householdType": "single_parent",
+      "children": [{ "age": 4 }],
+      "caregiving": false,
+      "incomeBand": "low",
+      "employment": "employed",
+      "housing": "rent",
+      "disability": false,
+      "area": "23ku"
+    }
+  },
+  {
+    "id": "sato",
+    "name": "さとう家",
+    "title": "共働き・1歳",
+    "blurb": "認可待ち。預け先と手続の時間がない。",
+    "household": {
+      "householdType": "couple",
+      "children": [{ "age": 1 }],
+      "caregiving": false,
+      "incomeBand": "middle",
+      "employment": "employed",
+      "housing": "rent",
+      "disability": false,
+      "area": "23ku"
+    }
+  },
+  {
+    "id": "takahashi",
+    "name": "たかはし家",
+    "title": "介護世帯",
+    "blurb": "実母の介護と仕事の両立。相談先が分からない。",
+    "household": {
+      "householdType": "couple",
+      "children": [],
+      "caregiving": true,
+      "incomeBand": "middle",
+      "employment": "employed",
+      "housing": "own",
+      "disability": false,
+      "area": "tama"
+    }
+  }
+]

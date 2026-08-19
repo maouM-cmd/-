@@ -1,0 +1,495 @@
+[
+  {
+    "id": "jidoteate",
+    "name": "児童手当",
+    "agency": "区市町村（国制度）",
+    "category": "childcare",
+    "summary": "高校生年代までの児童を養育する世帯に、月額の手当を支給する。所得制限の見直し後は多くの世帯が対象。",
+    "amountHint": "月額1.5〜3万円程度／児童",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 180000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/teate/jidoteate",
+    "procedureSteps": [
+      "住所地の区市町村窓口または電子申請で現況を確認",
+      "出生・転入から15日以内の申請が目安",
+      "口座情報と児童の続柄を提出"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ（項目をデモ用に再構成）",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18
+    }
+  },
+  {
+    "id": "jidouikusei",
+    "name": "児童育成手当",
+    "agency": "東京都 福祉局",
+    "category": "childcare",
+    "summary": "ひとり親家庭等に東京都が上乗せする手当。国の児童扶養手当とは別に申請できる。",
+    "amountHint": "月額1.355万円程度／児童（育成手当）",
+    "timeSavedMinutes": 55,
+    "annualYenHint": 162600,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/teate/jidouikusei",
+    "procedureSteps": [
+      "住所地の区市町村のひとり親福祉担当へ",
+      "戸籍謄本・所得証明書など必要書類を確認",
+      "認定後は現況届を毎年提出"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18,
+      "householdTypes": ["single_parent"]
+    }
+  },
+  {
+    "id": "jidoufujo",
+    "name": "児童扶養手当",
+    "agency": "区市町村（国制度）",
+    "category": "childcare",
+    "summary": "ひとり親家庭の生活安定のための国の手当。所得に応じて全部支給・一部支給がある。",
+    "amountHint": "月額最大約4.4万円（第1子・全部支給の目安）",
+    "timeSavedMinutes": 60,
+    "annualYenHint": 400000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/teate/jidoufujo",
+    "procedureSteps": [
+      "区市町村の児童扶養手当窓口で所得・養育費を申告",
+      "認定請求書と戸籍・住民票を提出",
+      "年1回の現況届を忘れない"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18,
+      "householdTypes": ["single_parent"],
+      "incomeBands": ["low", "middle"]
+    }
+  },
+  {
+    "id": "hitorioya-iryo",
+    "name": "ひとり親家庭等医療費助成",
+    "agency": "東京都 福祉局",
+    "category": "medical",
+    "summary": "ひとり親家庭の親と児童の医療費自己負担を助成する。窓口負担が大幅に減る。",
+    "amountHint": "医療費の自己負担を助成（所得制限あり）",
+    "timeSavedMinutes": 50,
+    "annualYenHint": 80000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/iryo/hitorioya",
+    "procedureSteps": [
+      "住所地の区市町村で資格確認",
+      "医療証の交付を受ける",
+      "受診時に医療証を提示"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "householdTypes": ["single_parent"],
+      "incomeBands": ["low", "middle"]
+    }
+  },
+  {
+    "id": "kodomo-iryo",
+    "name": "子ども医療費助成（区市町村）",
+    "agency": "区市町村",
+    "category": "medical",
+    "summary": "乳幼児から高校生年代までの医療費を助成する。対象年齢は区市町村で異なる。",
+    "amountHint": "通院・入院の自己負担を軽減",
+    "timeSavedMinutes": 35,
+    "annualYenHint": 40000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/iryo",
+    "procedureSteps": [
+      "住所地の子ども医療費担当で対象年齢を確認",
+      "マル乳・マル子等の医療証を申請",
+      "転入時は速やかに再申請"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18
+    }
+  },
+  {
+    "id": "hoiku-muryoka",
+    "name": "幼児教育・保育の無償化",
+    "agency": "区市町村（国・都）",
+    "category": "childcare",
+    "summary": "3〜5歳の幼稚園・保育所等の利用料を無償化。0〜2歳は住民税非課税世帯などが対象。",
+    "amountHint": "保育料の無償化（施設による上乗せあり）",
+    "timeSavedMinutes": 45,
+    "annualYenHint": 360000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/hoiku",
+    "procedureSteps": [
+      "施設種別（認可・認証・幼稚園）を確認",
+      "区市町村で認定（教育・保育給付）を受ける",
+      "施設経由または直接に無償化を申請"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 5
+    }
+  },
+  {
+    "id": "babysitter",
+    "name": "東京都ベビーシッター利用支援事業",
+    "agency": "東京都 福祉局",
+    "category": "childcare",
+    "summary": "一時預かりや通勤時の送り迎えでベビーシッターを使う際の利用料を助成する。",
+    "amountHint": "1時間あたり最大2,500円程度の助成目安",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 120000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/hoiku/sitter",
+    "procedureSteps": [
+      "対象となるベビーシッター事業者を確認",
+      "区市町村または都の窓口で利用登録",
+      "利用後に助成を申請"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 12,
+      "householdTypes": ["couple", "single_parent"]
+    }
+  },
+  {
+    "id": "shussan-ouen",
+    "name": "出産・子育て応援事業（伴走型相談）",
+    "agency": "区市町村",
+    "category": "childcare",
+    "summary": "妊娠届出と出生後の面談に連動して経済的支援と相談をつなぐ。給付金の取りこぼしが多い。",
+    "amountHint": "妊娠・出産あわせて10万円相当が目安",
+    "timeSavedMinutes": 30,
+    "annualYenHint": 100000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/shussan",
+    "procedureSteps": [
+      "妊娠の届出時に面談予約",
+      "出生届出後の面談で給付申請",
+      "電子申請に対応する区市町村もあり"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 1
+    }
+  },
+  {
+    "id": "gakudo",
+    "name": "学童クラブ（放課後児童クラブ）",
+    "agency": "区市町村",
+    "category": "childcare",
+    "summary": "共働き等で放課後に自宅で見守れない小学生を預かる。実施状況は区市町村で差がある。",
+    "amountHint": "月数千円〜（自治体による）",
+    "timeSavedMinutes": 35,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/hoiku/gakudo",
+    "procedureSteps": [
+      "在住区市町村の学童実施状況を確認",
+      "就学前の1〜2月に申込が集中",
+      "待機がある場合は放課後子供教室も併用"
+    ],
+    "source": {
+      "name": "東京都福祉局 学童クラブ事業の区市町村別実施状況",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 6,
+      "childAgeMax": 12,
+      "householdTypes": ["couple", "single_parent"]
+    }
+  },
+  {
+    "id": "youchien-keigen",
+    "name": "私立幼稚園等園児保護者負担軽減",
+    "agency": "東京都 生活文化スポーツ局",
+    "category": "education",
+    "summary": "私立幼稚園等に通う保護者の保育料負担を都が軽減する。無償化と併用できる場合がある。",
+    "amountHint": "所得・園児数に応じた補助金",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 150000,
+    "procedureUrl": "https://www.seikatubunka.metro.tokyo.lg.jp/shigaku/nintei",
+    "procedureSteps": [
+      "在園する幼稚園を通じて申請",
+      "所得区分の書類を提出",
+      "無償化認定との重複を園に確認"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 3,
+      "childAgeMax": 5
+    }
+  },
+  {
+    "id": "jukensei-loan",
+    "name": "受験生チャレンジ支援貸付",
+    "agency": "東京都 福祉局",
+    "category": "education",
+    "summary": "低所得世帯の中3・高3が塾や受験料に充てる無利子貸付。進学後に一定条件で免除。",
+    "amountHint": "学習塾20万円・受験料相当など",
+    "timeSavedMinutes": 50,
+    "annualYenHint": 200000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/seikatsu/shikin/jukensei",
+    "procedureSteps": [
+      "社会福祉協議会で所得要件を確認",
+      "学習塾・受験料の見積を用意",
+      "進学後の免除条件を確認して契約"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 14,
+      "childAgeMax": 18,
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "kyoiku-shogaku",
+    "name": "高校生等奨学給付金",
+    "agency": "東京都 教育庁",
+    "category": "education",
+    "summary": "授業料以外の教育費を支援する給付金。返済不要。住民税非課税世帯などが対象。",
+    "amountHint": "年額数万円〜十数万円（課程による）",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 110000,
+    "procedureUrl": "https://www.kyoiku.metro.tokyo.lg.jp/admission/tuition/financial_support",
+    "procedureSteps": [
+      "在学校を通じて申請書類を受け取る",
+      "保護者の課税証明書を添付",
+      "年1回の申請期限に注意"
+    ],
+    "source": {
+      "name": "東京都教育庁 学校基本統計／就学支援関連",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 15,
+      "childAgeMax": 18,
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "kyotaku-kaigo",
+    "name": "居宅介護支援・介護予防サービス案内",
+    "agency": "東京都 福祉局",
+    "category": "eldercare",
+    "summary": "要介護・要支援の認定を受けた人が、訪問介護や通所を組み合わせて在宅で暮らすための入口。",
+    "amountHint": "介護保険の自己負担1〜3割",
+    "timeSavedMinutes": 70,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kourei/koza/kyotaku",
+    "procedureSteps": [
+      "区市町村の介護保険課または地域包括へ相談",
+      "要介護認定を申請",
+      "居宅介護支援事業所とケアプランを作成"
+    ],
+    "source": {
+      "name": "東京都福祉局 居宅・介護予防サービス事業所一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireCaregiving": true
+    }
+  },
+  {
+    "id": "kazoku-kaigo",
+    "name": "家族介護者支援（相談・レスパイト）",
+    "agency": "区市町村・地域包括支援センター",
+    "category": "eldercare",
+    "summary": "介護する家族の負担を減らす相談窓口、短期入所、介護者交流会などの案内。",
+    "amountHint": "相談無料。ショートステイ等は介護保険",
+    "timeSavedMinutes": 55,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kourei/chiki/chiikihoukatsu",
+    "procedureSteps": [
+      "最寄りの地域包括支援センターを探す",
+      "介護者の困りごとを先に話す",
+      "必要ならショートステイ・訪問看護を組み合わせ"
+    ],
+    "source": {
+      "name": "東京都福祉局 福祉事務所一覧／地域包括関連",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireCaregiving": true
+    }
+  },
+  {
+    "id": "chiiki-hokatsu",
+    "name": "地域包括支援センター総合相談",
+    "agency": "区市町村",
+    "category": "eldercare",
+    "summary": "高齢者の暮らし全般の最初の相談先。介護保険の前でも使える。",
+    "amountHint": "相談無料",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kourei/chiki/chiikihoukatsu",
+    "procedureSteps": [
+      "住所地の担当包括を検索",
+      "電話または来所で状況を共有",
+      "必要に応じて介護認定・見守りにつなぐ"
+    ],
+    "source": {
+      "name": "東京都福祉局 高齢者等の異変等に気付いた際の区市町村連絡先",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireCaregiving": true
+    }
+  },
+  {
+    "id": "jutaku-hairyo",
+    "name": "住宅確保要配慮者向け居住支援",
+    "agency": "東京都 住宅政策本部",
+    "category": "housing",
+    "summary": "高齢者、ひとり親、低所得などで民間賃貸が借りにくい人を、居住支援法人とつなぐ。",
+    "amountHint": "相談無料。家賃助成は区市町村による",
+    "timeSavedMinutes": 65,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.juutakuseisaku.metro.tokyo.lg.jp/juutaku_seisaku/hairyo",
+    "procedureSteps": [
+      "東京都居住支援協議会の相談窓口へ",
+      "世帯状況（ひとり親・高齢・障害等）を伝える",
+      "登録住宅・見守り付き物件を紹介"
+    ],
+    "source": {
+      "name": "東京都 住宅確保要配慮者支援／だれでも東京 施設情報",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireHousingNeed": true,
+      "incomeBands": ["low", "middle"]
+    }
+  },
+  {
+    "id": "toei-jutaku",
+    "name": "都営住宅の申込案内",
+    "agency": "東京都 住宅政策本部",
+    "category": "housing",
+    "summary": "所得上限のある公営住宅。ひとり親・子育て・高齢者世帯は倍率優遇がある募集区分あり。",
+    "amountHint": "家賃は収入分位で算定",
+    "timeSavedMinutes": 50,
+    "annualYenHint": 240000,
+    "procedureUrl": "https://www.juutakuseisaku.metro.tokyo.lg.jp/toei/toei_jutaku",
+    "procedureSteps": [
+      "募集中の種別（ポイント方式・定期）を確認",
+      "所得・扶養の要件をチェック",
+      "電子申請または郵送で申込"
+    ],
+    "source": {
+      "name": "東京都オープンデータカタログ 公共施設・住宅関連",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireHousingNeed": true,
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "seikatsu-konkyu",
+    "name": "生活困窮者自立相談支援",
+    "agency": "区市町村・東京都",
+    "category": "livelihood",
+    "summary": "仕事・住まい・家計が同時に苦しいときの総合相談。貸付や就労支援につなぐ。",
+    "amountHint": "相談無料。支援内容は個別",
+    "timeSavedMinutes": 60,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/seikatsu/ondemand/jiritsu",
+    "procedureSteps": [
+      "住所地の自立相談支援機関へ予約",
+      "家計と住まいの状況を整理して持参",
+      "必要なら住居確保給付金も同時相談"
+    ],
+    "source": {
+      "name": "東京都福祉局 福祉事務所一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "iryo-koihi",
+    "name": "重度心身障害者医療費助成",
+    "agency": "東京都 福祉局",
+    "category": "medical",
+    "summary": "重度の障害がある人の医療費を助成する。世帯の医療費負担を大きく下げる。",
+    "amountHint": "自己負担の助成（所得制限あり）",
+    "timeSavedMinutes": 45,
+    "annualYenHint": 150000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/shinsho/iryo/juhshin",
+    "procedureSteps": [
+      "身体障害者手帳等の等級を確認",
+      "区市町村の障害福祉担当で申請",
+      "医療証を受診時に提示"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireDisability": true
+    }
+  },
+  {
+    "id": "jiritsu-iryo",
+    "name": "自立支援医療（更生・育成・精神）",
+    "agency": "区市町村",
+    "category": "medical",
+    "summary": "障害に関する継続的な医療の自己負担を軽減する公費負担医療。",
+    "amountHint": "原則1割負担＋月額上限",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 90000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/shinsho/iryo/jiritsu",
+    "procedureSteps": [
+      "対象となる医療（更生・育成・精神）を確認",
+      "指定医療機関と意見書を用意",
+      "区市町村に申請し受給者証の交付"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireDisability": true
+    }
+  }
+]
