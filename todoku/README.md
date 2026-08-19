@@ -12,12 +12,15 @@ npm install
 npm run dev
 ```
 
-[http://localhost:3000](http://localhost:3000) を開く。
+ブラウザで [http://localhost:3000](http://localhost:3000) を開く。
+
+インストールせずに見る場合は、同じフォルダの `standalone.html` をブラウザにドラッグ＆ドロップする。
 
 ```bash
 npm run test    # マッチング判定の単体テスト
 npm run lint
 npm run build   # 静的エクスポートは `out/`
+node scripts/build-standalone.mjs  # standalone.html を再生成
 ```
 
 ## デモ手順
