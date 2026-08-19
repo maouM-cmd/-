@@ -18,7 +18,7 @@ export function PersonaPicker({
             key={persona.id}
             type="button"
             onClick={() => onSelect(persona.id)}
-            className={`rounded-2xl border px-4 py-4 text-left shadow-sm transition ${
+            className={`cursor-pointer rounded-2xl border px-4 py-4 text-left shadow-sm transition ${
               active
                 ? "border-stamp bg-white ring-2 ring-stamp/30"
                 : "border-teal/10 bg-paper hover:border-teal/30"
