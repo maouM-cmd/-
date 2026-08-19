@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+:root {
+  --sand: #f4efe4;
+  --paper: #fffaf2;
+  --ink: #1c2a32;
+  --teal: #0f4c5c;
+  --stamp: #c23b22;
+  --moss: #2f6f4e;
+}
+
+@theme inline {
+  --color-sand: var(--sand);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-teal: var(--teal);
+  --color-stamp: var(--stamp);
+  --color-moss: var(--moss);
+  --font-sans: var(--font-noto-sans-jp), "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, #fbe8c9 0%, transparent 55%),
+    var(--sand);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}

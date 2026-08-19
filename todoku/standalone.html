@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>とどく | 探すな、届け。</title>
+  <style>
+    :root { --sand:#f4efe4; --paper:#fffaf2; --ink:#1c2a32; --teal:#0f4c5c; --stamp:#c23b22; --moss:#2f6f4e; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:"Hiragino Sans","Yu Gothic",Meiryo,sans-serif; background:radial-gradient(1200px 500px at 10% -10%, #fbe8c9 0%, transparent 55%), var(--sand); color:var(--ink); }
+    header, footer { background:rgba(255,250,242,.92); border-color:rgba(15,76,92,.1); }
+    header { border-bottom:1px solid rgba(15,76,92,.1); }
+    .bar { max-width:960px; margin:0 auto; padding:12px 16px; display:flex; justify-content:space-between; align-items:baseline; }
+    .bar strong { color:var(--teal); }
+    .bar span { color:rgba(15,76,92,.6); font-size:12px; }
+    main { max-width:960px; margin:0 auto; padding:24px 16px 64px; }
+    .hero { background:var(--teal); color:var(--paper); border-radius:24px; padding:32px; box-shadow:0 12px 30px rgba(15,76,92,.2); }
+    .hero h1 { margin:4px 0 0; font-size:32px; }
+    .hero p { margin:12px 0 0; line-height:1.6; color:rgba(255,250,242,.88); }
+    h2 { font-size:14px; color:var(--teal); margin:28px 0 10px; }
+    .grid3 { display:grid; gap:12px; }
+    @media (min-width:700px) { .grid3 { grid-template-columns:repeat(3,1fr); } }
+    button.persona, .card, .form, .stat { background:var(--paper); border:1px solid rgba(15,76,92,.1); border-radius:16px; }
+    button.persona { text-align:left; padding:16px; cursor:pointer; }
+    button.persona.active { border-color:var(--stamp); box-shadow:0 0 0 2px rgba(194,59,34,.3); background:#fff; }
+    button.persona small { color:var(--stamp); display:block; }
+    button.persona b { color:var(--teal); display:block; margin:4px 0; }
+    .form { padding:20px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 16px; }
+    .chip { border-radius:999px; border:1px solid rgba(15,76,92,.2); background:#fff; color:var(--teal); padding:6px 12px; cursor:pointer; }
+    .chip.on { background:var(--teal); color:#fff; border-color:var(--teal); }
+    .stat { padding:14px 16px; }
+    .stat em { display:block; font-style:normal; font-size:12px; color:rgba(15,76,92,.7); }
+    .stat b { color:var(--teal); font-size:20px; }
+    article { background:#fff; border:1px solid rgba(15,76,92,.1); border-radius:16px; padding:20px; margin:12px 0; }
+    .row { display:flex; gap:16px; }
+    .score { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; background:#fff; box-shadow:0 0 0 2px rgba(194,59,34,.2); color:var(--moss); flex-shrink:0; }
+    .muted { color:rgba(28,42,50,.7); font-size:14px; line-height:1.6; }
+    .meta { font-size:12px; color:var(--stamp); }
+    .boxes { display:grid; gap:8px; margin:12px 0; }
+    @media (min-width:700px) { .boxes { grid-template-columns:1fr 1fr; } }
+    .box { background:rgba(244,239,228,.8); border-radius:12px; padding:8px 12px; font-size:14px; }
+    .box span { display:block; font-size:12px; color:rgba(15,76,92,.6); }
+    ul.ok { color:var(--moss); }
+    ul.ng { color:rgba(194,59,34,.8); }
+    a { color:var(--stamp); }
+    footer { border-top:1px solid rgba(15,76,92,.1); padding:24px 16px; font-size:12px; color:rgba(15,76,92,.7); line-height:1.7; }
+  </style>
+</head>
+<body>
+  <header><div class="bar"><strong>とどく</strong> 探すな、届け。<span>都知事杯オープンデータ・ハッカソン2026</span></div></header>
+  <main>
+    <section class="hero">
+      <div>制度は、探させるな。</div>
+      <h1>とどく</h1>
+      <p>世帯の状況を3問だけ聞くと、東京都の支援制度オープンデータと突合し、今届く手当・助成・相談先を順位付きで返します。</p>
+    </section>
+    <h2>ペルソナで見る</h2>
+    <div id="personas" class="grid3"></div>
+    <h2>自分の世帯で見る（3問）</h2>
+    <div class="form" id="form"></div>
+    <h2>届く制度</h2>
+    <div id="stats" class="grid3"></div>
+    <div id="list"></div>
+    <h2 id="near-title" style="display:none">条件が近い参考</h2>
+    <div id="near"></div>
+  </main>
+  <footer>
+    適合判定はオープンデータを簡易ルール化した参考情報です。申請可否は各窓口の正式判定に従ってください。個人情報は送りません。<br/>
+    このファイルはブラウザでそのまま開けます（インターネット不要）。
+  </footer>
+  <script>
+    const BENEFITS = [
+  {
+    "id": "jidoteate",
+    "name": "児童手当",
+    "agency": "区市町村（国制度）",
+    "category": "childcare",
+    "summary": "高校生年代までの児童を養育する世帯に、月額の手当を支給する。所得制限の見直し後は多くの世帯が対象。",
+    "amountHint": "月額1.5〜3万円程度／児童",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 180000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/teate/jidoteate",
+    "procedureSteps": [
+      "住所地の区市町村窓口または電子申請で現況を確認",
+      "出生・転入から15日以内の申請が目安",
+      "口座情報と児童の続柄を提出"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ（項目をデモ用に再構成）",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18
+    }
+  },
+  {
+    "id": "jidouikusei",
+    "name": "児童育成手当",
+    "agency": "東京都 福祉局",
+    "category": "childcare",
+    "summary": "ひとり親家庭等に東京都が上乗せする手当。国の児童扶養手当とは別に申請できる。",
+    "amountHint": "月額1.355万円程度／児童（育成手当）",
+    "timeSavedMinutes": 55,
+    "annualYenHint": 162600,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/teate/jidouikusei",
+    "procedureSteps": [
+      "住所地の区市町村のひとり親福祉担当へ",
+      "戸籍謄本・所得証明書など必要書類を確認",
+      "認定後は現況届を毎年提出"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18,
+      "householdTypes": ["single_parent"]
+    }
+  },
+  {
+    "id": "jidoufujo",
+    "name": "児童扶養手当",
+    "agency": "区市町村（国制度）",
+    "category": "childcare",
+    "summary": "ひとり親家庭の生活安定のための国の手当。所得に応じて全部支給・一部支給がある。",
+    "amountHint": "月額最大約4.4万円（第1子・全部支給の目安）",
+    "timeSavedMinutes": 60,
+    "annualYenHint": 400000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/teate/jidoufujo",
+    "procedureSteps": [
+      "区市町村の児童扶養手当窓口で所得・養育費を申告",
+      "認定請求書と戸籍・住民票を提出",
+      "年1回の現況届を忘れない"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18,
+      "householdTypes": ["single_parent"],
+      "incomeBands": ["low", "middle"]
+    }
+  },
+  {
+    "id": "hitorioya-iryo",
+    "name": "ひとり親家庭等医療費助成",
+    "agency": "東京都 福祉局",
+    "category": "medical",
+    "summary": "ひとり親家庭の親と児童の医療費自己負担を助成する。窓口負担が大幅に減る。",
+    "amountHint": "医療費の自己負担を助成（所得制限あり）",
+    "timeSavedMinutes": 50,
+    "annualYenHint": 80000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/iryo/hitorioya",
+    "procedureSteps": [
+      "住所地の区市町村で資格確認",
+      "医療証の交付を受ける",
+      "受診時に医療証を提示"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "householdTypes": ["single_parent"],
+      "incomeBands": ["low", "middle"]
+    }
+  },
+  {
+    "id": "kodomo-iryo",
+    "name": "子ども医療費助成（区市町村）",
+    "agency": "区市町村",
+    "category": "medical",
+    "summary": "乳幼児から高校生年代までの医療費を助成する。対象年齢は区市町村で異なる。",
+    "amountHint": "通院・入院の自己負担を軽減",
+    "timeSavedMinutes": 35,
+    "annualYenHint": 40000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/iryo",
+    "procedureSteps": [
+      "住所地の子ども医療費担当で対象年齢を確認",
+      "マル乳・マル子等の医療証を申請",
+      "転入時は速やかに再申請"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 18
+    }
+  },
+  {
+    "id": "hoiku-muryoka",
+    "name": "幼児教育・保育の無償化",
+    "agency": "区市町村（国・都）",
+    "category": "childcare",
+    "summary": "3〜5歳の幼稚園・保育所等の利用料を無償化。0〜2歳は住民税非課税世帯などが対象。",
+    "amountHint": "保育料の無償化（施設による上乗せあり）",
+    "timeSavedMinutes": 45,
+    "annualYenHint": 360000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/hoiku",
+    "procedureSteps": [
+      "施設種別（認可・認証・幼稚園）を確認",
+      "区市町村で認定（教育・保育給付）を受ける",
+      "施設経由または直接に無償化を申請"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 5
+    }
+  },
+  {
+    "id": "babysitter",
+    "name": "東京都ベビーシッター利用支援事業",
+    "agency": "東京都 福祉局",
+    "category": "childcare",
+    "summary": "一時預かりや通勤時の送り迎えでベビーシッターを使う際の利用料を助成する。",
+    "amountHint": "1時間あたり最大2,500円程度の助成目安",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 120000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/hoiku/sitter",
+    "procedureSteps": [
+      "対象となるベビーシッター事業者を確認",
+      "区市町村または都の窓口で利用登録",
+      "利用後に助成を申請"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 12,
+      "householdTypes": ["couple", "single_parent"]
+    }
+  },
+  {
+    "id": "shussan-ouen",
+    "name": "出産・子育て応援事業（伴走型相談）",
+    "agency": "区市町村",
+    "category": "childcare",
+    "summary": "妊娠届出と出生後の面談に連動して経済的支援と相談をつなぐ。給付金の取りこぼしが多い。",
+    "amountHint": "妊娠・出産あわせて10万円相当が目安",
+    "timeSavedMinutes": 30,
+    "annualYenHint": 100000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/shussan",
+    "procedureSteps": [
+      "妊娠の届出時に面談予約",
+      "出生届出後の面談で給付申請",
+      "電子申請に対応する区市町村もあり"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 0,
+      "childAgeMax": 1
+    }
+  },
+  {
+    "id": "gakudo",
+    "name": "学童クラブ（放課後児童クラブ）",
+    "agency": "区市町村",
+    "category": "childcare",
+    "summary": "共働き等で放課後に自宅で見守れない小学生を預かる。実施状況は区市町村で差がある。",
+    "amountHint": "月数千円〜（自治体による）",
+    "timeSavedMinutes": 35,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kodomo/hoiku/gakudo",
+    "procedureSteps": [
+      "在住区市町村の学童実施状況を確認",
+      "就学前の1〜2月に申込が集中",
+      "待機がある場合は放課後子供教室も併用"
+    ],
+    "source": {
+      "name": "東京都福祉局 学童クラブ事業の区市町村別実施状況",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 6,
+      "childAgeMax": 12,
+      "householdTypes": ["couple", "single_parent"]
+    }
+  },
+  {
+    "id": "youchien-keigen",
+    "name": "私立幼稚園等園児保護者負担軽減",
+    "agency": "東京都 生活文化スポーツ局",
+    "category": "education",
+    "summary": "私立幼稚園等に通う保護者の保育料負担を都が軽減する。無償化と併用できる場合がある。",
+    "amountHint": "所得・園児数に応じた補助金",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 150000,
+    "procedureUrl": "https://www.seikatubunka.metro.tokyo.lg.jp/shigaku/nintei",
+    "procedureSteps": [
+      "在園する幼稚園を通じて申請",
+      "所得区分の書類を提出",
+      "無償化認定との重複を園に確認"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 3,
+      "childAgeMax": 5
+    }
+  },
+  {
+    "id": "jukensei-loan",
+    "name": "受験生チャレンジ支援貸付",
+    "agency": "東京都 福祉局",
+    "category": "education",
+    "summary": "低所得世帯の中3・高3が塾や受験料に充てる無利子貸付。進学後に一定条件で免除。",
+    "amountHint": "学習塾20万円・受験料相当など",
+    "timeSavedMinutes": 50,
+    "annualYenHint": 200000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/seikatsu/shikin/jukensei",
+    "procedureSteps": [
+      "社会福祉協議会で所得要件を確認",
+      "学習塾・受験料の見積を用意",
+      "進学後の免除条件を確認して契約"
+    ],
+    "source": {
+      "name": "東京都デジタルサービス局 子育て支援制度レジストリ",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 14,
+      "childAgeMax": 18,
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "kyoiku-shogaku",
+    "name": "高校生等奨学給付金",
+    "agency": "東京都 教育庁",
+    "category": "education",
+    "summary": "授業料以外の教育費を支援する給付金。返済不要。住民税非課税世帯などが対象。",
+    "amountHint": "年額数万円〜十数万円（課程による）",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 110000,
+    "procedureUrl": "https://www.kyoiku.metro.tokyo.lg.jp/admission/tuition/financial_support",
+    "procedureSteps": [
+      "在学校を通じて申請書類を受け取る",
+      "保護者の課税証明書を添付",
+      "年1回の申請期限に注意"
+    ],
+    "source": {
+      "name": "東京都教育庁 学校基本統計／就学支援関連",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireChildren": true,
+      "childAgeMin": 15,
+      "childAgeMax": 18,
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "kyotaku-kaigo",
+    "name": "居宅介護支援・介護予防サービス案内",
+    "agency": "東京都 福祉局",
+    "category": "eldercare",
+    "summary": "要介護・要支援の認定を受けた人が、訪問介護や通所を組み合わせて在宅で暮らすための入口。",
+    "amountHint": "介護保険の自己負担1〜3割",
+    "timeSavedMinutes": 70,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kourei/koza/kyotaku",
+    "procedureSteps": [
+      "区市町村の介護保険課または地域包括へ相談",
+      "要介護認定を申請",
+      "居宅介護支援事業所とケアプランを作成"
+    ],
+    "source": {
+      "name": "東京都福祉局 居宅・介護予防サービス事業所一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireCaregiving": true
+    }
+  },
+  {
+    "id": "kazoku-kaigo",
+    "name": "家族介護者支援（相談・レスパイト）",
+    "agency": "区市町村・地域包括支援センター",
+    "category": "eldercare",
+    "summary": "介護する家族の負担を減らす相談窓口、短期入所、介護者交流会などの案内。",
+    "amountHint": "相談無料。ショートステイ等は介護保険",
+    "timeSavedMinutes": 55,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kourei/chiki/chiikihoukatsu",
+    "procedureSteps": [
+      "最寄りの地域包括支援センターを探す",
+      "介護者の困りごとを先に話す",
+      "必要ならショートステイ・訪問看護を組み合わせ"
+    ],
+    "source": {
+      "name": "東京都福祉局 福祉事務所一覧／地域包括関連",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireCaregiving": true
+    }
+  },
+  {
+    "id": "chiiki-hokatsu",
+    "name": "地域包括支援センター総合相談",
+    "agency": "区市町村",
+    "category": "eldercare",
+    "summary": "高齢者の暮らし全般の最初の相談先。介護保険の前でも使える。",
+    "amountHint": "相談無料",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/kourei/chiki/chiikihoukatsu",
+    "procedureSteps": [
+      "住所地の担当包括を検索",
+      "電話または来所で状況を共有",
+      "必要に応じて介護認定・見守りにつなぐ"
+    ],
+    "source": {
+      "name": "東京都福祉局 高齢者等の異変等に気付いた際の区市町村連絡先",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireCaregiving": true
+    }
+  },
+  {
+    "id": "jutaku-hairyo",
+    "name": "住宅確保要配慮者向け居住支援",
+    "agency": "東京都 住宅政策本部",
+    "category": "housing",
+    "summary": "高齢者、ひとり親、低所得などで民間賃貸が借りにくい人を、居住支援法人とつなぐ。",
+    "amountHint": "相談無料。家賃助成は区市町村による",
+    "timeSavedMinutes": 65,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.juutakuseisaku.metro.tokyo.lg.jp/juutaku_seisaku/hairyo",
+    "procedureSteps": [
+      "東京都居住支援協議会の相談窓口へ",
+      "世帯状況（ひとり親・高齢・障害等）を伝える",
+      "登録住宅・見守り付き物件を紹介"
+    ],
+    "source": {
+      "name": "東京都 住宅確保要配慮者支援／だれでも東京 施設情報",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireHousingNeed": true,
+      "incomeBands": ["low", "middle"]
+    }
+  },
+  {
+    "id": "toei-jutaku",
+    "name": "都営住宅の申込案内",
+    "agency": "東京都 住宅政策本部",
+    "category": "housing",
+    "summary": "所得上限のある公営住宅。ひとり親・子育て・高齢者世帯は倍率優遇がある募集区分あり。",
+    "amountHint": "家賃は収入分位で算定",
+    "timeSavedMinutes": 50,
+    "annualYenHint": 240000,
+    "procedureUrl": "https://www.juutakuseisaku.metro.tokyo.lg.jp/toei/toei_jutaku",
+    "procedureSteps": [
+      "募集中の種別（ポイント方式・定期）を確認",
+      "所得・扶養の要件をチェック",
+      "電子申請または郵送で申込"
+    ],
+    "source": {
+      "name": "東京都オープンデータカタログ 公共施設・住宅関連",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireHousingNeed": true,
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "seikatsu-konkyu",
+    "name": "生活困窮者自立相談支援",
+    "agency": "区市町村・東京都",
+    "category": "livelihood",
+    "summary": "仕事・住まい・家計が同時に苦しいときの総合相談。貸付や就労支援につなぐ。",
+    "amountHint": "相談無料。支援内容は個別",
+    "timeSavedMinutes": 60,
+    "annualYenHint": 0,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/seikatsu/ondemand/jiritsu",
+    "procedureSteps": [
+      "住所地の自立相談支援機関へ予約",
+      "家計と住まいの状況を整理して持参",
+      "必要なら住居確保給付金も同時相談"
+    ],
+    "source": {
+      "name": "東京都福祉局 福祉事務所一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "incomeBands": ["low"]
+    }
+  },
+  {
+    "id": "iryo-koihi",
+    "name": "重度心身障害者医療費助成",
+    "agency": "東京都 福祉局",
+    "category": "medical",
+    "summary": "重度の障害がある人の医療費を助成する。世帯の医療費負担を大きく下げる。",
+    "amountHint": "自己負担の助成（所得制限あり）",
+    "timeSavedMinutes": 45,
+    "annualYenHint": 150000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/shinsho/iryo/juhshin",
+    "procedureSteps": [
+      "身体障害者手帳等の等級を確認",
+      "区市町村の障害福祉担当で申請",
+      "医療証を受診時に提示"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireDisability": true
+    }
+  },
+  {
+    "id": "jiritsu-iryo",
+    "name": "自立支援医療（更生・育成・精神）",
+    "agency": "区市町村",
+    "category": "medical",
+    "summary": "障害に関する継続的な医療の自己負担を軽減する公費負担医療。",
+    "amountHint": "原則1割負担＋月額上限",
+    "timeSavedMinutes": 40,
+    "annualYenHint": 90000,
+    "procedureUrl": "https://www.fukushi.metro.tokyo.lg.jp/shinsho/iryo/jiritsu",
+    "procedureSteps": [
+      "対象となる医療（更生・育成・精神）を確認",
+      "指定医療機関と意見書を用意",
+      "区市町村に申請し受給者証の交付"
+    ],
+    "source": {
+      "name": "東京都福祉局 医療費公費負担事業等一覧",
+      "url": "https://catalog.opendata.metro.tokyo.lg.jp/"
+    },
+    "rules": {
+      "requireDisability": true
+    }
+  }
+]
+;
+    const PERSONAS = [
+  {
+    "id": "hikari",
+    "name": "ひかりさん",
+    "title": "ひとり親・4歳",
+    "blurb": "区の賃貸。保育と医療費が毎月の不安。",
+    "household": {
+      "householdType": "single_parent",
+      "children": [{ "age": 4 }],
+      "caregiving": false,
+      "incomeBand": "low",
+      "employment": "employed",
+      "housing": "rent",
+      "disability": false,
+      "area": "23ku"
+    }
+  },
+  {
+    "id": "sato",
+    "name": "さとう家",
+    "title": "共働き・1歳",
+    "blurb": "認可待ち。預け先と手続の時間がない。",
+    "household": {
+      "householdType": "couple",
+      "children": [{ "age": 1 }],
+      "caregiving": false,
+      "incomeBand": "middle",
+      "employment": "employed",
+      "housing": "rent",
+      "disability": false,
+      "area": "23ku"
+    }
+  },
+  {
+    "id": "takahashi",
+    "name": "たかはし家",
+    "title": "介護世帯",
+    "blurb": "実母の介護と仕事の両立。相談先が分からない。",
+    "household": {
+      "householdType": "couple",
+      "children": [],
+      "caregiving": true,
+      "incomeBand": "middle",
+      "employment": "employed",
+      "housing": "own",
+      "disability": false,
+      "area": "tama"
+    }
+  }
+]
+;
+    const TYPE_LABEL = { single:"単身", couple:"夫婦・パートナー", single_parent:"ひとり親", other:"その他の世帯" };
+    const INCOME_LABEL = { low:"家計に余裕が少ない", middle:"ふつうの家計", high:"比較的余裕がある" };
+    const CAT = { childcare:"子育て", medical:"医療", housing:"住まい", eldercare:"介護", education:"学び", livelihood:"暮らし" };
+    let personaId = PERSONAS[0].id;
+    let household = structuredClone(PERSONAS[0].household);
+
+    function formatYen(v){ return v>=10000 ? "約" + Math.round(v/10000).toLocaleString("ja-JP") + "万円" : "約" + v.toLocaleString("ja-JP") + "円"; }
+    function formatMin(v){ return v>=60 ? "約" + Math.round(v/60) + "時間" : "約" + v + "分"; }
+    function ages(h){ return h.children.map(c=>c.age+"歳").join("・"); }
+    function inRange(h,min,max){ return h.children.some(c => (min==null||c.age>=min) && (max==null||c.age<=max)); }
+
+    function matchBenefit(h, b){
+      const reasons=[], gaps=[]; let hard=false, points=0, max=0; const r=b.rules||{};
+      if(r.requireChildren){ max+=30; if(!h.children.length){ hard=true; gaps.push("対象となる子どもがいない"); } else { points+=30; reasons.push("お子さん（"+ages(h)+"）がいる"); } }
+      if(r.childAgeMin!=null || r.childAgeMax!=null){ max+=20; const min=r.childAgeMin??0, mx=r.childAgeMax??18; if(inRange(h,r.childAgeMin,r.childAgeMax)){ points+=20; reasons.push(min+"〜"+mx+"歳の子どもが対象年齢"); } else { hard=true; gaps.push("対象年齢は"+min+"〜"+mx+"歳"); } }
+      if(r.householdTypes?.length){ max+=20; if(r.householdTypes.includes(h.householdType)){ points+=20; reasons.push("世帯の形「"+TYPE_LABEL[h.householdType]+"」が条件に合う"); } else { hard=true; gaps.push("世帯の形が対象外"); } }
+      if(r.incomeBands?.length){ max+=15; if(r.incomeBands.includes(h.incomeBand)){ points+=15; reasons.push(INCOME_LABEL[h.incomeBand]+"世帯向けの目安に入る"); } else if(h.incomeBand==="high" && !r.incomeBands.includes("high")){ hard=true; gaps.push("所得制限の目安を超えている可能性"); } else { points+=4; gaps.push("所得要件は区市町村の判定が必要"); } }
+      if(r.requireCaregiving){ max+=25; if(h.caregiving){ points+=25; reasons.push("家族の介護・世話をしている"); } else { hard=true; gaps.push("介護している家族が条件"); } }
+      if(r.requireDisability){ max+=20; if(h.disability){ points+=20; reasons.push("障害・難病などの状況が対象"); } else { hard=true; gaps.push("障害者手帳等の要件あり"); } }
+      if(r.requireHousingNeed){ max+=15; if(h.housing==="looking"||h.housing==="rent"){ points+=15; reasons.push("住まいの支援が役立つ状況"); } else { hard=true; gaps.push("住宅の困りごとが条件"); } }
+      if(max===0){ points=48; max=100; reasons.push("多くの都民が使える基礎的な案内"); }
+      if(b.category==="childcare" && h.children.length && !r.requireChildren){ points+=8; max+=8; }
+      if(b.category==="eldercare" && h.caregiving && !r.requireCaregiving){ points+=8; max+=8; }
+      if(h.incomeBand==="low" && b.category==="livelihood"){ points+=6; max+=6; reasons.push("家計の負担を直接減らせる"); }
+      const raw = max===0?0:Math.round(points/max*100);
+      return { benefit:b, eligible:!hard, score: hard?Math.min(raw,38):Math.max(raw,42), reasons:[...new Set(reasons)], gaps:[...new Set(gaps)] };
+    }
+
+    function rank(){
+      const results = BENEFITS.map(b=>matchBenefit(household,b)).sort((a,b)=>b.score-a.score);
+      const eligible = results.filter(r=>r.eligible);
+      const nearby = results.filter(r=>!r.eligible && r.score>=15);
+      return { eligible, nearby, totals:{ count:eligible.length, time:eligible.reduce((s,r)=>s+r.benefit.timeSavedMinutes,0), yen:eligible.reduce((s,r)=>s+r.benefit.annualYenHint,0) } };
+    }
+
+    function familyOf(h){ if(h.children.length && h.caregiving) return "both"; if(h.children.length) return "children"; if(h.caregiving) return "care"; return "none"; }
+    function applyFamily(choice){
+      if(choice==="children") household = { ...household, caregiving:false, children: household.children.length?household.children:[{age:4}] };
+      else if(choice==="care") household = { ...household, caregiving:true, children:[] };
+      else if(choice==="both") household = { ...household, caregiving:true, children: household.children.length?household.children:[{age:8}] };
+      else household = { ...household, caregiving:false, children:[] };
+      personaId = null; render();
+    }
+
+    function card(r){
+      const b=r.benefit;
+      const lis = (r.eligible?r.reasons:r.gaps).map(x=>"<li>"+x+"</li>").join("");
+      const steps = b.procedureSteps.map(s=>"<li>"+s+"</li>").join("");
+      return '<article><div class="row"><div class="score">'+r.score+'</div><div><div class="meta">'+CAT[b.category]+' ／ '+b.agency+'</div><h3 style="margin:4px 0;color:var(--teal)">'+b.name+'</h3><p class="muted">'+b.summary+'</p></div></div><div class="boxes"><div class="box"><span>金額の目安</span>'+b.amountHint+'</div><div class="box"><span>手取り・時短</span>'+(b.annualYenHint>0?("年"+formatYen(b.annualYenHint)+" ／ "):"")+formatMin(b.timeSavedMinutes)+'</div></div><ul class="'+(r.eligible?"ok":"ng")+'">'+lis+'</ul><ol class="muted">'+steps+'</ol><p><a href="'+b.procedureUrl+'" target="_blank" rel="noreferrer">手続・公式案内を開く</a> <span class="muted">'+b.source.name+'</span></p></article>';
+    }
+
+    function render(){
+      document.getElementById("personas").innerHTML = PERSONAS.map(p =>
+        '<button class="persona'+(p.id===personaId?" active":"")+'" data-id="'+p.id+'"><small>'+p.title+'</small><b>'+p.name+'</b><span class="muted">'+p.blurb+'</span></button>'
+      ).join("");
+      document.querySelectorAll("button.persona").forEach(btn=>{
+        btn.onclick = () => { const p = PERSONAS.find(x=>x.id===btn.dataset.id); personaId=p.id; household=structuredClone(p.household); render(); };
+      });
+      const fam = familyOf(household);
+      const chip = (on, label, fn) => '<button class="chip'+(on?" on":"")+'" type="button">'+label+'</button>';
+      const fams = [["children","子どもがいる"],["care","家族を介護している"],["both","両方"],["none","どちらもいない"]];
+      const types = [["single_parent","ひとり親"],["couple","夫婦・パートナー"],["single","単身"],["other","その他"]];
+      const incs = [["low","ぎりぎり"],["middle","ふつう"],["high","余裕あり"]];
+      document.getElementById("form").innerHTML =
+        '<p><b style="color:var(--teal)">1. いまの家族</b></p><div class="chips" id="f1"></div>'+
+        '<p><b style="color:var(--teal)">2. 世帯の形</b></p><div class="chips" id="f2"></div>'+
+        '<p><b style="color:var(--teal)">3. 家計の余裕</b></p><div class="chips" id="f3"></div>';
+      document.getElementById("f1").innerHTML = fams.map(([v,l])=>'<button type="button" class="chip'+(fam===v?" on":"")+'" data-v="'+v+'">'+l+'</button>').join("");
+      document.getElementById("f2").innerHTML = types.map(([v,l])=>'<button type="button" class="chip'+(household.householdType===v?" on":"")+'" data-v="'+v+'">'+l+'</button>').join("");
+      document.getElementById("f3").innerHTML = incs.map(([v,l])=>'<button type="button" class="chip'+(household.incomeBand===v?" on":"")+'" data-v="'+v+'">'+l+'</button>').join("");
+      document.querySelectorAll("#f1 .chip").forEach(b=>b.onclick=()=>applyFamily(b.dataset.v));
+      document.querySelectorAll("#f2 .chip").forEach(b=>b.onclick=()=>{ household={...household, householdType:b.dataset.v}; personaId=null; render(); });
+      document.querySelectorAll("#f3 .chip").forEach(b=>b.onclick=()=>{ household={...household, incomeBand:b.dataset.v}; personaId=null; render(); });
+      const ranked = rank();
+      document.getElementById("stats").innerHTML =
+        '<div class="stat"><em>届きそうな制度</em><b>'+ranked.totals.count+'件</b></div>'+
+        '<div class="stat"><em>探す時間の削減目安</em><b>'+formatMin(ranked.totals.time)+'</b></div>'+
+        '<div class="stat"><em>手取りに効く金額目安</em><b>'+(ranked.totals.yen>0?("年"+formatYen(ranked.totals.yen)):"相談・手続中心")+'</b></div>';
+      document.getElementById("list").innerHTML = ranked.eligible.map(card).join("");
+      document.getElementById("near-title").style.display = ranked.nearby.length ? "block" : "none";
+      document.getElementById("near").innerHTML = ranked.nearby.slice(0,4).map(card).join("");
+    }
+    render();
+  </script>
+</body>
+</html>
