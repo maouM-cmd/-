@@ -59,10 +59,12 @@ node business-ops/scripts/autopilot.mjs ship --yes
 2. うまくいったプロンプト → Skill or テンプレに昇格
 3. `AI_AGENT_MASTERY.md` のレベル指標を確認
 
-## 週次: coupon-board メンテ（必要時）
+## 必要時: Dify / ops-dx（ファイルのみ）
 
-1. `@coupon-board-dev` + 要件
-2. `pre-deploy-check.sh` → PR → `checklists/coupon-board-deploy.md`
+1. Studio で DSL をエクスポートし `ops-dx/INBOX/dsl/` へ。KB 本文は `ops-dx/INBOX/kb/`
+2. Cursor で `@dify-file-handoff`
+3. `ops-dx/OUTBOX/` の YAML を人間が Studio にインポート。Publish も人間
+4. エージェントに Dify のブラウザ操作はさせない
 
 ## 危険操作の原則
 
@@ -83,3 +85,4 @@ node business-ops/scripts/autopilot.mjs ship --yes
 | シークレットが不安 | `github-preflight.sh` |
 | エージェントの使い方 | `@ai-agent-mastery` |
 | Next.jsエラー | `@coupon-board-dev` + AGENTS.md |
+| Dify をブラウザで触らせたくない | DSL を `ops-dx/INBOX/` へ + `@dify-file-handoff` |

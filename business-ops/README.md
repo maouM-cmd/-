@@ -89,6 +89,7 @@ business-ops/
 | **エージェントマスター** | `@ai-agent-mastery` |
 | 記事制作 | `@article-production` |
 | 掲示板開発 | `@coupon-board-dev` |
+| Dify / ops-dx | `@dify-file-handoff` |
 
 ## 安全ルール
 
