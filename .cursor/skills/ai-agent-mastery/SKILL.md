@@ -78,6 +78,7 @@ Step 3: QAスクリプト → 人間確認
 | 新Webアプリ | `@web-dev-github` |
 | coupon-board | `@coupon-board-dev` |
 | 記事執筆 | `@article-production` |
+| Dify / ops-dx Chatflow | `@dify-file-handoff`（DSL・KBをファイルで。Studioは触らない） |
 | エージェント設計 | `@ai-agent-mastery`（本Skill） |
 
 ## 週次振り返りテンプレート

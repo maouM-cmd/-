@@ -48,6 +48,7 @@
 | `@web-dev-github` | 新規開発・GitHub投稿 |
 | `@coupon-board-dev` | 掲示板の修正 |
 | `@article-production` | 記事（副業） |
+| `@dify-file-handoff` | Dify Chatflow（DSL/KBファイル。Studio操作なし） |
 | `@ai-agent-mastery` | 委任設計・振り返り |
 
 ## スクリプト一覧
