@@ -110,6 +110,8 @@ Claude の仕事なら渡す。実装は向こう。こちらはレビューだ�
 | coupon-board | `@coupon-board-dev` |
 | 記事執筆 | `@article-production` |
 | エージェント設計 | `@ai-agent-mastery`（本Skill） |
+| 実務力の訓練（考える・打つ・説明する） | `@training-mode`（SHIPと併用。実装代行はしない） |
+| 自律学習（Dify・基本情報語彙・可視化） | `@learning-coach` |
 | 全自動 ship | `@autopilot` |
 | 先に分類 | `@agent-router` |
 | Cursor と Claude の会話 | `@agent-dm`（配達） |
