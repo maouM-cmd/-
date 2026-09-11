@@ -1,0 +1,3 @@
+# ローカル MCP（example をコピーした実体。Cloud に claude が無いのでコミットしない）
+.cursor/mcp.json
+.claude/mcp.json

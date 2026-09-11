@@ -2,6 +2,26 @@
 
 > 主業務: Web開発 / くり返し: GitHub投稿 / ゴール: 最強AIエージェントマスター
 
+## エージェントが先に分類する
+
+依頼を受けたツールは、実装の前に `@agent-router` で判定する。自分の仕事ならやる。相手の仕事なら渡す。merge / デプロイは人間。プロジェクト名が無い余白 / UI は **coupon-board の一覧カード** を既定にする。「どのプロジェクト？」と聞いて止まらない。
+
+同じ実装を Cursor と Claude Code の両方でやらない。根拠: `CURSOR_VS_CLAUDE.md`
+
+相手の会話・思考・画面を勝手に読むことはできない。Agent Mail デーモンは入れない。エージェント起動時は inbox を見る（`agent-dm.mjs inbox` と `gh issue list --label agent-dm`）。MCP に `fetch_inbox` があるときだけ呼ぶ。空なら今の依頼を続ける。
+
+## どのツールでやるか（判定の目安）
+
+| 今日の作業 | ツール | 呼び出し |
+|------------|--------|----------|
+| 手元で実装・テストして出す | Claude Code | `ai_company` の skills / プロジェクト直下で起動 |
+| 小さな修正、記事の穴埋め | Cursor | Tab / Cmd+K（エージェント不要） |
+| 新規Webをゼロから、または全自動 ship | Cursor | `@autopilot` / `@web-dev-github` |
+| coupon-board の見た目 | Cursor | Design Mode + `@coupon-board-dev` |
+| 外出中・並列で直す | Cursor Cloud Agent | cursor.com/agents またはモバイル |
+| 相手エージェントに仕事を渡す | Agent DM / MCP / `agent -p` | 先に `@agent-router` |
+| 朝のチェック / 今日の1時間 / 週報 | Claude Code | 「今日の状況は」「今日の1時間」 |
+
 ## 日次: 全自動モード（推奨）
 
 ```bash
@@ -83,3 +103,5 @@ node business-ops/scripts/autopilot.mjs ship --yes
 | シークレットが不安 | `github-preflight.sh` |
 | エージェントの使い方 | `@ai-agent-mastery` |
 | Next.jsエラー | `@coupon-board-dev` + AGENTS.md |
+| Cursor の意義が分からない | `CURSOR_VS_CLAUDE.md` |
+| 相手エージェントに渡したい | 先に `@agent-router`。配達は `@agent-dm` |

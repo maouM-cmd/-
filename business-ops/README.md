@@ -48,6 +48,9 @@ business-ops/
 ├── README.md
 ├── SOP.md
 ├── AI_AGENT_MASTERY.md       # マスターへの道筋
+├── CURSOR_VS_CLAUDE.md       # Cursor の存在意義と Claude Code との分担
+├── GROKBOT_FLEET.md          # Grok Bot / Grok 4.6 と既存フリートの分担
+├── agent-dm/                 # 会話口のカタログ + Cloud用スレッド
 ├── BUSINESS_MAP.md
 ├── AUTOMATION_CANDIDATES.md
 ├── scripts/
@@ -57,12 +60,19 @@ business-ops/
 │   ├── new-article.mjs
 │   ├── article-qa.mjs
 │   ├── topic-dedup.mjs
+│   ├── agent-dm.mjs          # Cloud用フォールバック・スレッド
+│   ├── enable-local-mcp.mjs  # 自宅PCで mcp.json を作る
 │   └── pre-deploy-check.sh
 ├── templates/
 │   ├── project-brief.md      # 新規開発入力フォーム
 │   ├── article-brief.md
 │   ├── agent-retrospective.md
+│   ├── claude-agent-dm.md    # ai_company の CLAUDE.md へ貼る断片
+│   ├── cursor-environment.json.example  # Cloud Agent 草案。ダッシュボードは人間
 │   └── prompts/
+│       ├── grokbot-fleet.md
+│       ├── grokbot-bots/     # 検証済み・アプリへ貼る Bot
+│       └── hackathon-24/     # デートスパーク制作基盤（貼る文）
 ├── checklists/
 │   ├── github-ship.md
 │   ├── article-publish.md
@@ -73,12 +83,22 @@ business-ops/
 ├── web-dev-github/SKILL.md
 ├── ai-agent-mastery/SKILL.md
 ├── article-production/SKILL.md
-└── coupon-board-dev/SKILL.md
+├── coupon-board-dev/SKILL.md
+├── agent-dm/SKILL.md
+└── agent-router/SKILL.md
+
+.claude/skills/
+├── agent-dm/SKILL.md
+└── agent-router/SKILL.md
 
 .github/
 ├── pull_request_template.md
 └── ISSUE_TEMPLATE/
 ```
+
+## Cursor と Claude Code
+
+手元の実装は Claude Code。Cursor は Tab・Cloud Agent・Bugbot・Automations。依頼は先に `@agent-router`。同じPCなら `claude mcp serve` / `agent -p`、Cloudなら `agent-dm/`。
 
 ## Cursor Skill の呼び方
 
@@ -89,6 +109,8 @@ business-ops/
 | **エージェントマスター** | `@ai-agent-mastery` |
 | 記事制作 | `@article-production` |
 | 掲示板開発 | `@coupon-board-dev` |
+| 先に分類 | `@agent-router` |
+| Cursor と Claude の会話 | `@agent-dm` / Claude 側は「inbox 見て」 |
 
 ## 安全ルール
 

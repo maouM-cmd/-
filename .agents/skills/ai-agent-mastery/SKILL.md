@@ -1,6 +1,6 @@
 ---
 name: ai-agent-mastery
-description: Cursor/Fableエージェントを最大限活用し「最強AIエージェントマスター」を目指すための思考法・委任パターン・プロンプト設計・振り返りルール。
+description: Codex/Fableエージェントを最大限活用し「最強AIエージェントマスター」を目指すための思考法・委任パターン・プロンプト設計・振り返りルール。
 ---
 
 # 最強AIエージェントマスター Skill
@@ -9,18 +9,18 @@ description: Cursor/Fableエージェントを最大限活用し「最強AIエ�
 
 > 人間は**判断**だけ。実装・文案・調査・定型作業はエージェントに任せる。
 
-## ツール分担（Cursor vs Claude Code）
+## ツール分担（Codex vs Claude Code）
 
-Cursor を Claude Code の代わりにしない。手元実装は Claude Code、Cursor は Tab / Cloud Agent / Bugbot / Automations / `/best-of-n`。相手の会話・思考・画面は読めない。Agent Mail デーモンは入れない。エージェント起動時は inbox を見る。
+Codex を Claude Code の代わりにしない。手元実装は Claude Code、Codex は Tab / Cloud Agent / Bugbot / Automations / `/best-of-n`。
 
 | 任せる作業 | ツール |
 |------------|--------|
 | 手元の実装・テスト・提出 | Claude Code |
-| 小さな修正（エージェント起動なし） | Cursor Tab / Cmd+K |
-| UI クリック修正 | Cursor Design Mode |
-| 非同期・スマホ・並列 | Cursor Cloud Agent |
+| 小さな修正（エージェント起動なし） | Codex Tab / Cmd+K |
+| UI クリック修正 | Codex Design Mode |
+| 非同期・スマホ・並列 | Codex Cloud Agent |
 | PR 監査・CI 失敗修正 | Bugbot / Automations |
-| モデル比較（Next.js 16 など） | Cursor `/best-of-n` |
+| モデル比較（Next.js 16 など） | Codex `/best-of-n` |
 | 日次 SOP（朝チェック・1時間） | Claude Code skills |
 | 相手エージェントへ依頼 | 先に `@agent-router`。配達は Agent DM |
 
@@ -35,7 +35,6 @@ Cursor を Claude Code の代わりにしない。手元実装は Claude Code、
 ### 2. 入力フォームを必ず挟む
 - 口頭の曖昧な指示より `project-brief.md` / `article-brief.md`
 - **入力が足りないときは推測で進め、仮定を明示**
-- UI / 余白でプロジェクト名が無いときは `coupon-board` の一覧カードを既定にする。聞いて止まらない
 
 ### 3. 委任の粒度を決める
 
@@ -89,7 +88,7 @@ Step 3: QAスクリプト → 人間確認
 → 独立なら同時依頼、依存ありなら順番に
 ```
 
-### パターンE: Cursor → Claude Code（Agent DM）
+### パターンE: Codex → Claude Code（Agent DM）
 ```
 @agent-router
 Claude の仕事なら渡す。実装は向こう。こちらはレビューだけ。
@@ -111,10 +110,10 @@ Claude の仕事なら渡す。実装は向こう。こちらはレビューだ�
 | 記事執筆 | `@article-production` |
 | エージェント設計 | `@ai-agent-mastery`（本Skill） |
 | 実務力の訓練（考える・打つ・説明する） | `@training-mode`（SHIPと併用。実装代行はしない） |
-| 自律学習（Dify・RAG・Docker・AWS・ターミナル・語彙・可視化） | `@learning-coach` |
+| 自律学習（Dify・基本情報語彙・可視化） | `@learning-coach` |
 | 全自動 ship | `@autopilot` |
 | 先に分類 | `@agent-router` |
-| Cursor と Claude の会話 | `@agent-dm`（配達） |
+| Codex と Claude の会話 | `@agent-dm`（配達） |
 | ツール分担の確認 | `business-ops/CURSOR_VS_CLAUDE.md` |
 
 ## 週次振り返りテンプレート
@@ -134,7 +133,7 @@ Claude の仕事なら渡す。実装は向こう。こちらはレビューだ�
 ## 詳細プレイブック
 
 - `business-ops/AI_AGENT_MASTERY.md`
-- `business-ops/CURSOR_VS_CLAUDE.md` — Cursor の存在意義と、Claude Code との使い分け
+- `business-ops/CURSOR_VS_CLAUDE.md` — Codex の存在意義と、Claude Code との使い分け
 - `business-ops/GROKBOT_FLEET.md` — Grok Bot（常時稼働）と Cursor 内 Grok 4.6
 - `business-ops/templates/prompts/grokbot-fleet.md` — 参謀 / 夜勤調査 / 再現パックのコピペ（CW・note は対象外）
 - `business-ops/agent-dm/PROTOCOL.md` — 配達
