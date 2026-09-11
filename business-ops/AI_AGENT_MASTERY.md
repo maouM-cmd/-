@@ -69,6 +69,8 @@
 | `@agent-router` | 実装前の分類（必須） |
 | `@agent-dm` | 分類後の配達 |
 | `CURSOR_VS_CLAUDE.md` | Cursor と Claude Code の分担 |
+| `GROKBOT_FLEET.md` | Grok Bot（常時稼働）と Cursor 内 Grok 4.6 の分担 |
+| `templates/prompts/grokbot-fleet.md` | 参謀 / 夜勤調査 / 再現パック / 司令塔のコピペ（CW・note は対象外） |
 
 ## スクリプト一覧
 

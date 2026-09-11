@@ -168,6 +168,7 @@ lint 修正なら Claude に渡す。余白なら Design Mode。デプロイな�
 
 ## 関連
 
+- Grok Bot / Grok 4.6: `business-ops/GROKBOT_FLEET.md` と `business-ops/templates/prompts/grokbot-fleet.md`
 - プレイブック: `business-ops/AI_AGENT_MASTERY.md`
 - SOP: `business-ops/SOP.md`
 - Skill: `.cursor/skills/ai-agent-mastery/SKILL.md`

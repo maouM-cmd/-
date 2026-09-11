@@ -48,6 +48,14 @@ gh issue list --label agent-dm --state open
 
 `gh` が無い・ラベルが無い・失敗したら無視して先へ。ラベル作成は人間。MCP ツールに `fetch_inbox` があるときだけ 1 回呼ぶ。無ければ入れない。聞かない。inbox があればルーターどおり処理。空なら今の依頼を続ける。Cloud ↔ 自宅の見逃し防止が主。同じ PC の MCP / `agent -p` はこれまでどおり。
 
+## WIP=1（分類・実装の前）
+
+`C:\Users\haruki\loop\state\wip.md` を読む。正は `.cursor/rules/wip-one.mdc`。AUTOより強い。
+
+- `status: open` で今の依頼が別件 → 分類も実装もしない。3択だけ返す（続ける / 完走して切替 / パークして切替）
+- 同じWIP、または `status: empty` → このルーターどおり進む。empty ならこの依頼を `wip.md` に書いてから分類する
+- パークは `C:\Users\haruki\loop\state\queue.md` の `## パーク` 末尾に `- [ ]` で積むだけ。実行しない
+
 ## 引き渡し
 
 自分の判定と自分の役割が一致 → やる。

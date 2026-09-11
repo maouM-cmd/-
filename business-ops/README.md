@@ -49,6 +49,7 @@ business-ops/
 ├── SOP.md
 ├── AI_AGENT_MASTERY.md       # マスターへの道筋
 ├── CURSOR_VS_CLAUDE.md       # Cursor の存在意義と Claude Code との分担
+├── GROKBOT_FLEET.md          # Grok Bot / Grok 4.6 と既存フリートの分担
 ├── agent-dm/                 # 会話口のカタログ + Cloud用スレッド
 ├── BUSINESS_MAP.md
 ├── AUTOMATION_CANDIDATES.md
@@ -67,7 +68,11 @@ business-ops/
 │   ├── article-brief.md
 │   ├── agent-retrospective.md
 │   ├── claude-agent-dm.md    # ai_company の CLAUDE.md へ貼る断片
+│   ├── cursor-environment.json.example  # Cloud Agent 草案。ダッシュボードは人間
 │   └── prompts/
+│       ├── grokbot-fleet.md
+│       ├── grokbot-bots/     # 検証済み・アプリへ貼る Bot
+│       └── hackathon-24/     # デートスパーク制作基盤（貼る文）
 ├── checklists/
 │   ├── github-ship.md
 │   ├── article-publish.md

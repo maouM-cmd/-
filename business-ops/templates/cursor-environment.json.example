@@ -1,0 +1,12 @@
+{
+  "$schema": "https://www.cursor.com/schemas/environment.schema.json",
+  "name": "maou-workspace web",
+  "install": "cd coupon-board && npm ci && cd ../optimal-match && npm ci",
+  "terminals": [
+    {
+      "name": "coupon-board",
+      "command": "cd coupon-board && npm run dev"
+    }
+  ],
+  "ports": [3000]
+}

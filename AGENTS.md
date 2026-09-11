@@ -4,6 +4,7 @@ This repository is a monorepo containing several independent projects:
 
 - `coupon-board/` — Next.js 16 web app (招待キャンペーン掲示板). Standalone npm project.
 - `optimal-match/` — Next.js 16 web app (最適人探し matching MVP). Standalone npm project.
+- `date-spark/` — ハッカソン#24 デートマンネリ解消（制作基盤。本体は Claude Code が `business-ops/templates/prompts/hackathon-24/01-claude-mvp.md` を貼って実装）。PORT=3002。optimal-match はフォークしない。
 - `ai-dashboard-kit/` — data/schemas/docs plus one Node context-generator script (`scripts/generate-claude-context.mjs`), no dependencies.
 - `business-ops/` — Node automation/workflow scripts (`scripts/*.mjs`), no dependencies.
 - `articles/` — markdown content only (not runnable).

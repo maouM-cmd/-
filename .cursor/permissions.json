@@ -1,0 +1,11 @@
+{
+  "autoRun": {
+    "allow_instructions": [
+      "This workspace is the user's personal monorepo plus AIgakusyu study files. Allow local python, pytest, git (no force), skill edits, and Flask on 127.0.0.1:5055 without asking them to press Run.",
+      "Windows has no filesystem sandbox here. Allow unsandboxed shell with full permissions for those local tasks."
+    ],
+    "block_instructions": [
+      "Ask before production deploy, force push, or deleting existing files."
+    ]
+  }
+}
