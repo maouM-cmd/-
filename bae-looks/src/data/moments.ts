@@ -234,7 +234,7 @@ export const SITE = {
   brand: "BAE FRAME",
   member: "NMIXX Bae",
   memberJa: "NMIXX ベイ",
-  tagline: "動画のその一秒から、ベイの着用アイテムを起こす。",
+  tagline: "服も、ハマりも、お店も。ベイの「今」を起こす。",
   support:
-    "スクショしてレンズに投げる工程を、フレーム選択だけで完結させる推し活試作。",
+    "着用アイテムだけでなく、発言の興味や行った場所まで。推しコンテキストを可視化する試作。",
 } as const;

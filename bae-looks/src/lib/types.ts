@@ -1,5 +1,7 @@
 export type ConfidenceLevel = "exact" | "same_brand" | "similar";
 
+export type ContextLayer = "item" | "interest" | "place";
+
 export type ItemCategory =
   | "トップス"
   | "アウター"
@@ -8,7 +10,8 @@ export type ItemCategory =
   | "ネックレス"
   | "ピアス"
   | "バッグ"
-  | "リップ";
+  | "リップ"
+  | "香水";
 
 export interface ShopLink {
   label: string;
@@ -34,6 +37,8 @@ export interface IdentifiedItem {
     priceHint: string;
     note: string;
   }>;
+  observedAt?: string;
+  sourceLabel?: string;
 }
 
 export interface DemoMoment {
@@ -45,4 +50,28 @@ export interface DemoMoment {
   frameTone: "stage" | "airport" | "vlog";
   focusCategory: ItemCategory;
   items: IdentifiedItem[];
+}
+
+export interface InterestEvent {
+  id: string;
+  label: string;
+  quote: string;
+  timestamp: string;
+  sourceLabel: string;
+  observedAt: string;
+  relatedTags: string[];
+  actionLabel: string;
+  actionHref: string;
+}
+
+export interface PlaceEvent {
+  id: string;
+  name: string;
+  area: string;
+  visitedAt: string;
+  sourceLabel: string;
+  timestamp: string;
+  sceneNote: string;
+  mapQuery: string;
+  companionNote?: string;
 }

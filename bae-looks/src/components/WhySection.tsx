@@ -6,27 +6,27 @@ export function WhySection() {
           Scope now
         </p>
         <h2 className="font-display mt-3 text-3xl font-semibold tracking-tight">
-          まずベイ一人に絞る理由
+          物・興味・場所を、同じ骨格で
         </h2>
         <p className="mt-3 leading-relaxed text-[var(--ink-muted)]">
-          推し活の特定体験は、汎用ファッション検索より「誰の、どの秒の、何が」が重要です。
-          フロントの空気感が良ければ、同じ骨格でメンバー横断・他アーティストへ広げます。
+          推し活の本体は型番検索だけじゃない。発言のハマりや行った店まで含めて
+          「推しの今」を見せる。まずはベイ一人で、その可視化の感触を固める。
         </p>
       </div>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         {[
           {
-            title: "コンテキスト固定",
-            body: "出演者名をベイに固定し、過去着用傾向やファン特定ログの照合精度を上げやすい。",
+            title: "物",
+            body: "服・香水・コスメ。確証度付きで買う／似てるを並列する。",
           },
           {
-            title: "UIを先に検証",
-            body: "スクショ工程の置き換えが気持ちよいかを、実AI前にデザインで判断する。",
+            title: "興味",
+            body: "発言から拾ったハマり。出典（秒・引用）なしではカードにしない。",
           },
           {
-            title: "拡張の入口",
-            body: "モーメント選択・確証度・代替提案の型が決まれば、入力を他タレントへ差し替え可能。",
+            title: "場所",
+            body: "VLOGや移動ログの店・スポット。地図で開いて聖地巡礼につなぐ。",
           },
         ].map((item) => (
           <div key={item.title} className="border-t border-[var(--line)] pt-5">

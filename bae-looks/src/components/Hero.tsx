@@ -15,10 +15,10 @@ export function Hero() {
           {SITE.brand}
         </p>
         <a
-          href="#demo"
+          href="#context"
           className="text-sm text-[var(--ink-muted)] transition hover:text-[var(--accent)]"
         >
-          Try demo
+          Context
         </a>
       </nav>
 
@@ -37,16 +37,16 @@ export function Hero() {
         </p>
         <div className="animate-rise-delay-2 mt-10 flex flex-wrap gap-3">
           <a
-            href="#demo"
+            href="#context"
             className="rounded-xl bg-[var(--accent)] px-6 py-3 text-sm font-bold text-[#04110e] transition hover:brightness-110"
           >
-            ベイのフレームを試す
+            ベイの今を見る
           </a>
           <a
-            href="#why"
+            href="#demo"
             className="rounded-xl border border-[var(--line)] px-6 py-3 text-sm text-[var(--ink-muted)] transition hover:border-[var(--accent)] hover:text-[var(--accent)]"
           >
-            なぜベイからか
+            フレーム特定を試す
           </a>
         </div>
       </div>
