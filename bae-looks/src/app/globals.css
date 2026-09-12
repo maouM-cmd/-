@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+:root {
+  --bg-deep: #07090f;
+  --bg-panel: #10141f;
+  --bg-elevated: #171c2a;
+  --ink: #f4f1ea;
+  --ink-muted: #a7b0c0;
+  --line: rgba(244, 241, 234, 0.12);
+  --accent: #3de0c4;
+  --accent-hot: #ff6b4a;
+}
+
+@theme inline {
+  --color-background: var(--bg-deep);
+  --color-foreground: var(--ink);
+  --font-display: var(--font-syne);
+  --font-sans: var(--font-manrope);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(61, 224, 196, 0.16), transparent 55%),
+    radial-gradient(900px 600px at 10% 20%, rgba(255, 107, 74, 0.12), transparent 50%),
+    linear-gradient(180deg, #0a0d16 0%, var(--bg-deep) 45%, #05070c 100%);
+  font-family: var(--font-manrope), "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(61, 224, 196, 0.35);
+  color: #04110e;
+}
+
+.font-display {
+  font-family: var(--font-syne), "Hiragino Sans", sans-serif;
+}
+
+.grain {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-20%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+}
+
+@keyframes stagger-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-rise {
+  animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-rise-delay-1 {
+  animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.animate-rise-delay-2 {
+  animation: rise-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.24s both;
+}
+
+.animate-scan {
+  animation: scan 1.6s ease-in-out infinite;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.4s ease-out infinite;
+}
+
+.card-enter {
+  animation: stagger-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
